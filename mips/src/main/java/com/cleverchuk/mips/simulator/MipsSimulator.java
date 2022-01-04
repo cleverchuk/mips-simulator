@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator;
+package com.cleverchuk.mips.simulator;
 
 import android.os.Handler;
 import android.util.SparseIntArray;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
-public class MipsEmulator extends Thread implements OnUserInputListener<Integer> {
+public class MipsSimulator extends Thread implements OnUserInputListener<Integer> {
 
     private enum State {
         IDLE,
@@ -48,7 +48,7 @@ public class MipsEmulator extends Thread implements OnUserInputListener<Integer>
 
     public final BigEndianRegisterFile registerFile;
 
-    public MipsEmulator(Handler ioHandler, MipsCompiler compiler) {
+    public MipsSimulator(Handler ioHandler, MipsCompiler compiler) {
         super("MipsEmulatorThread");
         instructionMemory = new ArrayList<>();
         mainMemory = new BigEndianMainMemory(0x400);

@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator;
+package com.cleverchuk.mips.simulator;
 
 import androidx.annotation.NonNull;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator.storage;
+package com.cleverchuk.mips.simulator.storage;
 @Deprecated
 public class HalfStorage extends Storage {
     private final short[] halfWords;

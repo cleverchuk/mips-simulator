@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator;
+package com.cleverchuk.mips.simulator;
 
 public class BigEndianMainMemory implements Memory {
     private byte[] backingStore;

@@ -1,10 +1,10 @@
 package com.cleverchuk.mips;
 
 import com.cleverchuk.mips.compiler.parser.Parser;
-import com.cleverchuk.mips.emulator.Instruction;
-import com.cleverchuk.mips.emulator.Opcode;
-import com.cleverchuk.mips.emulator.storage.Storage;
-import com.cleverchuk.mips.emulator.storage.StorageType;
+import com.cleverchuk.mips.simulator.Instruction;
+import com.cleverchuk.mips.simulator.Opcode;
+import com.cleverchuk.mips.simulator.storage.Storage;
+import com.cleverchuk.mips.simulator.storage.StorageType;
 import java.util.Locale;
 import org.junit.Test;
 import org.junit.runner.RunWith;

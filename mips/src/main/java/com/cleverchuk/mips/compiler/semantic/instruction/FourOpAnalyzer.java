@@ -3,7 +3,7 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.emulator.Opcode;
+import com.cleverchuk.mips.simulator.Opcode;
 import java.util.List;
 import javax.inject.Inject;
 

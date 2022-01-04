@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator;
+package com.cleverchuk.mips.simulator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator.storage;
+package com.cleverchuk.mips.simulator.storage;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.emulator;
+package com.cleverchuk.mips.simulator;
 
 public interface RegisterFile {
     int readWord(String file);

@@ -1,7 +1,7 @@
 package com.cleverchuk.mips.compiler.parser;
 
-import com.cleverchuk.mips.emulator.Instruction;
-import com.cleverchuk.mips.emulator.storage.Storage;
+import com.cleverchuk.mips.simulator.Instruction;
+import com.cleverchuk.mips.simulator.storage.Storage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

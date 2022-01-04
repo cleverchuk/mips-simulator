@@ -1,10 +1,10 @@
 package com.cleverchuk.mips.compiler.parser;
 
-import com.cleverchuk.mips.emulator.Instruction;
-import com.cleverchuk.mips.emulator.Opcode;
-import com.cleverchuk.mips.emulator.storage.SpaceStorage;
-import com.cleverchuk.mips.emulator.storage.Storage;
-import com.cleverchuk.mips.emulator.storage.StorageType;
+import com.cleverchuk.mips.simulator.Instruction;
+import com.cleverchuk.mips.simulator.Opcode;
+import com.cleverchuk.mips.simulator.storage.SpaceStorage;
+import com.cleverchuk.mips.simulator.storage.Storage;
+import com.cleverchuk.mips.simulator.storage.StorageType;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Matcher;

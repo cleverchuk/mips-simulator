@@ -1,7 +1,7 @@
 package com.cleverchuk.mips.compiler.lexer;
 
 import androidx.annotation.Nullable;
-import com.cleverchuk.mips.emulator.Opcode;
+import com.cleverchuk.mips.simulator.Opcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
