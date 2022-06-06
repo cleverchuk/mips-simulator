@@ -3,7 +3,7 @@ package com.cleverchuk.mips.compiler.lexer;
 public enum TokenType {
     // RESERVED
     DATA,
-    GLOBL,
+    GLOBL, // change this to grammar ie directive -> .ID
     TEXT,
     IOPCODE,
     FOPCODE,

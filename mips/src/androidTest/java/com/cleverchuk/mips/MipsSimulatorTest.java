@@ -9,6 +9,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.codegen.CodeGenerator;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
+import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.FourOpAnalyzer;
@@ -165,7 +166,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(12, mipsSimulator.registerFile.readWord("$s0"), 0.0);
+        assertEquals(12, mipsSimulator.registerFile.readWord("$s0"));
     }
 
     @Test
@@ -194,7 +195,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -207,8 +208,8 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"), 0.0);
-        assertEquals(354, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"));
+        assertEquals(354, mipsSimulator.registerFile.readWord("$s1"));
     }
 
 
@@ -223,7 +224,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-1, mipsSimulator.registerFile.readWord("$s0"), 0.0);
+        assertEquals(-1, mipsSimulator.registerFile.readWord("$s0"));
     }
 
     @Test
@@ -237,7 +238,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-1, mipsSimulator.registerFile.readWord("$s0"), 0.0);
+        assertEquals(-1, mipsSimulator.registerFile.readWord("$s0"));
     }
 
     @Test
@@ -251,7 +252,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"));
 
     }
 
@@ -265,7 +266,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"));
 
     }
 
@@ -280,10 +281,26 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"), 0.0);
-        assertEquals(354, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"));
+        assertEquals(354, mipsSimulator.registerFile.readWord("$s1"));
 
     }
+
+    @Test
+    public void testAddiuWithNegNumbers() {
+        String[] instructions = {
+                ".text",
+                "addiu $t0, $t0, -5",
+                "addiu $s1, $t0, 54"
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(-5, mipsSimulator.registerFile.readWord("$t0"));
+        assertEquals(49, mipsSimulator.registerFile.readWord("$s1"));
+
+    }
+
 
     @Test
     public void testAddu() {
@@ -296,7 +313,21 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(800, mipsSimulator.registerFile.readWord("$s1"));
+    }
+
+    @Test
+    public void testAdduWithOverflow() {
+        String[] instructions = {
+                ".text",
+                "li $t1, 2147483647",
+                "li $t0, 1",
+                "addu $s1, $t0, $t1"
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(Integer.MIN_VALUE, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -309,7 +340,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(1, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(1, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -322,7 +353,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(31, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(31, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -334,7 +365,21 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(300 << 16, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(300 << 16, mipsSimulator.registerFile.readWord("$s1"));
+    }
+
+    @Test
+    public void testLuiWithInvalidNumber() {
+        String[] instructions = {
+                ".text",
+                "lui $s1, 66000"
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(0, mipsSimulator.registerFile.readWord("$s1"));
+        assertTrue(ErrorRecorder.hasErrors());
     }
 
     @Test
@@ -347,7 +392,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(300, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -360,7 +405,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-300, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(-300, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -373,7 +418,22 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(300 << 3, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(300 << 3, mipsSimulator.registerFile.readWord("$t0"));
+    }
+
+
+    @Test
+    public void testSllInvalidNumber() {
+        String[] instructions = {
+                ".text",
+                "li $t0, 32",
+                "sll $t0, $t0, 32"
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"));
+        assertTrue(ErrorRecorder.hasErrors());
     }
 
     @Test
@@ -401,7 +461,24 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"));
+    }
+
+    @Test
+    public void testBneWithInvalidNumber() {
+        String[] instructions = {
+                ".text",
+                "li $t1, 1",
+                "bne $t1, $t0, 131073",
+                "li $t0, 300",
+                "addi $s1, $t0, 54"
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(0, mipsSimulator.registerFile.readWord("$s1"));
+        assertTrue(ErrorRecorder.hasErrors());
     }
 
     @Test
@@ -415,7 +492,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -429,7 +506,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -445,7 +522,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -461,7 +538,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"), 0.0);
+        assertEquals(54, mipsSimulator.registerFile.readWord("$s1"));
     }
 
     @Test
@@ -475,7 +552,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(20, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(20, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -489,7 +566,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(5, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(5, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -503,7 +580,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(5, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(5, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -517,7 +594,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -531,7 +608,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -545,7 +622,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -559,7 +636,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -573,7 +650,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(0, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -586,7 +663,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(2, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(2, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -600,7 +677,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-4, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(-4, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -613,7 +690,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-3, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(-3, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -627,7 +704,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(3, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(3, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -640,7 +717,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(10, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(10, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -654,7 +731,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(1, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -667,7 +744,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(2, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(2, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -681,7 +758,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(17, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(17, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test
@@ -694,7 +771,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-15, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(-15, mipsSimulator.registerFile.readWord("$t0"));
 
         instructions = new String[]{
                 ".text",
@@ -706,7 +783,7 @@ public class MipsSimulatorTest {
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(11, mipsSimulator.registerFile.readWord("$t0"), 0.0);
+        assertEquals(11, mipsSimulator.registerFile.readWord("$t0"));
     }
 
     @Test

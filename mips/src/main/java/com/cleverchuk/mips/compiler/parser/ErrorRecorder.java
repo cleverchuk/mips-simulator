@@ -3,8 +3,6 @@ package com.cleverchuk.mips.compiler.parser;
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.Locale;
-import lombok.Builder;
-import lombok.Data;
 
 public class ErrorRecorder {
     private static final ArrayList<Error> ERRORS = new ArrayList<>();
@@ -29,17 +27,53 @@ public class ErrorRecorder {
         return !ERRORS.isEmpty();
     }
 
-    @Data
-    @Builder
-    public static class Error {
-        private int line;
 
-        private String msg;
+    public static class Error {
+        private final int line;
+
+        private final String msg;
+
+        public Error(int line, String msg) {
+            this.line = line;
+            this.msg = msg;
+        }
+
+        public int getLine() {
+            return line;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
 
         @Override
         @NonNull
         public String toString() {
             return String.format(Locale.getDefault(), "[%d] %s", line, msg);
+        }
+
+        public static ErrorBuilder builder(){
+            return new ErrorBuilder();
+        }
+
+        public static class ErrorBuilder{
+            private int line;
+
+            private String msg;
+
+            public ErrorBuilder line(int line){
+                this.line = line;
+                return this;
+            }
+
+            public ErrorBuilder msg(String msg){
+                this.msg = msg;
+                return this;
+            }
+
+            public Error build(){
+                return new Error(line, msg);
+            }
         }
     }
 }

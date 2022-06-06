@@ -298,7 +298,6 @@ public final class RecursiveDescentParser {
                 case FLOATSTORAGE:
                 case DOUBLESTORAGE:
                     dataMode.addChild(Node.builder()
-
                             .nodeType(TERMINAL)
                             .line(ll1.getLine())
                             .value(ll1.getValue())
@@ -1016,7 +1015,7 @@ public final class RecursiveDescentParser {
 
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
-                        .value(MipsLexer.getDECI_TO_REG().get(ll1.getValue()))
+                        .value(MipsLexer.DECI_TO_REG.get(ll1.getValue()))
                         .build());
                 return register;
             }

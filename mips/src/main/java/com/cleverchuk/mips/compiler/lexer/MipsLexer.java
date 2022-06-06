@@ -47,8 +47,8 @@ public final class MipsLexer {
 
     }};
 
-    @Getter
-    private static final Map<String, String> DECI_TO_REG = new HashMap<String, String>() {{
+
+    public static final Map<String, String> DECI_TO_REG = new HashMap<String, String>() {{
         put("0", "zero");
         put("1", "at");
         put("2", "v0");
@@ -83,11 +83,11 @@ public final class MipsLexer {
         put("31", "ra");
     }};
 
-    @Getter
-    private static final Set<String> REG = new HashSet<>(DECI_TO_REG.values());
 
-    @Getter
-    private static final Set<String> OPCODE = Opcode.OPCODE;
+    public static final Set<String> REG = new HashSet<>(DECI_TO_REG.values());
+
+
+    public static final Set<String> OPCODE = Opcode.OPCODE;
 
     private int state = 100;
 
@@ -99,8 +99,11 @@ public final class MipsLexer {
 
     private final List<Token> tokens = new ArrayList<>(100);
 
-    @Getter
     private int lineNumber = 1;
+
+    public int getLineNumber() {
+        return lineNumber;
+    }
 
     private boolean isLiteral(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '$'

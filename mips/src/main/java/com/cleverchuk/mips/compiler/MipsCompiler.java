@@ -41,6 +41,10 @@ public final class MipsCompiler {
         }
 
         codeGenerator.generate(Objects.requireNonNull(program, "incorrect program"));
+        if (ErrorRecorder.hasErrors()) {
+            throw new SyntaxError(ErrorRecorder.printErrors());
+        }
+
         return true;
     }
 

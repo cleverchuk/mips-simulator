@@ -15,7 +15,7 @@ public class BigEndianRegisterFile implements RegisterFile {
     private long accumulator;
 
     public BigEndianRegisterFile() {
-        MipsLexer.getREG()
+        MipsLexer.REG
                 .forEach(reg -> regFile.put("$" + reg, new int[1]));
     }
 

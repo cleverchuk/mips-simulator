@@ -2,6 +2,7 @@ package com.cleverchuk.mips.compiler.parser;
 
 public enum Construct {
     PROGRAM,
+    DIRECTIVE,
     SEGMENT,
     DATASEG,
     DATADECLS,

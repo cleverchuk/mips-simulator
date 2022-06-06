@@ -2,6 +2,7 @@ package com.cleverchuk.mips.compiler.codegen;
 
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.parser.Construct;
+import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
@@ -14,9 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import javax.inject.Inject;
-import lombok.Data;
 
-@Data
+
 public final class CodeGenerator {
     public static final char VALUE_DELIMITER = '#';
 
@@ -29,6 +29,30 @@ public final class CodeGenerator {
     private int textSegmentOffset = -1;
 
     private int memOffset = 0;
+
+    public static char getValueDelimiter() {
+        return VALUE_DELIMITER;
+    }
+
+    public Memory getMemory() {
+        return memory;
+    }
+
+    public List<Instruction> getInstructions() {
+        return instructions;
+    }
+
+    public int getDataSegmentOffset() {
+        return dataSegmentOffset;
+    }
+
+    public int getTextSegmentOffset() {
+        return textSegmentOffset;
+    }
+
+    public int getMemOffset() {
+        return memOffset;
+    }
 
     @Inject
     public CodeGenerator() {
@@ -126,7 +150,7 @@ public final class CodeGenerator {
         if (second == null) {
             return first;
         }
-        return first.toString() + VALUE_DELIMITER + second.toString();
+        return first.toString() + VALUE_DELIMITER + second;
     }
 
     private Object evalExpr(Object expr) {
@@ -190,6 +214,7 @@ public final class CodeGenerator {
         if (operand0 == null) { // Zero operand opcode
             return builder
                     .build();
+
         } else if (operand1 == null) { // One operand opcode
             if (MipsLexer.isRegister(operand0)) {
                 builder.rd("$" + operand0);
@@ -200,7 +225,6 @@ public final class CodeGenerator {
                     builder.label(operand0);
                 }
             }
-            return builder.build();
 
         } else if (operand2 == null) {// Two operand opcode
             if (MipsLexer.isRegister(operand0)) {
@@ -220,7 +244,6 @@ public final class CodeGenerator {
                     builder.label(operand1);
                 }
             }
-            return builder.build();
 
         } else if (operand3 == null) { // Three operand opcode
 
@@ -246,15 +269,22 @@ public final class CodeGenerator {
                     builder.label(operand2);
                 }
             }
-            return builder.build();
 
         } else { // Four operand opcode
-            return builder.rd("$" + operand0)
+            builder.rd("$" + operand0)
                     .rs("$" + operand1)
                     .pos(Integer.parseInt(operand2))
-                    .size(Integer.parseInt(operand3))
-                    .build();
+                    .size(Integer.parseInt(operand3));
         }
+
+        Instruction instruction = builder.build();
+        if (!checkBitWidth(instruction)) {
+            ErrorRecorder.recordError(ErrorRecorder.Error.builder()
+                    .line(instruction.line)
+                    .msg("offset outside bit range")
+                    .build());
+        }
+        return instruction;
     }
 
     private void loadMemory(String data) {
@@ -311,5 +341,90 @@ public final class CodeGenerator {
                 memory.store((byte) temp[i], memOffset);
             }
         }
+    }
+
+    private boolean checkBitWidth(Instruction instruction) {
+        switch (instruction.opcode) {
+            default:
+                return true;
+
+            case ROTR:
+            case SRL:
+            case SRA:
+            case SLL:
+                return check5BitWidth(instruction);
+
+            case ADDIU:
+            case SLTIU:
+                return Math.abs(instruction.immediateValue) <= 0xff_ff;
+
+            case ADDI:
+            case LUI:
+            case ANDI:
+            case ORI:
+            case XORI:
+            case SLTI:
+                return check16BitConstant(instruction);
+
+            case LB:
+            case LBU:
+            case LH:
+            case LHU:
+            case LW:
+            case LWL:
+            case LWR:
+            case SB:
+            case SH:
+            case SW:
+            case SWL:
+            case SWR:
+            case ULW:
+            case USW:
+            case LL:
+            case SC:
+                return check16BitOffset(instruction);
+
+            case B:
+            case BAL:
+            case BEQ:
+            case BEQZ:
+            case BGEZ:
+            case BGEZAL:
+            case BGTZ:
+            case BLEZ:
+            case BLTZ:
+            case BLTZAL:
+            case BNEZ:
+            case BNE:
+                return check18BitOffset(instruction);
+        }
+    }
+
+    private boolean check5BitWidth(Instruction instruction) {
+        if (instruction.immediateValue >= 0) {
+            return instruction.immediateValue <= 0x1f;
+        }
+        return instruction.immediateValue >= -15;
+    }
+
+    private boolean check16BitOffset(Instruction instruction) {
+        if (instruction.offset >= 0) {
+            return instruction.offset <= 0xff_ff;
+        }
+
+        return Short.MIN_VALUE <= instruction.offset;
+    }
+
+
+    private boolean check18BitOffset(Instruction instruction) {
+        if (instruction.immediateValue >= 0) {
+            return instruction.immediateValue <= 131072;
+        }
+
+        return -131071 <= instruction.immediateValue;
+    }
+
+    private boolean check16BitConstant(Instruction instruction) {
+        return Short.MIN_VALUE <= instruction.immediateValue && instruction.immediateValue <= Short.MAX_VALUE;
     }
 }

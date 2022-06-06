@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.util.SparseIntArray;
 import com.cleverchuk.mips.communication.OnUserInputListener;
 import com.cleverchuk.mips.compiler.MipsCompiler;
+import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         STEPPING,
         HALTED,
         ERROR,
-        STOP
+        STOP,
+        PAUSED
     }
 
     private SparseIntArray breakpoints;
@@ -95,6 +97,11 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         currentState = State.STOP;
     }
 
+    public void pause(){
+        previousState = currentState;
+        currentState = State.PAUSED;
+    }
+
     public void idle() {
         previousState = currentState;
         currentState = State.IDLE;
@@ -128,7 +135,6 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     }
 
 
-
     @Override
     public void run() {
         for (; ; ) {
@@ -153,17 +159,21 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
             } else if (currentState == State.STOP) {
                 return;
+
+            } else if (currentState == State.WAITING) {
+                ioHandler.obtainMessage(102)
+                        .sendToTarget();
             }
         }
     }
 
 
     private void init(String raw) throws Exception {
-        if(compiler.compile(raw)) {
+        if (compiler.compile(raw) || isPaused() && !ErrorRecorder.hasErrors()) {
             textSegmentOffset = compiler.textSegmentOffset();
-            boolean hasTextSectionSpecified = textSegmentOffset != -1;
+            boolean hasTextSectionSpecified = textSegmentOffset == -1; // .text section is missing if this is True
 
-            if (!hasTextSectionSpecified) {
+            if (hasTextSectionSpecified) {
                 currentState = State.ERROR;
                 throw new Exception("Must have .text section");
             }
@@ -176,11 +186,15 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             instructionEndPos = instructionMemory.size();
             registerFile.writeWord("$sp", Math.max((int) (compiler.memBoundary() * 0.5), 0x200)); // initialize stack pointer
 
-            if (PC >= instructionEndPos || isHalted()) {
+            if (PC >= instructionEndPos || isHalted() || isPaused()) {
                 idle();
                 PC = 0;
             }
         }
+    }
+
+    private boolean isPaused() {
+        return currentState == State.PAUSED;
     }
 
 
@@ -503,6 +517,31 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
+    public void loadInstructions(String instructions, SparseIntArray breakpoints, boolean silent) {
+        this.breakpoints = breakpoints;
+        try {
+            init(instructions);
+        } catch (SyntaxError syntaxError) {
+            previousState = currentState;
+            currentState = State.ERROR;
+            if (!silent) {
+                ioHandler.obtainMessage(100, syntaxError.getMessage())
+                        .sendToTarget();
+            }
+
+        } catch (Exception e) {
+            previousState = currentState;
+            currentState = State.ERROR;
+            String error =
+                    String.format("OoOps! Something went awry: %s\n If you think this is a bug, please report issue: https://github" +
+                            ".com/CleverChuk/MipsIde-bug-track\n", e.getLocalizedMessage());
+            if (!silent) {
+                ioHandler.obtainMessage(100, error)
+                        .sendToTarget();
+            }
+        }
+    }
+
     private void sw(Instruction instruction) {
         int baseIndex = registerFile.readWord(instruction.rs);
         mainMemory.storeWord(registerFile.readWord(instruction.rd), baseIndex + instruction.offset);
@@ -688,17 +727,18 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     }
 
     private void addiu(Instruction instruction) {
-        int leftOperand = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, instruction.immediateValue + leftOperand);
+        long leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+        long rightOperand = Long.parseLong(Integer.toBinaryString(instruction.immediateValue), 0x2);
+        registerFile.writeWord(instruction.rd, (int) (leftOperand + rightOperand));
     }
 
     private void addu(Instruction instruction) throws Exception {
-        Integer leftOperand = registerFile.readWord(instruction.rs),
-                rightOperand = registerFile.readWord(instruction.rt);
+        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
+                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
         if (instruction.rd == null) {
             throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
         }
-        registerFile.writeWord(instruction.rd, leftOperand + rightOperand);
+        registerFile.writeWord(instruction.rd, (int) (leftOperand + rightOperand));
     }
 
     private void clo(Instruction instruction) {
@@ -732,12 +772,13 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     }
 
     private void subu(Instruction instruction) throws Exception {
-        Integer leftOperand = registerFile.readWord(instruction.rs),
-                rightOperand = registerFile.readWord(instruction.rt);
+        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
+                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+
         if (instruction.rd == null) {
             throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
         }
-        registerFile.writeWord(instruction.rd, leftOperand - rightOperand);
+        registerFile.writeWord(instruction.rd, (int) (leftOperand - rightOperand));
     }
 
     private void sllv(Instruction instruction) {
@@ -768,8 +809,9 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     }
 
     private void sltu(Instruction instruction) {
-        int rt = registerFile.readWord(instruction.rt), rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, Math.abs(rs) < Math.abs(rt) ? 1 : 0);
+        long rt = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
+                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+        registerFile.writeWord(instruction.rd, rs < rt ? 1 : 0);
     }
 
     private void slti(Instruction instruction) {
@@ -778,8 +820,9 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     }
 
     private void sltiu(Instruction instruction) {
-        int constant = instruction.immediateValue, rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, Math.abs(rs) < Math.abs(constant) ? 1 : 0);
+        long constant = Long.parseLong(Integer.toBinaryString(instruction.immediateValue), 0x2),
+                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+        registerFile.writeWord(instruction.rd, rs < constant ? 1 : 0);
     }
 
     private void and(Instruction instruction) {
