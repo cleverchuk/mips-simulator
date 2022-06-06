@@ -44,10 +44,13 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.release
                 groupId "com.cleverchuk"
                 artifactId 'mips-simulator'
                 version = android.defaultConfig.versionName
+
+                afterEvaluate {
+                    from components.release
+                }
             }
         }
     }
