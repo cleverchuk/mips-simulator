@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
-import lombok.Getter;
 
 public final class MipsLexer {
     private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
@@ -31,7 +30,6 @@ public final class MipsLexer {
     public MipsLexer() {
     }
 
-    @Getter
     private static final Map<String, TokenType> RESERVED = new HashMap<String, TokenType>() {{
         put("data", TokenType.DATA);
         put("text", TokenType.TEXT);

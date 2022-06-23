@@ -1,13 +1,12 @@
 package com.cleverchuk.mips.simulator.storage;
 
-import lombok.Data;
 
 /**
  * Author: CleverChuk
  * Company: CleverCorp Inc
  * Date: 11/26/2019.
  */
-@Data
+
 @Deprecated
 public class Storage {
     public Object data;
