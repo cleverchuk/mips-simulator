@@ -5,18 +5,14 @@ plugins {
 
 android {
     namespace = "com.cleverchuk.mips"
-    compileSdk 31
+    compileSdk 32
 
     defaultConfig {
         minSdk 24
-        targetSdk 31
+        targetSdk 32
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        aarMetadata {
-            minSdk = 24
-        }
-
         versionName = "1.0.0"
     }
 
@@ -32,12 +28,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
 afterEvaluate {
