@@ -51,7 +51,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     public final BigEndianRegisterFile registerFile;
 
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler) {
-        super("MipsEmulatorThread");
+        super("MipsSimulatorThread");
         instructionMemory = new ArrayList<>();
         mainMemory = new BigEndianMainMemory(0x400);
 
@@ -97,7 +97,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         currentState = State.STOP;
     }
 
-    public void pause(){
+    public void pause() {
         previousState = currentState;
         currentState = State.PAUSED;
     }
@@ -116,9 +116,10 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             } catch (Exception e) {
                 previousState = currentState;
                 currentState = State.HALTED;
+                int computedPC = PC - 1;
 
-                String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s",
-                        instructionMemory.get(PC - 1).line, e.getMessage());
+                int line = computedPC >= 0 && computedPC < instructionEndPos ? instructionMemory.get(computedPC).line : -1;
+                String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
 
                 ioHandler.obtainMessage(100, error)
                         .sendToTarget();
