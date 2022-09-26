@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.cpu;
 
 import android.os.Handler;
 import android.util.SparseIntArray;
@@ -7,6 +7,8 @@ import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
+import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
+import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -221,7 +223,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
         // execute the given instruction
         // use switch statement to select the right branch using the opcode
-        switch (instruction.opcode) {
+        switch (instruction.CPUOpcode) {
             case LI:
                 li(instruction);
                 break;
@@ -565,20 +567,20 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     private void la(Instruction instruction) throws Exception {
         Integer address = labels.get(instruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, address);
     }
 
     private void lw(Instruction instruction) throws Exception {
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         if (instruction.rs != null) {
             int baseIndex = registerFile.readWord(instruction.rs);
             registerFile.writeWord(instruction.rd, mainMemory.readWord(baseIndex + instruction.offset));
         } else {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
     }
 
@@ -586,7 +588,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         //set PC to the instruction given in the label
         Integer address = labels.get(instruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord("$ra", PC + 1);
         PC = address;
@@ -620,7 +622,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         int leftOperand = registerFile.readWord(instruction.rs),
                 rightOperand = registerFile.readWord(instruction.rt);
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, Math.addExact(leftOperand, rightOperand));
     }
@@ -637,7 +639,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         int leftOperand = registerFile.readWord(instruction.rs),
                 rightOperand = registerFile.readWord(instruction.rt);
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, leftOperand * rightOperand);
 
@@ -647,7 +649,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         int leftOperand = registerFile.readWord(instruction.rs),
                 rightOperand = registerFile.readWord(instruction.rt);
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, Math.subtractExact(leftOperand, rightOperand));
     }
@@ -664,7 +666,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     private void jump(Instruction instruction) throws Exception {
         Integer address = labels.get(instruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         PC = address;
     }
@@ -737,7 +739,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
                 leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, (int) (leftOperand + rightOperand));
     }
@@ -777,7 +779,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                 leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
 
         if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.opcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
         }
         registerFile.writeWord(instruction.rd, (int) (leftOperand - rightOperand));
     }

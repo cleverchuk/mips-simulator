@@ -1,5 +1,6 @@
 package com.cleverchuk.mips.simulator;
 
+import com.cleverchuk.mips.simulator.cpu.BigEndianRegisterFile;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

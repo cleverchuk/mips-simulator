@@ -1,7 +1,6 @@
 package com.cleverchuk.mips.compiler.parser;
 
-import com.cleverchuk.mips.simulator.Instruction;
-import com.cleverchuk.mips.simulator.storage.Storage;
+import com.cleverchuk.mips.simulator.cpu.Instruction;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,8 +20,6 @@ public class Node {
 
 
     protected final List<Instruction> instructions = new ArrayList<>(100);
-
-    protected final List<Storage> data = new ArrayList<>(100);
 
     public Node(Construct construct, NodeType nodeType, Object value, int line) {
         this.construct = construct;
@@ -65,10 +62,6 @@ public class Node {
 
     public List<Instruction> getInstructions() {
         return instructions;
-    }
-
-    public List<Storage> getData() {
-        return data;
     }
 
     public static NodeBuilder builder() {

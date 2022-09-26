@@ -181,8 +181,8 @@ public final class RecursiveDescentParser {
         }
 
         if (ll1.getTokenType() != TokenType.EOF &&
-                ll1.getTokenType() != TokenType.IOPCODE &&
-                ll1.getTokenType() != TokenType.FOPCODE &&
+                ll1.getTokenType() != TokenType.CPU_OPCODE &&
+                ll1.getTokenType() != TokenType.FPU_OPCODE &&
                 ll1.getTokenType() != TokenType.DOT &&
                 lexer.getNextToken().getTokenType() != TokenType.TEXT) {
             ErrorRecorder.recordError(ErrorRecorder.Error.builder()
@@ -631,7 +631,7 @@ public final class RecursiveDescentParser {
             int resetPos0 = lexer.getTokenPos();
             ll1 = lexer.getNextToken();
 
-            if (ll1.getTokenType() == TokenType.IOPCODE) {
+            if (ll1.getTokenType() == TokenType.CPU_OPCODE) {
                 lexer.reset(resetPos0);
                 textDecl.addChild(label);
                 Node instruction = instruction();
@@ -690,7 +690,7 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() != TokenType.IOPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
             if (ll1.getTokenType() != TokenType.EOF && ll1.getTokenType() != TokenType.DOT) {
                 ErrorRecorder.recordError(ErrorRecorder.Error.builder()
                         .line(ll1.getLine())
@@ -932,7 +932,7 @@ public final class RecursiveDescentParser {
                 .line(ll1.getLine())
                 .value(ll1.getValue())
                 .build());
-        if (ll1.getTokenType() != TokenType.IOPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
             return null;
         }
         return zeroOp;
@@ -1065,7 +1065,7 @@ public final class RecursiveDescentParser {
             ll1 = lexer.getNextToken();
             nextTokenType = ll1.getTokenType();
 
-            if (currTokenType == TokenType.IOPCODE || currTokenType == TokenType.FOPCODE) {
+            if (currTokenType == TokenType.CPU_OPCODE || currTokenType == TokenType.FPU_OPCODE) {
                 lexer.reset(resetPos - 1);
                 return greedyTextDecl();
             }
@@ -1073,7 +1073,7 @@ public final class RecursiveDescentParser {
             if ((currTokenType == TokenType.ID || currTokenType == TokenType.DECI) && nextTokenType == TokenType.COLON) {
                 ll1 = lexer.getNextToken();
                 nextTokenType = ll1.getTokenType();
-                if (nextTokenType == TokenType.IOPCODE || nextTokenType == TokenType.FOPCODE) {
+                if (nextTokenType == TokenType.CPU_OPCODE || nextTokenType == TokenType.FPU_OPCODE) {
                     lexer.reset(lexer.getTokenPos() - 1);
                     return greedyTextDecl();
                 } else {

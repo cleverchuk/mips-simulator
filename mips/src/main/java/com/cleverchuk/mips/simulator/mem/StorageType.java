@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.simulator.storage;
+package com.cleverchuk.mips.simulator.mem;
 
 
 public enum StorageType {

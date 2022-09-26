@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.cpu;
 
 
 public class Instruction {
@@ -6,7 +6,7 @@ public class Instruction {
 
     public String label; // label if any
 
-    public Opcode opcode;
+    public CpuOpcode CPUOpcode;
 
     public int immediateValue;
 
@@ -18,12 +18,12 @@ public class Instruction {
 
     public int line;
 
-    public Instruction(String rd, String rs, String rt, String label, Opcode opcode, int immediateValue, int size, int pos, int offset, int line) {
+    public Instruction(String rd, String rs, String rt, String label, CpuOpcode CPUOpcode, int immediateValue, int size, int pos, int offset, int line) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.opcode = opcode;
+        this.CPUOpcode = CPUOpcode;
         this.immediateValue = immediateValue;
         this.size = size;
         this.pos = pos;
@@ -31,12 +31,12 @@ public class Instruction {
         this.line = line;
     }
 
-    public Instruction(Opcode opcode, String rd, String rs, String rt, String label, int offset) {
+    public Instruction(CpuOpcode CPUOpcode, String rd, String rs, String rt, String label, int offset) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.opcode = opcode;
+        this.CPUOpcode = CPUOpcode;
         this.offset = offset;
     }
 
@@ -49,7 +49,7 @@ public class Instruction {
 
         private String label; // label if any
 
-        private Opcode opcode;
+        private CpuOpcode CPUOpcode;
 
         private int immediateValue;
 
@@ -76,8 +76,8 @@ public class Instruction {
             return this;
         }
 
-        public InstructionBuilder opcode(Opcode opcode) {
-            this.opcode = opcode;
+        public InstructionBuilder opcode(CpuOpcode CPUOpcode) {
+            this.CPUOpcode = CPUOpcode;
             return this;
         }
 
@@ -112,7 +112,7 @@ public class Instruction {
         }
 
         public Instruction build() {
-            return new Instruction(rd, rs, rt, label, opcode, immediateValue, size, pos, offset, line);
+            return new Instruction(rd, rs, rt, label, CPUOpcode, immediateValue, size, pos, offset, line);
         }
 
     }

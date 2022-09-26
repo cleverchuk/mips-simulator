@@ -1,7 +1,7 @@
 package com.cleverchuk.mips.compiler.lexer;
 
 import androidx.annotation.Nullable;
-import com.cleverchuk.mips.simulator.Opcode;
+import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,7 +85,7 @@ public final class MipsLexer {
     public static final Set<String> REG = new HashSet<>(DECI_TO_REG.values());
 
 
-    public static final Set<String> OPCODE = Opcode.OPCODE;
+    public static final Set<String> OPCODE = CpuOpcode.OPCODE;
 
     private int state = 100;
 
@@ -166,7 +166,7 @@ public final class MipsLexer {
                 }
                 if (OPCODE.contains(value)) {
                     return Token.builder()
-                            .tokenType(TokenType.IOPCODE)
+                            .tokenType(TokenType.CPU_OPCODE)
                             .value(value)
                             .line(lineNumber)
                             .pos(sourcePos - value.length())

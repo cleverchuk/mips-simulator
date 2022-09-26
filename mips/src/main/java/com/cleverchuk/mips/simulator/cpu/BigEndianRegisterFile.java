@@ -1,4 +1,4 @@
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.cpu;
 
 import androidx.annotation.NonNull;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;

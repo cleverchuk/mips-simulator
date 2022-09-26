@@ -3,7 +3,7 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.Opcode;
+import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -103,7 +103,7 @@ public class TwoOpAnalyzer implements Analyzer {
         public boolean analyze(Node opcodeKind) {
             List<Node> children = opcodeKind.getChildren();
             Node opcode = children.get(0);
-            switch (Opcode.parse((String) opcode.getValue())) {
+            switch (CpuOpcode.parse((String) opcode.getValue())) {
                 default:
                     return false;
                 case LB:
@@ -150,7 +150,7 @@ public class TwoOpAnalyzer implements Analyzer {
                     .getConstruct();
 
             Node opcode = children.get(0);
-            switch (Opcode.parse((String) opcode.getValue())) {
+            switch (CpuOpcode.parse((String) opcode.getValue())) {
                 default:
                     return false;
                 case DIV:
@@ -194,7 +194,7 @@ public class TwoOpAnalyzer implements Analyzer {
                     .getConstruct();
 
             Node opcode = children.get(0);
-            switch (Opcode.parse((String) opcode.getValue())) {
+            switch (CpuOpcode.parse((String) opcode.getValue())) {
                 default:
                     return false;
                 case BEQZ:

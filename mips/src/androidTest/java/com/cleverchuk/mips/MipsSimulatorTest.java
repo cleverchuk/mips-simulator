@@ -18,7 +18,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.OneOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ThreeOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
-import com.cleverchuk.mips.simulator.MipsSimulator;
+import com.cleverchuk.mips.simulator.cpu.MipsSimulator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

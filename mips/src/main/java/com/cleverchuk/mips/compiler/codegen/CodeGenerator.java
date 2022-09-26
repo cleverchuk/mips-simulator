@@ -6,11 +6,11 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
-import com.cleverchuk.mips.simulator.BigEndianMainMemory;
-import com.cleverchuk.mips.simulator.Instruction;
-import com.cleverchuk.mips.simulator.Memory;
-import com.cleverchuk.mips.simulator.Opcode;
-import com.cleverchuk.mips.simulator.storage.StorageType;
+import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
+import com.cleverchuk.mips.simulator.cpu.Instruction;
+import com.cleverchuk.mips.simulator.mem.Memory;
+import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
+import com.cleverchuk.mips.simulator.mem.StorageType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -206,7 +206,7 @@ public final class CodeGenerator {
     }
 
     private Instruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
-        Opcode opCode = Opcode.valueOf(opcode.toUpperCase());
+        CpuOpcode opCode = CpuOpcode.valueOf(opcode.toUpperCase());
         Instruction.InstructionBuilder builder = Instruction.builder()
                 .line(line)
                 .opcode(opCode);
@@ -344,7 +344,7 @@ public final class CodeGenerator {
     }
 
     private boolean checkBitWidth(Instruction instruction) {
-        switch (instruction.opcode) {
+        switch (instruction.CPUOpcode) {
             default:
                 return true;
 
