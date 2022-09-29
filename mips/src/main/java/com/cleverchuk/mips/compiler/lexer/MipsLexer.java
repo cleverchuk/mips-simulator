@@ -2,6 +2,7 @@ package com.cleverchuk.mips.compiler.lexer;
 
 import androidx.annotation.Nullable;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
+import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,8 +12,18 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_COMMENT;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_DECI;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_FLOAT;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_HEX;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_IDENTIFIER;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_OCTAL;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_START;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
+
+
 public final class MipsLexer {
-    private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
+    private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9.]*");
 
     private static final Pattern DECI = Pattern.compile("[0-9][0-9]*");
 
@@ -82,12 +93,14 @@ public final class MipsLexer {
     }};
 
 
+
     public static final Set<String> REG = new HashSet<>(DECI_TO_REG.values());
 
+    public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
 
-    public static final Set<String> OPCODE = CpuOpcode.OPCODE;
+    public static final Set<String> FPU_OPCODES = FpuOpcode.FPU_OPCODES;
 
-    private int state = 100;
+    private LexerState state = LEX_START;
 
     private char[] source;
 
@@ -112,42 +125,42 @@ public final class MipsLexer {
     private Token buildToken(String value) {
         switch (state) {
             default:
-            case 100:
+            case LEX_START:
                 return null; // This must not happen
-            case 1:
-                state = 100;
+            case LEX_FLOAT:
+                state = LEX_START;
                 return Token.builder()
                         .tokenType(TokenType.FLOAT)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
                         .build();
-            case 2:
-                state = 100;
+            case LEX_OCTAL:
+                state = LEX_START;
                 return Token.builder()
                         .tokenType(TokenType.OCTAL)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
                         .build();
-            case 3:
-                state = 100;
+            case LEX_DECI:
+                state = LEX_START;
                 return Token.builder()
                         .tokenType(TokenType.DECI)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
                         .build();
-            case 4:
-                state = 100;
+            case LEX_HEX:
+                state = LEX_START;
                 return Token.builder()
                         .tokenType(TokenType.HEX)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
                         .build();
-            case 5:
-                state = 100;
+            case LEX_IDENTIFIER:
+                state = LEX_START;
                 if (RESERVED.get(value) != null) {
                     return Token.builder()
                             .tokenType(RESERVED.get(value))
@@ -164,7 +177,7 @@ public final class MipsLexer {
                             .pos(sourcePos - value.length() - 1)
                             .build();
                 }
-                if (OPCODE.contains(value)) {
+                if (CPU_OPCODES.contains(value)) {
                     return Token.builder()
                             .tokenType(TokenType.CPU_OPCODE)
                             .value(value)
@@ -185,7 +198,7 @@ public final class MipsLexer {
         tokens.clear();
         sourcePos = 0;
         tokenPos = 0;
-        state = 100;
+        state = LEX_START;
         lineNumber = 1;
 
         this.source = new char[source.length + 1];
@@ -213,13 +226,13 @@ public final class MipsLexer {
                 return new Token(TokenType.EOF, null, lineNumber);
             }
             char c = source[sourcePos++];
-            if (c == '\n' || c == 0 || (Character.isWhitespace(c) && state != 6 && state != 0)) {
-                if (state == 0 || state == 100) {
+            if (c == '\n' || c == 0 || (Character.isWhitespace(c) && state != LEX_STRING && state != LEX_COMMENT)) {
+                if (state == LEX_COMMENT || state == LEX_START) {
                     stringBuilder.delete(0, stringBuilder.length());
                     if (c == '\n') {
                         ++lineNumber;
                     }
-                    state = 100;
+                    state = LEX_START;
                     continue;
                 }
                 Token token = buildToken(stringBuilder.toString());
@@ -229,35 +242,35 @@ public final class MipsLexer {
                 return token;
             }
 
-            if (c > 126 && state != 6 && state != 0) {
+            if (c > 126 && state != LEX_STRING && state != LEX_COMMENT) {
                 continue;
             }
 
             stringBuilder.append(c);
             if (COMMENT.matcher(stringBuilder.toString()).matches()) {
-                state = 0;
+                state = LEX_COMMENT;
             } else if (FLOAT.matcher(stringBuilder.toString()).matches()) {
-                state = 1;
+                state = LEX_FLOAT;
             } else if (OCTAL.matcher(stringBuilder.toString()).matches()) {
-                state = 2;
+                state = LEX_OCTAL;
             } else if (DECI.matcher(stringBuilder.toString()).matches()) {
-                state = 3;
+                state = LEX_DECI;
             } else if (HEX.matcher(stringBuilder.toString()).matches()) {
-                state = 4;
+                state = LEX_HEX;
             } else if (ID.matcher(stringBuilder.toString()).matches()) {
-                state = 5;
+                state = LEX_IDENTIFIER;
             } else if (STRING.matcher(stringBuilder.toString()).matches()) {
-                state = 100;
+                state = LEX_START;
                 return Token.builder()
                         .tokenType(TokenType.STRING)
                         .value(stringBuilder.toString())
                         .line(lineNumber)
                         .pos(sourcePos - stringBuilder.length())
                         .build();
-            } else if (state != 6 && state != 0) {
+            } else if (state != LEX_STRING && state != LEX_COMMENT) {
                 switch (c) {
                     case '.':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.DOT)
                                 .value(".")
@@ -265,7 +278,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '+':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.PLUS)
                                 .value("+")
@@ -273,7 +286,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '-':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.MINUS)
                                 .value("-")
@@ -281,7 +294,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '*':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.TIMES)
                                 .value("*")
@@ -289,7 +302,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '/':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.DIV)
                                 .value("/")
@@ -297,7 +310,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '$':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.DOLLARSIGN)
                                 .value("$")
@@ -305,7 +318,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case ',':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.COMMA)
                                 .value(",")
@@ -313,7 +326,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case ':':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.COLON)
                                 .value(":")
@@ -321,7 +334,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '(':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.LPAREN)
                                 .value("(")
@@ -329,7 +342,7 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case ')':
-                        state = 100;
+                        state = LEX_START;
                         return Token.builder()
                                 .tokenType(TokenType.RPAREN)
                                 .value(")")
@@ -337,14 +350,14 @@ public final class MipsLexer {
                                 .pos(sourcePos - 1)
                                 .build();
                     case '"':
-                        state = 6;
+                        state = LEX_STRING;
                 }
             } else {
-                if (state != 6) {
-                    state = 100;
+                if (state != LEX_STRING) {
+                    state = LEX_START;
                 }
             }
-            if (isLiteral(source[sourcePos]) && state != 6 && state != 0) {
+            if (isLiteral(source[sourcePos]) && state != LEX_STRING && state != LEX_COMMENT) {
                 return buildToken(stringBuilder.toString());
             }
         }

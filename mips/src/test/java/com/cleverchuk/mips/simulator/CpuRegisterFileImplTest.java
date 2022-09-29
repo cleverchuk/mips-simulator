@@ -1,13 +1,13 @@
 package com.cleverchuk.mips.simulator;
 
-import com.cleverchuk.mips.simulator.cpu.BigEndianRegisterFile;
+import com.cleverchuk.mips.simulator.cpu.CpuRegisterFileImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class BigEndianRegisterFileTest {
+public class CpuRegisterFileImplTest {
 
-    private final BigEndianRegisterFile bigEndianRegisterFile = new BigEndianRegisterFile();
+    private final CpuRegisterFileImpl bigEndianRegisterFile = new CpuRegisterFileImpl();
 
     @Test
     public void readWord() {

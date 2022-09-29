@@ -1,6 +1,6 @@
 package com.cleverchuk.mips.simulator.cpu;
 
-public interface RegisterFile {
+public interface CpuRegisterFile {
     int readWord(String file);
     void writeWord(String file, int value);
     void accAdd(long value);

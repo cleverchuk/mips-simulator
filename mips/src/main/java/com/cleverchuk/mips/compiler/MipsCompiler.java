@@ -5,7 +5,7 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
-import com.cleverchuk.mips.simulator.cpu.Instruction;
+import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.List;
 import java.util.Objects;
@@ -52,7 +52,7 @@ public final class MipsCompiler {
         return codeGenerator.getMemory();
     }
 
-    public List<Instruction> getTextSegment() {
+    public List<CpuInstruction> getTextSegment() {
         return codeGenerator.getInstructions();
     }
 
