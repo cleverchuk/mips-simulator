@@ -1,7 +1,10 @@
 package com.cleverchuk.mips.simulator.cpu;
 
 
-public class Instruction {
+import com.cleverchuk.mips.simulator.VirtualInstruction;
+
+@SuppressWarnings({"UnusedReturnValue","Unused"})
+public class CpuInstruction implements VirtualInstruction {
     public String rd, rs, rt; // register names i.e $t0 , $v0 etc
 
     public String label; // label if any
@@ -18,7 +21,7 @@ public class Instruction {
 
     public int line;
 
-    public Instruction(String rd, String rs, String rt, String label, CpuOpcode CPUOpcode, int immediateValue, int size, int pos, int offset, int line) {
+    public CpuInstruction(String rd, String rs, String rt, String label, CpuOpcode CPUOpcode, int immediateValue, int size, int pos, int offset, int line) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
@@ -31,7 +34,7 @@ public class Instruction {
         this.line = line;
     }
 
-    public Instruction(CpuOpcode CPUOpcode, String rd, String rs, String rt, String label, int offset) {
+    public CpuInstruction(CpuOpcode CPUOpcode, String rd, String rs, String rt, String label, int offset) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
@@ -40,11 +43,11 @@ public class Instruction {
         this.offset = offset;
     }
 
-    public static InstructionBuilder builder() {
-        return new InstructionBuilder();
+    public static CpuInstructionBuilder builder() {
+        return new CpuInstructionBuilder();
     }
 
-    public static class InstructionBuilder {
+    public static class CpuInstructionBuilder {
         private String rd, rs, rt; // register names i.e $t0 , $v0 etc
 
         private String label; // label if any
@@ -61,58 +64,58 @@ public class Instruction {
 
         private int line;
 
-        public InstructionBuilder rd(String rd) {
+        public CpuInstructionBuilder rd(String rd) {
             this.rd = rd;
             return this;
         }
 
-        public InstructionBuilder rs(String rs) {
+        public CpuInstructionBuilder rs(String rs) {
             this.rs = rs;
             return this;
         }
 
-        public InstructionBuilder rt(String rt) {
+        public CpuInstructionBuilder rt(String rt) {
             this.rt = rt;
             return this;
         }
 
-        public InstructionBuilder opcode(CpuOpcode CPUOpcode) {
+        public CpuInstructionBuilder opcode(CpuOpcode CPUOpcode) {
             this.CPUOpcode = CPUOpcode;
             return this;
         }
 
-        public InstructionBuilder immediateValue(int immediateValue) {
+        public CpuInstructionBuilder immediateValue(int immediateValue) {
             this.immediateValue = immediateValue;
             return this;
         }
 
-        public InstructionBuilder label(String label) {
+        public CpuInstructionBuilder label(String label) {
             this.label = label;
             return this;
         }
 
-        public InstructionBuilder size(int size) {
+        public CpuInstructionBuilder size(int size) {
             this.size = size;
             return this;
         }
 
-        public InstructionBuilder pos(int pos) {
+        public CpuInstructionBuilder pos(int pos) {
             this.pos = pos;
             return this;
         }
 
-        public InstructionBuilder offset(int offset) {
+        public CpuInstructionBuilder offset(int offset) {
             this.offset = offset;
             return this;
         }
 
-        public InstructionBuilder line(int line) {
+        public CpuInstructionBuilder line(int line) {
             this.line = line;
             return this;
         }
 
-        public Instruction build() {
-            return new Instruction(rd, rs, rt, label, CPUOpcode, immediateValue, size, pos, offset, line);
+        public CpuInstruction build() {
+            return new CpuInstruction(rd, rs, rt, label, CPUOpcode, immediateValue, size, pos, offset, line);
         }
 
     }

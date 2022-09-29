@@ -1,7 +1,6 @@
 package com.cleverchuk.mips.simulator.fpu;
 
 import androidx.annotation.NonNull;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ public enum FpuOpcode {
     MTHC1("mthc1")
 
     ;
-    public static Set<String> FPU_OPCODE = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getValue)
+    public static Set<String> FPU_OPCODES = Arrays.stream(FpuOpcode.values()).map(FpuOpcode::getValue)
             .collect(Collectors.toSet());
 
     private final String value;

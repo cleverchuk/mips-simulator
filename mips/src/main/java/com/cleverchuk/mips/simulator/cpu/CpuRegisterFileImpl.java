@@ -6,7 +6,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 @SuppressWarnings("all")
-public class BigEndianRegisterFile implements RegisterFile {
+public class CpuRegisterFileImpl implements CpuRegisterFile {
 
     private final int[] DEFAULT = new int[]{0};
 
@@ -14,7 +14,7 @@ public class BigEndianRegisterFile implements RegisterFile {
 
     private long accumulator;
 
-    public BigEndianRegisterFile() {
+    public CpuRegisterFileImpl() {
         MipsLexer.REG
                 .forEach(reg -> regFile.put("$" + reg, new int[1]));
     }

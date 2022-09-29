@@ -36,7 +36,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private Map<Object, Integer> labels;
 
-    private final ArrayList<Instruction> instructionMemory;
+    private final ArrayList<CpuInstruction> cpuInstructionMemory;
 
     private Memory mainMemory;
 
@@ -50,16 +50,16 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     MipsCompiler compiler;
 
-    public final BigEndianRegisterFile registerFile;
+    public final CpuRegisterFileImpl registerFile;
 
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler) {
         super("MipsSimulatorThread");
-        instructionMemory = new ArrayList<>();
+        cpuInstructionMemory = new ArrayList<>();
         mainMemory = new BigEndianMainMemory(0x400);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
-        registerFile = new BigEndianRegisterFile();
+        registerFile = new CpuRegisterFileImpl();
     }
 
     public int getPC() {
@@ -112,15 +112,15 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     private void step() {
         if (currentState == State.STEPPING || currentState == State.RUNNING) {
             try {
-                Instruction instruction = instructionMemory.get(PC++);
-                execute(instruction);
+                CpuInstruction cpuInstruction = cpuInstructionMemory.get(PC++);
+                execute(cpuInstruction);
 
             } catch (Exception e) {
                 previousState = currentState;
                 currentState = State.HALTED;
                 int computedPC = PC - 1;
 
-                int line = computedPC >= 0 && computedPC < instructionEndPos ? instructionMemory.get(computedPC).line : -1;
+                int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line : -1;
                 String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
 
                 ioHandler.obtainMessage(100, error)
@@ -181,12 +181,12 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                 throw new Exception("Must have .text section");
             }
 
-            instructionMemory.clear();
-            instructionMemory.addAll(compiler.getTextSegment());
+            cpuInstructionMemory.clear();
+            cpuInstructionMemory.addAll(compiler.getTextSegment());
             mainMemory = compiler.getDataSegment();
 
             labels = SymbolTable.getTable();
-            instructionEndPos = instructionMemory.size();
+            instructionEndPos = cpuInstructionMemory.size();
             registerFile.writeWord("$sp", Math.max((int) (compiler.memBoundary() * 0.5), 0x200)); // initialize stack pointer
 
             if (PC >= instructionEndPos || isHalted() || isPaused()) {
@@ -211,281 +211,281 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     public int getLineNumberToExecute() {
         if (PC < instructionEndPos) {
-            return instructionMemory.get(PC).line;
+            return cpuInstructionMemory.get(PC).line;
         }
         return 0;
     }
 
-    private void execute(Instruction instruction) throws Exception {
-        if ($ZEROREG.equals(instruction.rd)) {
+    private void execute(CpuInstruction cpuInstruction) throws Exception {
+        if ($ZEROREG.equals(cpuInstruction.rd)) {
             throw new Exception("Fatal error! $zero cannot be used as destination register");
         }
 
         // execute the given instruction
         // use switch statement to select the right branch using the opcode
-        switch (instruction.CPUOpcode) {
+        switch (cpuInstruction.CPUOpcode) {
             case LI:
-                li(instruction);
+                li(cpuInstruction);
                 break;
             case LA:
-                la(instruction);
+                la(cpuInstruction);
                 break;
             case ADD:
-                add(instruction);
+                add(cpuInstruction);
                 break;
             case ADDI:
-                addi(instruction);
+                addi(cpuInstruction);
                 break;
             case SUB:
-                sub(instruction);
+                sub(cpuInstruction);
                 break;
             case ADDIU:
-                addiu(instruction);
+                addiu(cpuInstruction);
                 break;
             case ADDU:
-                addu(instruction);
+                addu(cpuInstruction);
                 break;
             case CLO:
-                clo(instruction);
+                clo(cpuInstruction);
                 break;
             case CLZ:
-                clz(instruction);
+                clz(cpuInstruction);
                 break;
             case LUI:
-                lui(instruction);
+                lui(cpuInstruction);
                 break;
             case MOVE:
-                move(instruction);
+                move(cpuInstruction);
                 break;
             case NEGU:
-                negu(instruction);
+                negu(cpuInstruction);
                 break;
             case SUBU:
-                subu(instruction);
+                subu(cpuInstruction);
                 break;
             case SEB:
-                seb(instruction);
+                seb(cpuInstruction);
                 break;
             case SEH:
-                seh(instruction);
+                seh(cpuInstruction);
                 break;
             /*End Arithmetic*/
             case MUL:
-                mul(instruction);
+                mul(cpuInstruction);
                 break;
             case DIV:
-                div(instruction);
+                div(cpuInstruction);
                 break;
             case DIVU:
-                divu(instruction);
+                divu(cpuInstruction);
                 break;
             case MADD:
-                madd(instruction);
+                madd(cpuInstruction);
                 break;
             case MSUB:
-                msub(instruction);
+                msub(cpuInstruction);
                 break;
             case MSUBU:
-                msubu(instruction);
+                msubu(cpuInstruction);
                 break;
             case MULT:
-                mult(instruction);
+                mult(cpuInstruction);
                 break;
             case MADDU:
-                maddu(instruction);
+                maddu(cpuInstruction);
                 break;
             case MULTU:
-                multu(instruction);
+                multu(cpuInstruction);
                 break;
             /*End mult and div*/
             case BNE:
-                bne(instruction);
+                bne(cpuInstruction);
                 break;
             case BEQ:
-                beq(instruction);
+                beq(cpuInstruction);
                 break;
             case JR:
-                jr(instruction);
+                jr(cpuInstruction);
                 break;
             case JAL:
-                jal(instruction);
+                jal(cpuInstruction);
                 break;
             case J:
-                jump(instruction);
+                jump(cpuInstruction);
                 break;
             case B:
-                b(instruction);
+                b(cpuInstruction);
                 break;
             case BAL:
-                bal(instruction);
+                bal(cpuInstruction);
                 break;
             case BEQZ:
-                beqz(instruction);
+                beqz(cpuInstruction);
                 break;
             case BGEZ:
-                bgez(instruction);
+                bgez(cpuInstruction);
                 break;
             case BGTZ:
-                bgtz(instruction);
+                bgtz(cpuInstruction);
                 break;
             case BLEZ:
-                blez(instruction);
+                blez(cpuInstruction);
                 break;
             case BLTZ:
-                bltz(instruction);
+                bltz(cpuInstruction);
                 break;
             case BNEZ:
-                bnez(instruction);
+                bnez(cpuInstruction);
                 break;
             case JALR:
-                jalr(instruction);
+                jalr(cpuInstruction);
                 break;
             case BGEZAL:
-                bgezal(instruction);
+                bgezal(cpuInstruction);
                 break;
             case BLTZAL:
-                bltzal(instruction);
+                bltzal(cpuInstruction);
                 break;
             /*End branch*/
             case SLL:
-                sll(instruction);
+                sll(cpuInstruction);
                 break;
             case SRL:
-                srl(instruction);
+                srl(cpuInstruction);
                 break;
             case SLLV:
-                sllv(instruction);
+                sllv(cpuInstruction);
                 break;
             case ROTR:
-                rotr(instruction);
+                rotr(cpuInstruction);
                 break;
             case SRA:
-                sra(instruction);
+                sra(cpuInstruction);
                 break;
             case SRAV:
-                srav(instruction);
+                srav(cpuInstruction);
                 break;
             case SRLV:
-                srlv(instruction);
+                srlv(cpuInstruction);
                 break;
             case ROTRV:
-                rotrv(instruction);
+                rotrv(cpuInstruction);
                 break;
             /*End shift and rotate*/
             case SLT:
-                slt(instruction);
+                slt(cpuInstruction);
                 break;
             case SLTU:
-                sltu(instruction);
+                sltu(cpuInstruction);
                 break;
             case SLTI:
-                slti(instruction);
+                slti(cpuInstruction);
                 break;
             case MOVN:
-                movn(instruction);
+                movn(cpuInstruction);
                 break;
             case MOVZ:
-                movz(instruction);
+                movz(cpuInstruction);
                 break;
             case SLTIU:
-                sltiu(instruction);
+                sltiu(cpuInstruction);
                 break;
             // End conditional test and move
             case AND:
-                and(instruction);
+                and(cpuInstruction);
                 break;
             case ANDI:
-                andi(instruction);
+                andi(cpuInstruction);
                 break;
             case NOR:
-                nor(instruction);
+                nor(cpuInstruction);
                 break;
             case NOT:
-                not(instruction);
+                not(cpuInstruction);
                 break;
             case OR:
-                or(instruction);
+                or(cpuInstruction);
                 break;
             case ORI:
-                ori(instruction);
+                ori(cpuInstruction);
                 break;
             case XOR:
-                xor(instruction);
+                xor(cpuInstruction);
                 break;
             case XORI:
-                xori(instruction);
+                xori(cpuInstruction);
                 break;
             case EXT:
-                ext(instruction);
+                ext(cpuInstruction);
                 break;
             case INS:
-                ins(instruction);
+                ins(cpuInstruction);
                 break;
             case WSBH:
-                wsbh(instruction);
+                wsbh(cpuInstruction);
                 break;
             // End logical and bit field operations
             case LW:
-                lw(instruction);
+                lw(cpuInstruction);
                 break;
             case SW:
-                sw(instruction);
+                sw(cpuInstruction);
                 break;
             case LB:
-                lb(instruction);
+                lb(cpuInstruction);
                 break;
             case LH:
-                lh(instruction);
+                lh(cpuInstruction);
                 break;
             case SB:
-                sb(instruction);
+                sb(cpuInstruction);
                 break;
             case SH:
-                sh(instruction);
+                sh(cpuInstruction);
                 break;
             case LBU:
-                lbu(instruction);
+                lbu(cpuInstruction);
                 break;
             case LWL:
-                lwl(instruction);
+                lwl(cpuInstruction);
                 break;
             case LWR:
-                lwr(instruction);
+                lwr(cpuInstruction);
                 break;
             case SWL:
-                swl(instruction);
+                swl(cpuInstruction);
                 break;
             case SWR:
-                swr(instruction);
+                swr(cpuInstruction);
                 break;
             case ULW:
-                ulw(instruction);
+                ulw(cpuInstruction);
                 break;
             case USW:
-                usw(instruction);
+                usw(cpuInstruction);
                 break;
             case LHU:
-                lhu(instruction);
+                lhu(cpuInstruction);
                 break;
             // END LOAD AND STORE OPERATIONS
             case MFHI:
-                mfhi(instruction);
+                mfhi(cpuInstruction);
                 break;
             case MFLO:
-                mflo(instruction);
+                mflo(cpuInstruction);
                 break;
             case MTHI:
-                mthi(instruction);
+                mthi(cpuInstruction);
                 break;
             case MTLO:
-                mtlo(instruction);
+                mtlo(cpuInstruction);
                 break;
             // END ACCUMULATOR ACCESS OPERATIONS
             case LL:
-                ll(instruction);
+                ll(cpuInstruction);
                 break;
             case SC:
-                sc(instruction);
+                sc(cpuInstruction);
                 break;
             // ATOMIC READ-MODIFY-WRITE OPERATIONS
             case NOP:
@@ -545,128 +545,128 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
-    private void sw(Instruction instruction) {
-        int baseIndex = registerFile.readWord(instruction.rs);
-        mainMemory.storeWord(registerFile.readWord(instruction.rd), baseIndex + instruction.offset);
+    private void sw(CpuInstruction cpuInstruction) {
+        int baseIndex = registerFile.readWord(cpuInstruction.rs);
+        mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), baseIndex + cpuInstruction.offset);
     }
 
-    private void srl(Instruction instruction) {
-        int t1Value = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, t1Value >>> instruction.immediateValue);
+    private void srl(CpuInstruction cpuInstruction) {
+        int t1Value = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, t1Value >>> cpuInstruction.immediateValue);
     }
 
-    private void sll(Instruction instruction) {
-        int t1Value = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, t1Value << instruction.immediateValue);
+    private void sll(CpuInstruction cpuInstruction) {
+        int t1Value = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, t1Value << cpuInstruction.immediateValue);
     }
 
-    private void li(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, instruction.immediateValue);
+    private void li(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, cpuInstruction.immediateValue);
     }
 
-    private void la(Instruction instruction) throws Exception {
-        Integer address = labels.get(instruction.label);
+    private void la(CpuInstruction cpuInstruction) throws Exception {
+        Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, address);
+        registerFile.writeWord(cpuInstruction.rd, address);
     }
 
-    private void lw(Instruction instruction) throws Exception {
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+    private void lw(CpuInstruction cpuInstruction) throws Exception {
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        if (instruction.rs != null) {
-            int baseIndex = registerFile.readWord(instruction.rs);
-            registerFile.writeWord(instruction.rd, mainMemory.readWord(baseIndex + instruction.offset));
+        if (cpuInstruction.rs != null) {
+            int baseIndex = registerFile.readWord(cpuInstruction.rs);
+            registerFile.writeWord(cpuInstruction.rd, mainMemory.readWord(baseIndex + cpuInstruction.offset));
         } else {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
     }
 
-    private void jal(Instruction instruction) throws Exception {
+    private void jal(CpuInstruction cpuInstruction) throws Exception {
         //set PC to the instruction given in the label
-        Integer address = labels.get(instruction.label);
+        Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.writeWord("$ra", PC + 1);
         PC = address;
     }
 
-    private void beq(Instruction instruction) throws Exception {
+    private void beq(CpuInstruction cpuInstruction) throws Exception {
         //if registers rs and rt are equal, then increment PC by immediate value
-        int rd = registerFile.readWord(instruction.rd), rs = registerFile.readWord(instruction.rs);
+        int rd = registerFile.readWord(cpuInstruction.rd), rs = registerFile.readWord(cpuInstruction.rs);
         if (rs == rd) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bne(Instruction instruction) throws Exception {
+    private void bne(CpuInstruction cpuInstruction) throws Exception {
         //if registers rs and rt are equal, then increment PC by immediate value
-        int rd = registerFile.readWord(instruction.rd), rs = registerFile.readWord(instruction.rs);
+        int rd = registerFile.readWord(cpuInstruction.rd), rs = registerFile.readWord(cpuInstruction.rs);
         if (rd != rs) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void add(Instruction instruction) throws Exception {
-        int leftOperand = registerFile.readWord(instruction.rs),
-                rightOperand = registerFile.readWord(instruction.rt);
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+    private void add(CpuInstruction cpuInstruction) throws Exception {
+        int leftOperand = registerFile.readWord(cpuInstruction.rs),
+                rightOperand = registerFile.readWord(cpuInstruction.rt);
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, Math.addExact(leftOperand, rightOperand));
+        registerFile.writeWord(cpuInstruction.rd, Math.addExact(leftOperand, rightOperand));
     }
 
-    private void div(Instruction instruction) {
-        int rd = registerFile.readWord(instruction.rd),
-                rs = registerFile.readWord(instruction.rs);
+    private void div(CpuInstruction cpuInstruction) {
+        int rd = registerFile.readWord(cpuInstruction.rd),
+                rs = registerFile.readWord(cpuInstruction.rs);
         registerFile.accSetHI(rd % rs);
         registerFile.accSetLO(rd / rs);
 
     }
 
-    private void mul(Instruction instruction) throws Exception {
-        int leftOperand = registerFile.readWord(instruction.rs),
-                rightOperand = registerFile.readWord(instruction.rt);
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+    private void mul(CpuInstruction cpuInstruction) throws Exception {
+        int leftOperand = registerFile.readWord(cpuInstruction.rs),
+                rightOperand = registerFile.readWord(cpuInstruction.rt);
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, leftOperand * rightOperand);
+        registerFile.writeWord(cpuInstruction.rd, leftOperand * rightOperand);
 
     }
 
-    private void sub(Instruction instruction) throws Exception {
-        int leftOperand = registerFile.readWord(instruction.rs),
-                rightOperand = registerFile.readWord(instruction.rt);
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+    private void sub(CpuInstruction cpuInstruction) throws Exception {
+        int leftOperand = registerFile.readWord(cpuInstruction.rs),
+                rightOperand = registerFile.readWord(cpuInstruction.rt);
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, Math.subtractExact(leftOperand, rightOperand));
+        registerFile.writeWord(cpuInstruction.rd, Math.subtractExact(leftOperand, rightOperand));
     }
 
-    private void addi(Instruction instruction) {
-        int leftOperand = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, Math.addExact(leftOperand, instruction.immediateValue));
+    private void addi(CpuInstruction cpuInstruction) {
+        int leftOperand = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, Math.addExact(leftOperand, cpuInstruction.immediateValue));
     }
 
-    private void jr(Instruction instruction) {
-        PC = registerFile.readWord(instruction.rd);
+    private void jr(CpuInstruction cpuInstruction) {
+        PC = registerFile.readWord(cpuInstruction.rd);
     }
 
-    private void jump(Instruction instruction) throws Exception {
-        Integer address = labels.get(instruction.label);
+    private void jump(CpuInstruction cpuInstruction) throws Exception {
+        Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         PC = address;
     }
@@ -729,23 +729,23 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
-    private void addiu(Instruction instruction) {
-        long leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
-        long rightOperand = Long.parseLong(Integer.toBinaryString(instruction.immediateValue), 0x2);
-        registerFile.writeWord(instruction.rd, (int) (leftOperand + rightOperand));
+    private void addiu(CpuInstruction cpuInstruction) {
+        long leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
+        long rightOperand = Long.parseLong(Integer.toBinaryString(cpuInstruction.immediateValue), 0x2);
+        registerFile.writeWord(cpuInstruction.rd, (int) (leftOperand + rightOperand));
     }
 
-    private void addu(Instruction instruction) throws Exception {
-        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
-                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+    private void addu(CpuInstruction cpuInstruction) throws Exception {
+        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rt)), 0x2),
+                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, (int) (leftOperand + rightOperand));
+        registerFile.writeWord(cpuInstruction.rd, (int) (leftOperand + rightOperand));
     }
 
-    private void clo(Instruction instruction) {
-        int value = registerFile.readWord(instruction.rs), count = 0;
+    private void clo(CpuInstruction cpuInstruction) {
+        int value = registerFile.readWord(cpuInstruction.rs), count = 0;
         String bits = Integer.toBinaryString(value);
         for (int i = 0; i < bits.length(); i++) {
             if (bits.charAt(i) == '0') {
@@ -753,148 +753,148 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             }
             count++;
         }
-        registerFile.writeWord(instruction.rd, count);
+        registerFile.writeWord(cpuInstruction.rd, count);
     }
 
-    private void clz(Instruction instruction) {
-        int value = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, Integer.numberOfLeadingZeros(value));
+    private void clz(CpuInstruction cpuInstruction) {
+        int value = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, Integer.numberOfLeadingZeros(value));
     }
 
-    private void lui(Instruction instruction) {
+    private void lui(CpuInstruction cpuInstruction) {
         //the value of the rt is being parsed into Double and saved in rd
-        registerFile.writeWord(instruction.rd, instruction.immediateValue << 0x10);
+        registerFile.writeWord(cpuInstruction.rd, cpuInstruction.immediateValue << 0x10);
     }
 
-    private void move(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, registerFile.readWord(instruction.rs));
+    private void move(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, registerFile.readWord(cpuInstruction.rs));
     }
 
-    private void negu(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, -registerFile.readWord(instruction.rs));
+    private void negu(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, -registerFile.readWord(cpuInstruction.rs));
     }
 
-    private void subu(Instruction instruction) throws Exception {
-        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
-                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+    private void subu(CpuInstruction cpuInstruction) throws Exception {
+        long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rt)), 0x2),
+                leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
 
-        if (instruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", instruction.CPUOpcode.name(), instruction.line));
+        if (cpuInstruction.rd == null) {
+            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.writeWord(instruction.rd, (int) (leftOperand - rightOperand));
+        registerFile.writeWord(cpuInstruction.rd, (int) (leftOperand - rightOperand));
     }
 
-    private void sllv(Instruction instruction) {
-        int shiftAmount = registerFile.readWord(instruction.rt) & 0x1f;// uses last 5 bits as the shift amount
-        int value = registerFile.readWord(instruction.rs);
+    private void sllv(CpuInstruction cpuInstruction) {
+        int shiftAmount = registerFile.readWord(cpuInstruction.rt) & 0x1f;// uses last 5 bits as the shift amount
+        int value = registerFile.readWord(cpuInstruction.rs);
         int result = value << shiftAmount;
-        registerFile.writeWord(instruction.rd, result);
+        registerFile.writeWord(cpuInstruction.rd, result);
     }
 
-    private void movn(Instruction instruction) {
-        int rt = registerFile.readWord(instruction.rt),
-                rs = registerFile.readWord(instruction.rs);
+    private void movn(CpuInstruction cpuInstruction) {
+        int rt = registerFile.readWord(cpuInstruction.rt),
+                rs = registerFile.readWord(cpuInstruction.rs);
         if (rt != 0) {
-            registerFile.writeWord(instruction.rd, rs);
+            registerFile.writeWord(cpuInstruction.rd, rs);
         }
     }
 
-    private void movz(Instruction instruction) {
-        int rt = registerFile.readWord(instruction.rt), rs = registerFile.readWord(instruction.rs);
+    private void movz(CpuInstruction cpuInstruction) {
+        int rt = registerFile.readWord(cpuInstruction.rt), rs = registerFile.readWord(cpuInstruction.rs);
         if (rt == 0) {
-            registerFile.writeWord(instruction.rd, rs);
+            registerFile.writeWord(cpuInstruction.rd, rs);
         }
     }
 
-    private void slt(Instruction instruction) {
-        int rt = registerFile.readWord(instruction.rt), rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, rs < rt ? 1 : 0);
+    private void slt(CpuInstruction cpuInstruction) {
+        int rt = registerFile.readWord(cpuInstruction.rt), rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, rs < rt ? 1 : 0);
     }
 
-    private void sltu(Instruction instruction) {
-        long rt = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rt)), 0x2),
-                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
-        registerFile.writeWord(instruction.rd, rs < rt ? 1 : 0);
+    private void sltu(CpuInstruction cpuInstruction) {
+        long rt = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rt)), 0x2),
+                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
+        registerFile.writeWord(cpuInstruction.rd, rs < rt ? 1 : 0);
     }
 
-    private void slti(Instruction instruction) {
-        int constant = instruction.immediateValue, rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, rs < constant ? 1 : 0);
+    private void slti(CpuInstruction cpuInstruction) {
+        int constant = cpuInstruction.immediateValue, rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, rs < constant ? 1 : 0);
     }
 
-    private void sltiu(Instruction instruction) {
-        long constant = Long.parseLong(Integer.toBinaryString(instruction.immediateValue), 0x2),
-                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
-        registerFile.writeWord(instruction.rd, rs < constant ? 1 : 0);
+    private void sltiu(CpuInstruction cpuInstruction) {
+        long constant = Long.parseLong(Integer.toBinaryString(cpuInstruction.immediateValue), 0x2),
+                rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
+        registerFile.writeWord(cpuInstruction.rd, rs < constant ? 1 : 0);
     }
 
-    private void and(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt);
+    private void and(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt);
 
-        registerFile.writeWord(instruction.rd, rs & rt);
+        registerFile.writeWord(cpuInstruction.rd, rs & rt);
     }
 
-    private void andi(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int constant = instruction.immediateValue;
+    private void andi(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int constant = cpuInstruction.immediateValue;
 
-        registerFile.writeWord(instruction.rd, rs & constant);
+        registerFile.writeWord(cpuInstruction.rd, rs & constant);
     }
 
-    private void nor(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt);
+    private void nor(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt);
 
-        registerFile.writeWord(instruction.rd, ~(rs | rt));
+        registerFile.writeWord(cpuInstruction.rd, ~(rs | rt));
     }
 
-    private void not(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, ~rs);
+    private void not(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, ~rs);
     }
 
-    private void or(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt);
+    private void or(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt);
 
-        registerFile.writeWord(instruction.rd, rs | rt);
+        registerFile.writeWord(cpuInstruction.rd, rs | rt);
     }
 
-    private void ori(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int constant = instruction.immediateValue;
+    private void ori(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int constant = cpuInstruction.immediateValue;
 
-        registerFile.writeWord(instruction.rd, rs | constant);
+        registerFile.writeWord(cpuInstruction.rd, rs | constant);
     }
 
-    private void xor(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt);
+    private void xor(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt);
 
-        registerFile.writeWord(instruction.rd, rs ^ rt);
+        registerFile.writeWord(cpuInstruction.rd, rs ^ rt);
     }
 
-    private void xori(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int constant = instruction.immediateValue;
+    private void xori(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int constant = cpuInstruction.immediateValue;
 
-        registerFile.writeWord(instruction.rd, rs ^ constant);
+        registerFile.writeWord(cpuInstruction.rd, rs ^ constant);
     }
 
-    private void ext(Instruction instruction) throws Exception {
-        int size = instruction.size;
-        int pos = instruction.pos;
+    private void ext(CpuInstruction cpuInstruction) throws Exception {
+        int size = cpuInstruction.size;
+        int pos = cpuInstruction.pos;
         validateSizePos(size, pos);
 
-        int rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, extractBits(rs, pos, size) >> pos);
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, extractBits(rs, pos, size) >> pos);
     }
 
-    private void ins(Instruction instruction) throws Exception {
+    private void ins(CpuInstruction cpuInstruction) throws Exception {
 
-        int size = instruction.size;
-        int pos = instruction.pos;
+        int size = cpuInstruction.size;
+        int pos = cpuInstruction.pos;
         validateSizePos(size, pos);
 
         int mask0 = 0, mask1 = -1;
@@ -906,319 +906,319 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         mask1 <<= (size + pos);
 
 
-        int rs = registerFile.readWord(instruction.rs);
+        int rs = registerFile.readWord(cpuInstruction.rs);
         int extractedBits = extractBits(rs, pos, size);
         int mask = (mask0 | mask1) | extractedBits;
 
-        int rd = registerFile.readWord(instruction.rd);
-        registerFile.writeWord(instruction.rd, rd & mask);
+        int rd = registerFile.readWord(cpuInstruction.rd);
+        registerFile.writeWord(cpuInstruction.rd, rd & mask);
     }
 
-    private void lb(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.read(index));
+    private void lb(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.read(index));
     }
 
-    private void lbu(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.read(index) & 0x00_00_00_ff);
-    }
-
-
-    private void lh(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.readHalf(index));
+    private void lbu(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.read(index) & 0x00_00_00_ff);
     }
 
 
-    private void lhu(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.readHalf(index) & 0x00_00_ff_ff);
+    private void lh(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readHalf(index));
     }
 
 
-    private void lwl(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.readWord(index));
+    private void lhu(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readHalf(index) & 0x00_00_ff_ff);
     }
 
 
-    private void lwr(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.readWord(index));
+    private void lwl(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readWord(index));
     }
 
 
-    private void sb(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        mainMemory.store((byte) registerFile.readWord(instruction.rd), index);
+    private void lwr(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readWord(index));
     }
 
 
-    private void sh(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        mainMemory.storeHalf((short) registerFile.readWord(instruction.rd), index);
+    private void sb(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        mainMemory.store((byte) registerFile.readWord(cpuInstruction.rd), index);
     }
 
 
-    private void swl(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        mainMemory.storeWord(registerFile.readWord(instruction.rd), index);
+    private void sh(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        mainMemory.storeHalf((short) registerFile.readWord(cpuInstruction.rd), index);
     }
 
 
-    private void swr(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        mainMemory.storeWord(registerFile.readWord(instruction.rd), index);
+    private void swl(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), index);
     }
 
 
-    private void ulw(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        registerFile.writeWord(instruction.rd, mainMemory.readWord(index));
+    private void swr(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), index);
     }
 
-    private void usw(Instruction instruction) {
-        int index = registerFile.readWord(instruction.rs) + instruction.offset;
-        mainMemory.storeWord(registerFile.readWord(instruction.rd), index);
+
+    private void ulw(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readWord(index));
     }
 
-    private void b(Instruction instruction) throws Exception {
-        if (instruction.label == null) {
-            PC += instruction.immediateValue;
+    private void usw(CpuInstruction cpuInstruction) {
+        int index = registerFile.readWord(cpuInstruction.rs) + cpuInstruction.offset;
+        mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), index);
+    }
+
+    private void b(CpuInstruction cpuInstruction) throws Exception {
+        if (cpuInstruction.label == null) {
+            PC += cpuInstruction.immediateValue;
         } else {
-            jump(instruction);
+            jump(cpuInstruction);
         }
     }
 
-    private void bal(Instruction instruction) throws Exception {
+    private void bal(CpuInstruction cpuInstruction) throws Exception {
         registerFile.writeWord("$ra", PC + 1);
-        if (instruction.label == null) {
-            PC += instruction.immediateValue;
+        if (cpuInstruction.label == null) {
+            PC += cpuInstruction.immediateValue;
         } else {
-            jump(instruction);
+            jump(cpuInstruction);
         }
     }
 
-    private void beqz(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void beqz(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs == 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bgez(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void bgez(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs >= 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bgezal(Instruction instruction) throws Exception {
+    private void bgezal(CpuInstruction cpuInstruction) throws Exception {
         registerFile.writeWord("$ra", PC + 1);
-        int rs = registerFile.readWord(instruction.rd);
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs >= 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bgtz(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void bgtz(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs > 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void blez(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void blez(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs <= 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bltz(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void bltz(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs < 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bnez(Instruction instruction) throws Exception {
-        int rs = registerFile.readWord(instruction.rd);
+    private void bnez(CpuInstruction cpuInstruction) throws Exception {
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs != 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
     }
 
-    private void bltzal(Instruction instruction) throws Exception {
+    private void bltzal(CpuInstruction cpuInstruction) throws Exception {
         registerFile.writeWord("$ra", PC + 1);
-        int rs = registerFile.readWord(instruction.rd);
+        int rs = registerFile.readWord(cpuInstruction.rd);
         if (rs < 0) {
-            if (instruction.label == null) {
-                PC += instruction.immediateValue;
+            if (cpuInstruction.label == null) {
+                PC += cpuInstruction.immediateValue;
             } else {
-                jump(instruction);
+                jump(cpuInstruction);
             }
         }
 
     }
 
-    private void jalr(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, PC + 1);
-        PC = registerFile.readWord(instruction.rs);
+    private void jalr(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, PC + 1);
+        PC = registerFile.readWord(cpuInstruction.rs);
     }
 
-    private void divu(Instruction instruction) {
-        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rd)), 0x2);
-        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+    private void divu(CpuInstruction cpuInstruction) {
+        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rd)), 0x2);
+        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
         registerFile.accSetHI((int) (rd % rs));
         registerFile.accSetLO((int) (rd / rs));
     }
 
-    private void madd(Instruction instruction) {
-        int rd = registerFile.readWord(instruction.rd);
-        int rs = registerFile.readWord(instruction.rs);
+    private void madd(CpuInstruction cpuInstruction) {
+        int rd = registerFile.readWord(cpuInstruction.rd);
+        int rs = registerFile.readWord(cpuInstruction.rs);
         registerFile.accAdd((long) rd * rs);
     }
 
-    private void maddu(Instruction instruction) {
-        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rd)), 0x2);
-        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+    private void maddu(CpuInstruction cpuInstruction) {
+        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rd)), 0x2);
+        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
         registerFile.accAdd(rd * rs);
     }
 
-    private void msub(Instruction instruction) {
-        int rd = registerFile.readWord(instruction.rd);
-        int rs = registerFile.readWord(instruction.rs);
+    private void msub(CpuInstruction cpuInstruction) {
+        int rd = registerFile.readWord(cpuInstruction.rd);
+        int rs = registerFile.readWord(cpuInstruction.rs);
         registerFile.accSub((long) rd * rs);
     }
 
-    private void msubu(Instruction instruction) {
-        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rd)), 0x2);
-        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+    private void msubu(CpuInstruction cpuInstruction) {
+        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rd)), 0x2);
+        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
         registerFile.accSub(rd * rs);
     }
 
-    private void mult(Instruction instruction) {
-        int rd = registerFile.readWord(instruction.rd);
-        int rs = registerFile.readWord(instruction.rs);
+    private void mult(CpuInstruction cpuInstruction) {
+        int rd = registerFile.readWord(cpuInstruction.rd);
+        int rs = registerFile.readWord(cpuInstruction.rs);
         registerFile.accSet((long) rd * rs);
     }
 
-    private void multu(Instruction instruction) {
-        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rd)), 0x2);
-        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(instruction.rs)), 0x2);
+    private void multu(CpuInstruction cpuInstruction) {
+        long rd = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rd)), 0x2);
+        long rs = Long.parseLong(Integer.toBinaryString(registerFile.readWord(cpuInstruction.rs)), 0x2);
         registerFile.accSet(rd * rs);
     }
 
-    private void mfhi(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, registerFile.accHI());
+    private void mfhi(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, registerFile.accHI());
     }
 
-    private void mflo(Instruction instruction) {
-        registerFile.writeWord(instruction.rd, registerFile.accLO());
+    private void mflo(CpuInstruction cpuInstruction) {
+        registerFile.writeWord(cpuInstruction.rd, registerFile.accLO());
     }
 
-    private void mthi(Instruction instruction) {
-        registerFile.accSetHI(registerFile.readWord(instruction.rd));
+    private void mthi(CpuInstruction cpuInstruction) {
+        registerFile.accSetHI(registerFile.readWord(cpuInstruction.rd));
     }
 
-    private void mtlo(Instruction instruction) {
-        registerFile.accSetLO(registerFile.readWord(instruction.rd));
+    private void mtlo(CpuInstruction cpuInstruction) {
+        registerFile.accSetLO(registerFile.readWord(cpuInstruction.rd));
     }
 
-    private void rotr(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int immediateValue = instruction.immediateValue & 0x1f;
+    private void rotr(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int immediateValue = cpuInstruction.immediateValue & 0x1f;
 
-        registerFile.writeWord(instruction.rd,
+        registerFile.writeWord(cpuInstruction.rd,
                 (extractBits(rs, 0x0, immediateValue) << (0x20 - immediateValue)) |
                         (extractBits(rs, immediateValue, 0x20 - immediateValue) >>> immediateValue));
     }
 
-    private void rotrv(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt) & 0x1f;
+    private void rotrv(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt) & 0x1f;
 
-        registerFile.writeWord(instruction.rd,
+        registerFile.writeWord(cpuInstruction.rd,
                 (extractBits(rs, 0, rt) << (0x20 - rt)) |
                         (extractBits(rs, rt, 0x20 - rt)) >>> rt);
     }
 
-    private void sra(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int immediateValue = instruction.immediateValue & 0x1f;
-        registerFile.writeWord(instruction.rd, rs >> immediateValue);
+    private void sra(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int immediateValue = cpuInstruction.immediateValue & 0x1f;
+        registerFile.writeWord(cpuInstruction.rd, rs >> immediateValue);
     }
 
-    private void srav(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt) & 0x1f;
-        registerFile.writeWord(instruction.rd, rs >> rt);
+    private void srav(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt) & 0x1f;
+        registerFile.writeWord(cpuInstruction.rd, rs >> rt);
     }
 
-    private void srlv(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        int rt = registerFile.readWord(instruction.rt) & 0x1f;
-        registerFile.writeWord(instruction.rd, rs >>> rt);
+    private void srlv(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        int rt = registerFile.readWord(cpuInstruction.rt) & 0x1f;
+        registerFile.writeWord(cpuInstruction.rd, rs >>> rt);
     }
 
-    private void seb(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, (rs < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(rs, 0x0, 0x8));
+    private void seb(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, (rs < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(rs, 0x0, 0x8));
     }
 
-    private void seh(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, (rs < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(rs, 0x0, 0x10));
+    private void seh(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, (rs < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(rs, 0x0, 0x10));
     }
 
-    private void wsbh(Instruction instruction) {
-        int rs = registerFile.readWord(instruction.rs);
-        registerFile.writeWord(instruction.rd, (extractBits(rs, 0x10, 0x8) << 0x18) | (extractBits(rs, 0x18, 0x8) << 0x10)
+    private void wsbh(CpuInstruction cpuInstruction) {
+        int rs = registerFile.readWord(cpuInstruction.rs);
+        registerFile.writeWord(cpuInstruction.rd, (extractBits(rs, 0x10, 0x8) << 0x18) | (extractBits(rs, 0x18, 0x8) << 0x10)
                 | (extractBits(rs, 0x0, 0x8) << 0x8) | extractBits(rs, 0x8, 0x8));
     }
 
-    private void ll(Instruction instruction) {
-        int base = registerFile.readWord(instruction.rs);
-        int address = base + instruction.offset;
+    private void ll(CpuInstruction cpuInstruction) {
+        int base = registerFile.readWord(cpuInstruction.rs);
+        int address = base + cpuInstruction.offset;
         throwIfNotWordAligned(address);
-        registerFile.writeWord(instruction.rd, mainMemory.readWord(address));
+        registerFile.writeWord(cpuInstruction.rd, mainMemory.readWord(address));
     }
 
-    private void sc(Instruction instruction) {
-        int base = registerFile.readWord(instruction.rs);
-        int address = base + instruction.offset;
+    private void sc(CpuInstruction cpuInstruction) {
+        int base = registerFile.readWord(cpuInstruction.rs);
+        int address = base + cpuInstruction.offset;
         throwIfNotWordAligned(address);
-        mainMemory.storeWord(registerFile.readWord(instruction.rd), address);
+        mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), address);
     }
 
 

@@ -7,7 +7,7 @@ import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
-import com.cleverchuk.mips.simulator.cpu.Instruction;
+import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import com.cleverchuk.mips.simulator.mem.StorageType;
@@ -22,7 +22,7 @@ public final class CodeGenerator {
 
     private final Memory memory = new BigEndianMainMemory(1024);
 
-    private final List<Instruction> instructions = new ArrayList<>();
+    private final List<CpuInstruction> cpuInstructions = new ArrayList<>();
 
     private int dataSegmentOffset = -1;
 
@@ -38,8 +38,8 @@ public final class CodeGenerator {
         return memory;
     }
 
-    public List<Instruction> getInstructions() {
-        return instructions;
+    public List<CpuInstruction> getInstructions() {
+        return cpuInstructions;
     }
 
     public int getDataSegmentOffset() {
@@ -62,7 +62,7 @@ public final class CodeGenerator {
         dataSegmentOffset = -1;
         textSegmentOffset = -1;
         memOffset = 0;
-        instructions.clear();
+        cpuInstructions.clear();
     }
 
     public void generate(Node root) {
@@ -79,27 +79,27 @@ public final class CodeGenerator {
                     break;
 
                 case ZEROOP:
-                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(), null,
                             null, null, null));
                     break;
 
                 case ONEOP:
-                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(), null,
                             null, null));
                     break;
 
                 case TWOOP:
-                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(), null, null));
                     break;
 
                 case THREEOP:
-                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -107,7 +107,7 @@ public final class CodeGenerator {
                     break;
 
                 case FOUROP:
-                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -128,7 +128,7 @@ public final class CodeGenerator {
                 case TEXTDECL:
                     Node label = root.getChildren().get(0);
                     if (label.getConstruct() == Construct.LABEL) {
-                        SymbolTable.insert(label.getValue().toString(), instructions.size() - 1);
+                        SymbolTable.insert(label.getValue().toString(), cpuInstructions.size() - 1);
                     }
                     break;
 
@@ -205,9 +205,9 @@ public final class CodeGenerator {
         return c == '-' || c == '+' || c == '*' || c == '/';
     }
 
-    private Instruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
+    private CpuInstruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
         CpuOpcode opCode = CpuOpcode.valueOf(opcode.toUpperCase());
-        Instruction.InstructionBuilder builder = Instruction.builder()
+        CpuInstruction.CpuInstructionBuilder builder = CpuInstruction.builder()
                 .line(line)
                 .opcode(opCode);
 
@@ -277,14 +277,14 @@ public final class CodeGenerator {
                     .size(Integer.parseInt(operand3));
         }
 
-        Instruction instruction = builder.build();
-        if (!checkBitWidth(instruction)) {
+        CpuInstruction cpuInstruction = builder.build();
+        if (!checkBitWidth(cpuInstruction)) {
             ErrorRecorder.recordError(ErrorRecorder.Error.builder()
-                    .line(instruction.line)
+                    .line(cpuInstruction.line)
                     .msg("offset outside bit range")
                     .build());
         }
-        return instruction;
+        return cpuInstruction;
     }
 
     private void loadMemory(String data) {
@@ -343,8 +343,8 @@ public final class CodeGenerator {
         }
     }
 
-    private boolean checkBitWidth(Instruction instruction) {
-        switch (instruction.CPUOpcode) {
+    private boolean checkBitWidth(CpuInstruction cpuInstruction) {
+        switch (cpuInstruction.CPUOpcode) {
             default:
                 return true;
 
@@ -352,11 +352,11 @@ public final class CodeGenerator {
             case SRL:
             case SRA:
             case SLL:
-                return check5BitWidth(instruction);
+                return check5BitWidth(cpuInstruction);
 
             case ADDIU:
             case SLTIU:
-                return Math.abs(instruction.immediateValue) <= 0xff_ff;
+                return Math.abs(cpuInstruction.immediateValue) <= 0xff_ff;
 
             case ADDI:
             case LUI:
@@ -364,7 +364,7 @@ public final class CodeGenerator {
             case ORI:
             case XORI:
             case SLTI:
-                return check16BitConstant(instruction);
+                return check16BitConstant(cpuInstruction);
 
             case LB:
             case LBU:
@@ -382,7 +382,7 @@ public final class CodeGenerator {
             case USW:
             case LL:
             case SC:
-                return check16BitOffset(instruction);
+                return check16BitOffset(cpuInstruction);
 
             case B:
             case BAL:
@@ -396,35 +396,35 @@ public final class CodeGenerator {
             case BLTZAL:
             case BNEZ:
             case BNE:
-                return check18BitOffset(instruction);
+                return check18BitOffset(cpuInstruction);
         }
     }
 
-    private boolean check5BitWidth(Instruction instruction) {
-        if (instruction.immediateValue >= 0) {
-            return instruction.immediateValue <= 0x1f;
+    private boolean check5BitWidth(CpuInstruction cpuInstruction) {
+        if (cpuInstruction.immediateValue >= 0) {
+            return cpuInstruction.immediateValue <= 0x1f;
         }
-        return instruction.immediateValue >= -15;
+        return cpuInstruction.immediateValue >= -15;
     }
 
-    private boolean check16BitOffset(Instruction instruction) {
-        if (instruction.offset >= 0) {
-            return instruction.offset <= 0xff_ff;
+    private boolean check16BitOffset(CpuInstruction cpuInstruction) {
+        if (cpuInstruction.offset >= 0) {
+            return cpuInstruction.offset <= 0xff_ff;
         }
 
-        return Short.MIN_VALUE <= instruction.offset;
+        return Short.MIN_VALUE <= cpuInstruction.offset;
     }
 
 
-    private boolean check18BitOffset(Instruction instruction) {
-        if (instruction.immediateValue >= 0) {
-            return instruction.immediateValue <= 131072;
+    private boolean check18BitOffset(CpuInstruction cpuInstruction) {
+        if (cpuInstruction.immediateValue >= 0) {
+            return cpuInstruction.immediateValue <= 131072;
         }
 
-        return -131071 <= instruction.immediateValue;
+        return -131071 <= cpuInstruction.immediateValue;
     }
 
-    private boolean check16BitConstant(Instruction instruction) {
-        return Short.MIN_VALUE <= instruction.immediateValue && instruction.immediateValue <= Short.MAX_VALUE;
+    private boolean check16BitConstant(CpuInstruction cpuInstruction) {
+        return Short.MIN_VALUE <= cpuInstruction.immediateValue && cpuInstruction.immediateValue <= Short.MAX_VALUE;
     }
 }
