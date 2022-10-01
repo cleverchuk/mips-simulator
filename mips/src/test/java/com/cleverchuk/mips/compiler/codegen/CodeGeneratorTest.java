@@ -10,6 +10,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.OneOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ThreeOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
+import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.Test;
 
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +34,7 @@ public class CodeGeneratorTest {
 
 
         Node program = parser.parse(source);
-        CodeGenerator codeGenerator = new CodeGenerator();
+        CodeGenerator codeGenerator = new CodeGenerator(new BigEndianMainMemory(1024));
 
         assertNotNull(program);
         codeGenerator.generate(program);
@@ -47,7 +48,7 @@ public class CodeGeneratorTest {
                         "ext $t0, $t0, 0, 5";
 
         Node program = parser.parse(source);
-        CodeGenerator codeGenerator = new CodeGenerator();
+        CodeGenerator codeGenerator = new CodeGenerator(new BigEndianMainMemory(1024));
 
         assertNotNull(program);
         codeGenerator.generate(program);
@@ -76,7 +77,7 @@ public class CodeGeneratorTest {
                 "dummy2: .half 10\n";
 
         Node program = parser.parse(source);
-        CodeGenerator codeGenerator = new CodeGenerator();
+        CodeGenerator codeGenerator = new CodeGenerator(new BigEndianMainMemory(1024));
 
         assertNotNull(program);
         codeGenerator.generate(program);
@@ -90,7 +91,7 @@ public class CodeGeneratorTest {
                         "dummy1: .half 5, 6, 7, 8\n" +
                         "dummy2: .asciiz \"hello world\"\n";
         Node program = parser.parse(source);
-        CodeGenerator codeGenerator = new CodeGenerator();
+        CodeGenerator codeGenerator = new CodeGenerator(new BigEndianMainMemory(1024));
 
         assertNotNull(program);
         codeGenerator.generate(program);

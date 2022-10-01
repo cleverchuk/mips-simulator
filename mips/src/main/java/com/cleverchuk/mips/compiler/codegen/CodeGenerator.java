@@ -6,7 +6,6 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
-import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
@@ -20,7 +19,7 @@ import javax.inject.Inject;
 public final class CodeGenerator {
     public static final char VALUE_DELIMITER = '#';
 
-    private final Memory memory = new BigEndianMainMemory(1024);
+    private final Memory memory;
 
     private final List<CpuInstruction> cpuInstructions = new ArrayList<>();
 
@@ -55,7 +54,8 @@ public final class CodeGenerator {
     }
 
     @Inject
-    public CodeGenerator() {
+    public CodeGenerator(Memory memory) {
+        this.memory = memory;
     }
 
     public void flush() {

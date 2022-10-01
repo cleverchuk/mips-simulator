@@ -56,8 +56,7 @@ public final class MipsLexer {
 
     }};
 
-
-    public static final Map<String, String> DECI_TO_REG = new HashMap<String, String>() {{
+    public static final Map<String, String> DECI_TO_CPU_REG = new HashMap<String, String>() {{
         put("0", "zero");
         put("1", "at");
         put("2", "v0");
@@ -92,9 +91,42 @@ public final class MipsLexer {
         put("31", "ra");
     }};
 
+    public static final Map<String, String> DECI_TO_FPU_REG = new HashMap<String, String>() {{
+        put("0", "f0");
+        put("1", "f1");
+        put("2", "f2");
+        put("3", "f3");
+        put("4", "f4");
+        put("5", "f5");
+        put("6", "f6");
+        put("7", "f7");
+        put("8", "f8");
+        put("9", "f9");
+        put("10", "f10");
+        put("11", "f11");
+        put("12", "f12");
+        put("13", "f13");
+        put("14", "f14");
+        put("15", "f15");
+        put("16", "f16");
+        put("17", "f17");
+        put("18", "f18");
+        put("19", "f19");
+        put("20", "f20");
+        put("21", "f21");
+        put("22", "f22");
+        put("23", "f23");
+        put("24", "f24");
+        put("25", "f25");
+        put("26", "f26");
+        put("27", "f27");
+        put("28", "f28");
+        put("29", "f29");
+        put("30", "f30");
+        put("31", "f31");
+    }};
 
-
-    public static final Set<String> REG = new HashSet<>(DECI_TO_REG.values());
+    public static final Set<String> CPU_REG = new HashSet<>(DECI_TO_CPU_REG.values());
 
     public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
 
@@ -169,7 +201,7 @@ public final class MipsLexer {
                             .pos(sourcePos - value.length())
                             .build();
                 }
-                if (REG.contains(value)) {
+                if (CPU_REG.contains(value)) {
                     return Token.builder()
                             .tokenType(TokenType.REG)
                             .value(value)
@@ -372,7 +404,7 @@ public final class MipsLexer {
     }
 
     public static boolean isRegister(String token) {
-        return REG.contains(token);
+        return CPU_REG.contains(token);
     }
 
     public boolean hasNextToken() {

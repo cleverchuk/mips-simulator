@@ -1,9 +1,16 @@
 package com.cleverchuk.mips.simulator.mem;
 
+import javax.inject.Inject;
+
 public class BigEndianMainMemory implements Memory {
     private byte[] backingStore;
 
     private final static int factor = 2;
+
+    @Inject
+    public BigEndianMainMemory() {
+        this(4096);
+    }
 
     public BigEndianMainMemory(int capacity) {
         this.backingStore = new byte[capacity];

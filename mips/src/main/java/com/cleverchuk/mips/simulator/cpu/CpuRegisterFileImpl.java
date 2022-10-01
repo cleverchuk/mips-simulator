@@ -15,7 +15,7 @@ public class CpuRegisterFileImpl implements CpuRegisterFile {
     private long accumulator;
 
     public CpuRegisterFileImpl() {
-        MipsLexer.REG
+        MipsLexer.CPU_REG
                 .forEach(reg -> regFile.put("$" + reg, new int[1]));
     }
 
