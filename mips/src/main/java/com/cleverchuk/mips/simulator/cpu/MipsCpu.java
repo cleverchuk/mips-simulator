@@ -1,222 +1,52 @@
 package com.cleverchuk.mips.simulator.cpu;
 
 import android.os.Handler;
-import android.util.SparseIntArray;
-import com.cleverchuk.mips.communication.OnUserInputListener;
-import com.cleverchuk.mips.compiler.MipsCompiler;
-import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
-import com.cleverchuk.mips.compiler.parser.SymbolTable;
-import com.cleverchuk.mips.compiler.parser.SyntaxError;
-import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
+import com.cleverchuk.mips.simulator.MipsSimulator;
+import com.cleverchuk.mips.simulator.SystemServiceProvider;
 import com.cleverchuk.mips.simulator.mem.Memory;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
 
-public class MipsSimulator extends Thread implements OnUserInputListener<Integer> {
-
-    private enum State {
-        IDLE,
-        WAITING,
-        RUNNING,
-        STEPPING,
-        HALTED,
-        ERROR,
-        STOP,
-        PAUSED
-    }
-
-    private SparseIntArray breakpoints;
-
-    private int textSegmentOffset; // demarcate text section from data section
-
-    private int PC;
-
-    private int instructionEndPos = 0;
-
+public class MipsCpu {
     private Map<Object, Integer> labels;
-
-    private final ArrayList<CpuInstruction> cpuInstructionMemory;
 
     private Memory mainMemory;
 
     private static final String $ZEROREG = "$zero";
 
-    private volatile State currentState = State.IDLE;
+    private final CpuRegisterFileImpl registerFile;
 
-    private volatile State previousState = State.IDLE;
+    private int PC;
 
     private final Handler ioHandler;
 
-    MipsCompiler compiler;
+    private final SystemServiceProvider serviceProvider;
 
-    public final CpuRegisterFileImpl registerFile;
-
-    public MipsSimulator(Handler ioHandler, MipsCompiler compiler) {
-        super("MipsSimulatorThread");
-        cpuInstructionMemory = new ArrayList<>();
-        mainMemory = new BigEndianMainMemory(0x400);
-
+    public MipsCpu(Handler ioHandler, SystemServiceProvider serviceProvider) {
+        this.registerFile = new CpuRegisterFileImpl();
         this.ioHandler = ioHandler;
-        this.compiler = compiler;
-        registerFile = new CpuRegisterFileImpl();
+        this.serviceProvider = serviceProvider;
     }
 
-    public int getPC() {
-        return PC;
+    public CpuRegisterFileImpl getRegisterFile() {
+        return registerFile;
     }
 
-    public void stepping() {
-        if (currentState == State.STEPPING || currentState == State.ERROR) {
-            return;
-        }
-        previousState = currentState;
-        currentState = State.STEPPING;
+    public void setLabels(Map<Object, Integer> labels){
+        this.labels = labels;
     }
 
-    public void running() {
-        if (currentState == State.ERROR) {
-            return;
-        }
-
-        if (currentState != State.STEPPING) {
-            PC = 0;
-        }
-        previousState = currentState;
-        currentState = State.RUNNING;
+    public void setMainMemory(Memory mainMemory) {
+        this.mainMemory = mainMemory;
     }
 
-    public boolean isRunning() {
-        return currentState == State.RUNNING;
+    public void setStackPointer(int address){
+        registerFile.writeWord("$sp", address);
     }
 
-    public boolean isHalted() {
-        return previousState == State.HALTED || currentState == State.HALTED;
-    }
-
-    public void shutDown() {
-        previousState = currentState;
-        currentState = State.STOP;
-    }
-
-    public void pause() {
-        previousState = currentState;
-        currentState = State.PAUSED;
-    }
-
-    public void idle() {
-        previousState = currentState;
-        currentState = State.IDLE;
-    }
-
-    private void step() {
-        if (currentState == State.STEPPING || currentState == State.RUNNING) {
-            try {
-                CpuInstruction cpuInstruction = cpuInstructionMemory.get(PC++);
-                execute(cpuInstruction);
-
-            } catch (Exception e) {
-                previousState = currentState;
-                currentState = State.HALTED;
-                int computedPC = PC - 1;
-
-                int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line : -1;
-                String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
-
-                ioHandler.obtainMessage(100, error)
-                        .sendToTarget();
-                ioHandler.obtainMessage(10)
-                        .sendToTarget();
-            }
-            if (PC >= instructionEndPos) {
-                previousState = currentState;
-                currentState = State.HALTED;
-                ioHandler.obtainMessage(10)
-                        .sendToTarget();
-            }
-        }
-    }
-
-
-    @Override
-    public void run() {
-        for (; ; ) {
-
-            if (currentState == State.RUNNING && breakpoints != null && breakpoints.get(getLineNumberToExecute()) > 0) {
-                previousState = currentState;
-                currentState = State.WAITING;
-                ioHandler.obtainMessage(101)
-                        .sendToTarget();
-            }
-
-            if (currentState == State.RUNNING) {
-                step();
-
-            } else if (currentState == State.STEPPING) {
-                step();
-                previousState = currentState;
-                currentState = State.WAITING;
-
-                ioHandler.obtainMessage(101)
-                        .sendToTarget();
-
-            } else if (currentState == State.STOP) {
-                return;
-
-            } else if (currentState == State.WAITING) {
-                ioHandler.obtainMessage(102)
-                        .sendToTarget();
-            }
-        }
-    }
-
-
-    private void init(String raw) throws Exception {
-        if (compiler.compile(raw) || isPaused() && !ErrorRecorder.hasErrors()) {
-            textSegmentOffset = compiler.textSegmentOffset();
-            boolean hasTextSectionSpecified = textSegmentOffset == -1; // .text section is missing if this is True
-
-            if (hasTextSectionSpecified) {
-                currentState = State.ERROR;
-                throw new Exception("Must have .text section");
-            }
-
-            cpuInstructionMemory.clear();
-            cpuInstructionMemory.addAll(compiler.getTextSegment());
-            mainMemory = compiler.getDataSegment();
-
-            labels = SymbolTable.getTable();
-            instructionEndPos = cpuInstructionMemory.size();
-            registerFile.writeWord("$sp", Math.max((int) (compiler.memBoundary() * 0.5), 0x200)); // initialize stack pointer
-
-            if (PC >= instructionEndPos || isHalted() || isPaused()) {
-                idle();
-                PC = 0;
-            }
-        }
-    }
-
-    private boolean isPaused() {
-        return currentState == State.PAUSED;
-    }
-
-
-    public int getTextSegmentOffset() {
-        return textSegmentOffset;
-    }
-
-    public int getDataSegmentOffset() {
-        return compiler.dataSegmentOffset();
-    }
-
-    public int getLineNumberToExecute() {
-        if (PC < instructionEndPos) {
-            return cpuInstructionMemory.get(PC).line;
-        }
-        return 0;
-    }
-
-    private void execute(CpuInstruction cpuInstruction) throws Exception {
+    public void execute(CpuInstruction cpuInstruction) throws Exception {
         if ($ZEROREG.equals(cpuInstruction.rd)) {
             throw new Exception("Fatal error! $zero cannot be used as destination register");
         }
@@ -498,53 +328,6 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
-    public void loadInstructions(String instructions, SparseIntArray breakpoints) {
-        this.breakpoints = breakpoints;
-        try {
-            init(instructions);
-        } catch (SyntaxError syntaxError) {
-            previousState = currentState;
-            currentState = State.ERROR;
-            ioHandler.obtainMessage(100, syntaxError.getMessage())
-                    .sendToTarget();
-
-        } catch (Exception e) {
-            previousState = currentState;
-            currentState = State.ERROR;
-            String error =
-                    String.format("OoOps! Something went awry: %s\n If you think this is a bug, please report issue: https://github" +
-                            ".com/CleverChuk/MipsIde-bug-track\n", e.getLocalizedMessage());
-
-            ioHandler.obtainMessage(100, error)
-                    .sendToTarget();
-        }
-    }
-
-    public void loadInstructions(String instructions, SparseIntArray breakpoints, boolean silent) {
-        this.breakpoints = breakpoints;
-        try {
-            init(instructions);
-        } catch (SyntaxError syntaxError) {
-            previousState = currentState;
-            currentState = State.ERROR;
-            if (!silent) {
-                ioHandler.obtainMessage(100, syntaxError.getMessage())
-                        .sendToTarget();
-            }
-
-        } catch (Exception e) {
-            previousState = currentState;
-            currentState = State.ERROR;
-            String error =
-                    String.format("OoOps! Something went awry: %s\n If you think this is a bug, please report issue: https://github" +
-                            ".com/CleverChuk/MipsIde-bug-track\n", e.getLocalizedMessage());
-            if (!silent) {
-                ioHandler.obtainMessage(100, error)
-                        .sendToTarget();
-            }
-        }
-    }
-
     private void sw(CpuInstruction cpuInstruction) {
         int baseIndex = registerFile.readWord(cpuInstruction.rs);
         mainMemory.storeWord(registerFile.readWord(cpuInstruction.rd), baseIndex + cpuInstruction.offset);
@@ -673,60 +456,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private void syscall() throws Exception {
         int which = registerFile.readWord("$v0");
-        switch (which) {
-            case 1:
-                //Print Int
-                ioHandler.obtainMessage(1, registerFile.readWord("$a0"))
-                        .sendToTarget();
-                break;
-
-            case 4: {
-                //Print String
-                int arg = registerFile.readWord("$a0"), c;
-                StringBuilder builder = new StringBuilder();
-                while ((c = mainMemory.read(arg++)) != 0) {
-                    builder.append((char) c);
-                }
-
-                ioHandler.obtainMessage(4, builder.toString())
-                        .sendToTarget();
-                break;
-            }
-
-            case 11:
-                //Print Char
-                int arg = registerFile.readWord("$a0");
-                ioHandler.obtainMessage(11, (char) (arg))
-                        .sendToTarget();
-                break;
-
-            case 10:
-                previousState = currentState;
-                currentState = State.HALTED;
-                ioHandler.obtainMessage(10)
-                        .sendToTarget();
-
-                PC = 0;
-                break;
-
-            case 5: // Read int
-                previousState = currentState;
-                currentState = State.WAITING;
-                ioHandler.obtainMessage(5)
-                        .sendToTarget();
-
-                break;
-
-            case 12: //Read Char
-                previousState = currentState;
-                currentState = State.WAITING;
-                ioHandler.obtainMessage(12)
-                        .sendToTarget();
-                break;
-
-            default:
-                throw new Exception(String.format(Locale.getDefault(), "Service %d not supported!", which));
-        }
+        serviceProvider.requestService(which);
     }
 
     private void addiu(CpuInstruction cpuInstruction) {
@@ -1258,21 +988,15 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
-    @Override
-    public void onInputComplete(Integer data) {
-        registerFile.writeWord("$v0", data);
-        if (PC >= instructionEndPos) {
-            currentState = State.HALTED;
-        }
+    public int getPC() {
+        return PC;
+    }
 
-        if (previousState == State.RUNNING) {
-            previousState = currentState;
-            currentState = State.RUNNING;
-        }
+    public synchronized void resetPC() {
+        PC = 0;
+    }
 
-        if (previousState == State.STEPPING) {
-            previousState = currentState;
-            currentState = State.STEPPING;
-        }
+    public synchronized int getNextPC() {
+        return PC++;
     }
 }

@@ -1015,7 +1015,7 @@ public final class RecursiveDescentParser {
 
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
-                        .value(MipsLexer.DECI_TO_REG.get(ll1.getValue()))
+                        .value(MipsLexer.DECI_TO_CPU_REG.get(ll1.getValue().toString()))
                         .build());
                 return register;
             }
