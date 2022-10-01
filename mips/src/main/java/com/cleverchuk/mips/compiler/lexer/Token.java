@@ -1,6 +1,6 @@
 package com.cleverchuk.mips.compiler.lexer;
 
-import com.cleverchuk.mips.simulator.DataFormat;
+import com.cleverchuk.mips.simulator.fpu.DataFormat;
 
 public class Token {
     private final TokenType tokenType;

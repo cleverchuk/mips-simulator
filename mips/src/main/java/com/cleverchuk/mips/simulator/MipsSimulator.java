@@ -8,14 +8,10 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
-import com.cleverchuk.mips.simulator.cpu.CpuRegisterFileImpl;
 import com.cleverchuk.mips.simulator.cpu.MipsCpu;
-import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
-import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Map;
 
 public class MipsSimulator extends Thread implements OnUserInputListener<Integer>, SystemServiceProvider {
 
@@ -53,11 +49,12 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory) {
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
-        this.cpu = new MipsCpu(ioHandler, this);
+        this.cpu = new MipsCpu(memory, this);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
         this.memory = memory;
+
     }
 
     public int getPC() {
@@ -187,7 +184,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             instructionEndPos = cpuInstructionMemory.size();
 
             cpu.setLabels(SymbolTable.getTable());
-            cpu.setStackPointer(Math.max((int) (compiler.memBoundary() * 0.5), 0x200)); // initialize stack pointer
+            cpu.setStackPointer(compiler.memBoundary() + 10); // initialize stack pointer
 
             if (cpu.getPC() >= instructionEndPos || isHalted() || isPaused()) {
                 idle();
@@ -267,13 +264,13 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         switch (which) {
             case 1:
                 //Print Int
-                ioHandler.obtainMessage(1, cpu.getRegisterFile().readWord("$a0"))
+                ioHandler.obtainMessage(1, cpu.getRegisterFile().read("$a0"))
                         .sendToTarget();
                 break;
 
             case 4: {
                 //Print String
-                int arg = cpu.getRegisterFile().readWord("$a0"), c;
+                int arg = cpu.getRegisterFile().read("$a0"), c;
                 StringBuilder builder = new StringBuilder();
                 while ((c = memory.read(arg++)) != 0) {
                     builder.append((char) c);
@@ -286,7 +283,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
             case 11:
                 //Print Char
-                int arg = cpu.getRegisterFile().readWord("$a0");
+                int arg = cpu.getRegisterFile().read("$a0");
                 ioHandler.obtainMessage(11, (char) (arg))
                         .sendToTarget();
                 break;
@@ -322,7 +319,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     @Override
     public void onInputComplete(Integer data) {
-        cpu.getRegisterFile().writeWord("$v0", data);
+        cpu.getRegisterFile().write("$v0", data);
         if (cpu.getPC() >= instructionEndPos) {
             currentState = State.HALTED;
         }
