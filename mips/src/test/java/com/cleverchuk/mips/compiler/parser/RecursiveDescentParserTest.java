@@ -53,6 +53,17 @@ public class RecursiveDescentParserTest {
     }
 
     @Test
+    public void parseTextSuccessFpu() {
+        String source = ".text\n" +
+                "add.s $f1, $f2, $f3 # Single-precision $f1 = $f2 + $f3\n" +
+                "add.d $f2, $f4, $f6 # Double-precision $f2 = $f4 + $f6\n" +
+                "nop\n";
+        Node program = parser.parse(source);
+        assertNotNull(program);
+        assertFalse(ErrorRecorder.hasErrors());
+    }
+
+    @Test
     public void parseTextFailure() {
         String source = ".text\n" +
                 "add $t0, $t1, $t2 # comment\n" +

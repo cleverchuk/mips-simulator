@@ -128,6 +128,8 @@ public final class MipsLexer {
 
     public static final Set<String> CPU_REG = new HashSet<>(DECI_TO_CPU_REG.values());
 
+    public static final Set<String> FPU_REG = new HashSet<>(DECI_TO_FPU_REG.values());
+
     public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
 
     public static final Set<String> FPU_OPCODES = FpuOpcode.FPU_OPCODES;
@@ -150,7 +152,11 @@ public final class MipsLexer {
 
     private boolean isLiteral(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '$'
-                || c == ',' || c == ':' || c == '.' || c == '(' || c == ')';
+                || c == ',' || c == ':' || c == '(' || c == ')';
+    }
+
+    private boolean isDelimiter(char c){
+        return c == ' ';
     }
 
     @Nullable
@@ -209,9 +215,26 @@ public final class MipsLexer {
                             .pos(sourcePos - value.length() - 1)
                             .build();
                 }
+
+                if (FPU_REG.contains(value)) {
+                    return Token.builder()
+                            .tokenType(TokenType.REG)
+                            .value(value)
+                            .line(lineNumber)
+                            .pos(sourcePos - value.length() - 1)
+                            .build();
+                }
                 if (CPU_OPCODES.contains(value)) {
                     return Token.builder()
                             .tokenType(TokenType.CPU_OPCODE)
+                            .value(value)
+                            .line(lineNumber)
+                            .pos(sourcePos - value.length())
+                            .build();
+                }
+                if (FPU_OPCODES.contains(value)) {
+                    return Token.builder()
+                            .tokenType(TokenType.FPU_OPCODE)
                             .value(value)
                             .line(lineNumber)
                             .pos(sourcePos - value.length())
@@ -389,7 +412,7 @@ public final class MipsLexer {
                     state = LEX_START;
                 }
             }
-            if (isLiteral(source[sourcePos]) && state != LEX_STRING && state != LEX_COMMENT) {
+            if ((isLiteral(source[sourcePos]) || isDelimiter(source[sourcePos])) && state != LEX_STRING && state != LEX_COMMENT) {
                 return buildToken(stringBuilder.toString());
             }
         }
@@ -404,7 +427,14 @@ public final class MipsLexer {
     }
 
     public static boolean isRegister(String token) {
-        return CPU_REG.contains(token);
+        return CPU_REG.contains(token) || FPU_REG.contains(token);
+    }
+
+    public static String registerNumberToName(String number) {
+        if (DECI_TO_CPU_REG.containsKey(number)) {
+            return DECI_TO_CPU_REG.get(number);
+        }
+        return DECI_TO_FPU_REG.get(number);
     }
 
     public boolean hasNextToken() {

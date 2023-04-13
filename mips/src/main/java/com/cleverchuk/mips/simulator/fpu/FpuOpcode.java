@@ -1,11 +1,12 @@
 package com.cleverchuk.mips.simulator.fpu;
 
 import androidx.annotation.NonNull;
+import com.cleverchuk.mips.simulator.Opcode;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 @SuppressWarnings("all")
-public enum FpuOpcode {
+public enum FpuOpcode implements Opcode {
     // Data transfer instructions
     LDC1("ldc1"),
     LWC1("lwc1"),
@@ -133,6 +134,6 @@ public enum FpuOpcode {
     }
 
     public static FpuOpcode parse(String opcode) {
-        return valueOf(opcode.toUpperCase());
+        return valueOf(opcode.toUpperCase().replace('.','_'));
     }
 }

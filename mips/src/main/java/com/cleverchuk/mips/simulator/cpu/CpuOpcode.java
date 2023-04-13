@@ -1,11 +1,12 @@
 package com.cleverchuk.mips.simulator.cpu;
 
 import androidx.annotation.NonNull;
+import com.cleverchuk.mips.simulator.Opcode;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public enum CpuOpcode {
+public enum CpuOpcode implements Opcode {
     // ARITHMETIC OPERATIONS
     ADD("add"),
     ADDI("addi"),

@@ -631,7 +631,7 @@ public final class RecursiveDescentParser {
             int resetPos0 = lexer.getTokenPos();
             ll1 = lexer.getNextToken();
 
-            if (ll1.getTokenType() == TokenType.CPU_OPCODE) {
+            if (ll1.getTokenType() == TokenType.CPU_OPCODE || ll1.getTokenType() == TokenType.FPU_OPCODE) {
                 lexer.reset(resetPos0);
                 textDecl.addChild(label);
                 Node instruction = instruction();
@@ -690,7 +690,7 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE && ll1.getTokenType() != TokenType.FPU_OPCODE) {
             if (ll1.getTokenType() != TokenType.EOF && ll1.getTokenType() != TokenType.DOT) {
                 ErrorRecorder.recordError(ErrorRecorder.Error.builder()
                         .line(ll1.getLine())
@@ -932,7 +932,7 @@ public final class RecursiveDescentParser {
                 .line(ll1.getLine())
                 .value(ll1.getValue())
                 .build());
-        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE && ll1.getTokenType() != TokenType.FPU_OPCODE) {
             return null;
         }
         return zeroOp;
@@ -1002,7 +1002,6 @@ public final class RecursiveDescentParser {
             ll1 = lexer.getNextToken();
             if (ll1.getTokenType() == TokenType.REG) {
                 register.addChild(Node.builder()
-
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
                         .value(ll1.getValue())
@@ -1012,10 +1011,9 @@ public final class RecursiveDescentParser {
 
             if (ll1.getTokenType() == TokenType.DECI) {
                 register.addChild(Node.builder()
-
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
-                        .value(MipsLexer.DECI_TO_CPU_REG.get(ll1.getValue().toString()))
+                        .value(MipsLexer.registerNumberToName(ll1.getValue().toString()))
                         .build());
                 return register;
             }
