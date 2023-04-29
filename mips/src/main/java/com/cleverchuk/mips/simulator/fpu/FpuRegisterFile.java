@@ -5,14 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FpuRegisterFile {
-    private final Map<String, RegisterFile> registerFile = new HashMap<>();
+    private final Map<Integer, RegisterFile> registerFile = new HashMap<>();
 
     public FpuRegisterFile() {
-        MipsLexer.FPU_REG.forEach(reg -> registerFile.put("$" + reg, new RegisterFile()));
+        MipsLexer.DECI_TO_FPU_REG.keySet().forEach(reg -> registerFile.put(Integer.valueOf(reg), new RegisterFile()));
     }
 
-    public RegisterFile getFile(String name) {
-        return registerFile.get(name);
+    public RegisterFile getFile(int reg) {
+        return registerFile.get(reg);
     }
 
     public static class RegisterFile {

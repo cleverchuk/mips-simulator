@@ -6,6 +6,7 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
+import com.cleverchuk.mips.simulator.VirtualInstruction;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
@@ -21,7 +22,7 @@ public final class CodeGenerator {
 
     private final Memory memory;
 
-    private final List<CpuInstruction> cpuInstructions = new ArrayList<>();
+    private final List<VirtualInstruction> instructions = new ArrayList<>();
 
     private int dataSegmentOffset = -1;
 
@@ -37,8 +38,8 @@ public final class CodeGenerator {
         return memory;
     }
 
-    public List<CpuInstruction> getInstructions() {
-        return cpuInstructions;
+    public List<VirtualInstruction> getInstructions() {
+        return instructions;
     }
 
     public int getDataSegmentOffset() {
@@ -62,7 +63,7 @@ public final class CodeGenerator {
         dataSegmentOffset = -1;
         textSegmentOffset = -1;
         memOffset = 0;
-        cpuInstructions.clear();
+        instructions.clear();
     }
 
     public void generate(Node root) {
@@ -79,27 +80,27 @@ public final class CodeGenerator {
                     break;
 
                 case ZEROOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(), null,
                             null, null, null));
                     break;
 
                 case ONEOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(), null,
                             null, null));
                     break;
 
                 case TWOOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(), null, null));
                     break;
 
                 case THREEOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -107,7 +108,7 @@ public final class CodeGenerator {
                     break;
 
                 case FOUROP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -128,7 +129,7 @@ public final class CodeGenerator {
                 case TEXTDECL:
                     Node label = root.getChildren().get(0);
                     if (label.getConstruct() == Construct.LABEL) {
-                        SymbolTable.insert(label.getValue().toString(), cpuInstructions.size() - 1);
+                        SymbolTable.insert(label.getValue().toString(), instructions.size() - 1);
                     }
                     break;
 
