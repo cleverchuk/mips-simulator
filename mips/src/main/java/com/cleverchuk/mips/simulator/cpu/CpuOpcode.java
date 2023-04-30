@@ -129,11 +129,15 @@ public enum CpuOpcode implements Opcode {
         return value;
     }
 
-    public boolean same(String opcode){
+    public boolean same(String opcode) {
         return value.equals(opcode);
     }
 
     public static CpuOpcode parse(String opcode) {
-        return valueOf(opcode.toUpperCase());
+        try {
+            return valueOf(opcode.toUpperCase());
+        } catch (Throwable ignore) {
+        }
+        return null;
     }
 }

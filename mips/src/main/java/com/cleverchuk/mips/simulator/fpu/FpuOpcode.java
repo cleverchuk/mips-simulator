@@ -5,6 +5,7 @@ import com.cleverchuk.mips.simulator.Opcode;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 @SuppressWarnings("all")
 public enum FpuOpcode implements Opcode {
     // Data transfer instructions
@@ -129,11 +130,15 @@ public enum FpuOpcode implements Opcode {
         return value;
     }
 
-    public boolean same(String opcode){
+    public boolean same(String opcode) {
         return value.equals(opcode);
     }
 
     public static FpuOpcode parse(String opcode) {
-        return valueOf(opcode.toUpperCase().replace('.','_'));
+        try {
+            return valueOf(opcode.toUpperCase().replace('.', '_'));
+        } catch (Throwable ignore) {
+        }
+        return null;
     }
 }

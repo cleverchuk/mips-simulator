@@ -8,11 +8,14 @@ import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.simulator.VirtualInstruction;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import com.cleverchuk.mips.simulator.mem.StorageType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 import javax.inject.Inject;
 
@@ -206,7 +209,47 @@ public final class CodeGenerator {
         return c == '-' || c == '+' || c == '*' || c == '/';
     }
 
-    private CpuInstruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
+    private VirtualInstruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
+        CpuOpcode cpuOpcode = CpuOpcode.parse(opcode);
+        if (cpuOpcode != null) {
+            return buildCpuInstruction(line, opcode, operand0, operand1, operand2, operand3);
+        }
+
+        return buildFpuInstruction(line, opcode, operand0, operand1, operand2);
+    }
+
+    private VirtualInstruction buildFpuInstruction(int line, String opcode, String operand0, String operand1, String operand2) {
+        FpuOpcode opCode = FpuOpcode.parse(opcode);
+        FpuInstruction.FpuInstructionBuilder builder = FpuInstruction.builder()
+                .line(line)
+                .opcode(opCode);
+        if (operand0 == null || operand1 == null) {
+            throw new RuntimeException("Unknown instruction");
+        }
+
+        if (MipsLexer.isRegister(operand0)) {
+            builder.fd("$" + operand0);
+        }
+
+        if (MipsLexer.isRegister(operand1)) {
+            builder.fs("$" + operand1);
+        }
+
+        if (operand2 != null) {
+            if (MipsLexer.isRegister(operand2)) {
+                builder.ft("$" + operand2);
+
+            } else if (operand2.contains("#")) {// Check that offset is non-negative
+                String[] tokens = operand2.split("#");
+                builder.offset(Integer.parseInt(tokens[0]));
+                builder.ft("$" + tokens[1]);
+            }
+        }
+
+        return builder.build();
+    }
+
+    private CpuInstruction buildCpuInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
         CpuOpcode opCode = CpuOpcode.valueOf(opcode.toUpperCase());
         CpuInstruction.CpuInstructionBuilder builder = CpuInstruction.builder()
                 .line(line)

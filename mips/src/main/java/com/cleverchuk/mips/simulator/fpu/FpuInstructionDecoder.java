@@ -16,23 +16,28 @@ public class FpuInstructionDecoder {
     public static final int OFFSET_MASK = 0xff_ff;
 
     public int decodeOpcode(int instruction) {
-        return instruction & OPCODE_MASK;
+        int opcode = instruction & OPCODE_MASK;
+        return opcode >>> 0x17;
     }
 
     public int decodeFt(int instruction) {
-        return instruction & FT_MASK;
+        int ft = instruction & FT_MASK;
+        return ft >>> 0xd;
     }
 
     public int decodeFs(int instruction) {
-        return instruction & FS_MASK;
+        int fs = instruction & FS_MASK;
+        return fs >>> 0x8;
     }
 
     public int decodeFd(int instruction) {
-        return instruction & FD_MASK;
+        int fd = instruction & FD_MASK;
+        return fd >>> 0x3;
     }
 
     public int decodeBase(int instruction) {
-        return instruction & BASE_MASK;
+        int base = instruction & BASE_MASK;
+        return base >>> 0x12;
     }
 
     public int decodeOffset(int instruction) {
