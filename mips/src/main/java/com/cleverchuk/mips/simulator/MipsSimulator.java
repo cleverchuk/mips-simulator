@@ -8,7 +8,10 @@ import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.dev.OnUserInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
-import com.cleverchuk.mips.simulator.cpu.MipsCpu;
+import com.cleverchuk.mips.simulator.cpu.Cpu;
+import com.cleverchuk.mips.simulator.fpu.CoProcessor;
+import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -42,14 +45,17 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private final MipsCompiler compiler;
 
-    private final MipsCpu cpu;
+    private final Cpu cpu;
+
+    private final CoProcessor cop;
 
     private final Memory memory;
 
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory) {
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
-        this.cpu = new MipsCpu(memory, this);
+        this.cpu = new Cpu(memory, this);
+        this.cop = new CoProcessor(memory, new FpuRegisterFileArray(), this.cpu::getRegisterFile);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
@@ -61,7 +67,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         return cpu.getPC();
     }
 
-    public MipsCpu getCpu() {
+    public Cpu getCpu() {
         return cpu;
     }
 
@@ -114,6 +120,8 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                 VirtualInstruction instruction = cpuInstructionMemory.get(cpu.getNextPC());
                 if (instruction instanceof CpuInstruction) {
                     cpu.execute((CpuInstruction) instruction);
+                } else {
+                    cop.execute((FpuInstruction) instruction);
                 }
 
             } catch (Exception e) {

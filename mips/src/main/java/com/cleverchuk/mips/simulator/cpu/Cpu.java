@@ -4,7 +4,7 @@ import com.cleverchuk.mips.simulator.SystemServiceProvider;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.Map;
 
-public class MipsCpu {
+public class Cpu {
     private Map<Object, Integer> labels;
 
     private final Memory memory;
@@ -16,8 +16,9 @@ public class MipsCpu {
     private int PC;
 
     private final SystemServiceProvider serviceProvider;
+    private final static String FATAL_ERROR_MSG_FMT = "Fatal error! Illegal usage of %s on line: %d";
 
-    public MipsCpu(Memory memory, SystemServiceProvider serviceProvider) {
+    public Cpu(Memory memory, SystemServiceProvider serviceProvider) {
         this.registerFile = new CpuRegisterFile();
         this.serviceProvider = serviceProvider;
         this.memory = memory;
@@ -339,20 +340,20 @@ public class MipsCpu {
     private void la(CpuInstruction cpuInstruction) throws Exception {
         Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, address);
     }
 
     private void lw(CpuInstruction cpuInstruction) throws Exception {
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         if (cpuInstruction.rs != null) {
             int baseIndex = registerFile.read(cpuInstruction.rs);
             registerFile.write(cpuInstruction.rd, memory.readWord(baseIndex + cpuInstruction.offset));
         } else {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
     }
 
@@ -360,7 +361,7 @@ public class MipsCpu {
         //set PC to the instruction given in the label
         Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write("$ra", PC + 1);
         PC = address;
@@ -394,7 +395,7 @@ public class MipsCpu {
         int leftOperand = registerFile.read(cpuInstruction.rs),
                 rightOperand = registerFile.read(cpuInstruction.rt);
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, Math.addExact(leftOperand, rightOperand));
     }
@@ -411,7 +412,7 @@ public class MipsCpu {
         int leftOperand = registerFile.read(cpuInstruction.rs),
                 rightOperand = registerFile.read(cpuInstruction.rt);
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, leftOperand * rightOperand);
 
@@ -421,7 +422,7 @@ public class MipsCpu {
         int leftOperand = registerFile.read(cpuInstruction.rs),
                 rightOperand = registerFile.read(cpuInstruction.rt);
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, Math.subtractExact(leftOperand, rightOperand));
     }
@@ -438,7 +439,7 @@ public class MipsCpu {
     private void jump(CpuInstruction cpuInstruction) throws Exception {
         Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         PC = address;
     }
@@ -458,7 +459,7 @@ public class MipsCpu {
         long rightOperand = Long.parseLong(Integer.toBinaryString(registerFile.read(cpuInstruction.rt)), 0x2),
                 leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.read(cpuInstruction.rs)), 0x2);
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, (int) (leftOperand + rightOperand));
     }
@@ -498,7 +499,7 @@ public class MipsCpu {
                 leftOperand = Long.parseLong(Integer.toBinaryString(registerFile.read(cpuInstruction.rs)), 0x2);
 
         if (cpuInstruction.rd == null) {
-            throw new Exception(String.format("Fatal error! Illegal usage of %s on line: %d", cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
+            throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
         registerFile.write(cpuInstruction.rd, (int) (leftOperand - rightOperand));
     }

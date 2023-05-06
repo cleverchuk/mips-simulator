@@ -4,14 +4,14 @@ import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FpuRegisterFile {
-    private final Map<Integer, RegisterFile> registerFile = new HashMap<>();
+public class FpuRegisterFileArray {
+    private final Map<String, RegisterFile> registerFile = new HashMap<>();
 
-    public FpuRegisterFile() {
-        MipsLexer.DECI_TO_FPU_REG.keySet().forEach(reg -> registerFile.put(Integer.valueOf(reg), new RegisterFile()));
+    public FpuRegisterFileArray() {
+        MipsLexer.DECI_TO_FPU_REG.values().forEach(reg -> registerFile.put("$" + reg, new RegisterFile()));
     }
 
-    public RegisterFile getFile(int reg) {
+    public RegisterFile getFile(String reg) {
         return registerFile.get(reg);
     }
 
@@ -34,7 +34,7 @@ public class FpuRegisterFile {
         public void writeDword(long word) {
             int i = 0;
             do {
-                dflops[i++] = (byte) (word  & mask);
+                dflops[i++] = (byte) (word & mask);
                 word >>>= shifts;
             }
             while (word > 0);
@@ -46,7 +46,7 @@ public class FpuRegisterFile {
             int intBits = Float.floatToIntBits(word);
 
             do {
-                dflops[i++] = (byte) (intBits  & mask);
+                dflops[i++] = (byte) (intBits & mask);
                 intBits >>>= shifts;
             }
             while (intBits > 0);

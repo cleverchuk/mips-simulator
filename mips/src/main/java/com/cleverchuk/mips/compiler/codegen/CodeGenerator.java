@@ -69,6 +69,11 @@ public final class CodeGenerator {
         instructions.clear();
     }
 
+    /**
+     * Transforms AST to simulator instructions. The operand are destination register(rd/fd), source register(rs/fs),
+     * source register(rt/ft) then followed by any other operand for special opcodes
+     * @param root AST root
+     */
     public void generate(Node root) {
         for (Node child : root.getChildren()) {
             generate(child);
@@ -223,6 +228,7 @@ public final class CodeGenerator {
         FpuInstruction.FpuInstructionBuilder builder = FpuInstruction.builder()
                 .line(line)
                 .opcode(opCode);
+
         if (operand0 == null || operand1 == null) {
             throw new RuntimeException("Unknown instruction");
         }
@@ -233,17 +239,21 @@ public final class CodeGenerator {
 
         if (MipsLexer.isRegister(operand1)) {
             builder.fs("$" + operand1);
+        } else if (operand1.contains("#")) {
+            String[] tokens = operand2.split("#");
+            builder.offset(Integer.parseInt(tokens[0]));
+            builder.fs("$" + tokens[1]);
+        } else {
+            ErrorRecorder.recordError(
+                    ErrorRecorder.Error.builder()
+                            .line(line)
+                            .msg("Invalid fpu instruction")
+                            .build()
+            );
         }
 
-        if (operand2 != null) {
-            if (MipsLexer.isRegister(operand2)) {
-                builder.ft("$" + operand2);
-
-            } else if (operand2.contains("#")) {// Check that offset is non-negative
-                String[] tokens = operand2.split("#");
-                builder.offset(Integer.parseInt(tokens[0]));
-                builder.ft("$" + tokens[1]);
-            }
+        if (MipsLexer.isRegister(operand2)) {
+            builder.ft("$" + operand1);
         }
 
         return builder.build();
@@ -301,7 +311,7 @@ public final class CodeGenerator {
 
             if (MipsLexer.isRegister(operand2)) {
                 builder.rt("$" + operand2);
-            } else if (operand2.contains("#")) {// Check that offset is non-negative
+            } else if (operand2.contains("#")) {
                 String[] tokens = operand2.split("#");
                 builder.offset(Integer.parseInt(tokens[0]));
                 builder.rt("$" + tokens[1]);

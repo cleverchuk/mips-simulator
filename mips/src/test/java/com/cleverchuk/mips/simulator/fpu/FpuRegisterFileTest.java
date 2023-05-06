@@ -11,57 +11,57 @@ import static org.junit.Assert.*;
 public class FpuRegisterFileTest {
 
     @InjectMocks
-    private FpuRegisterFile fpuRegisterFile;
+    private FpuRegisterFileArray fpuRegisterFileArray;
 
-    private final int register = 1;
+    private final String register = "$f1";
 
     @Test
     public void testReadWord() {
-        fpuRegisterFile.getFile(register).writeWord(400);
-        assertEquals(400, fpuRegisterFile.getFile(register).readWord());
+        fpuRegisterFileArray.getFile(register).writeWord(400);
+        assertEquals(400, fpuRegisterFileArray.getFile(register).readWord());
     }
 
     @Test
     public void testReadWord2() {
-        fpuRegisterFile.getFile(register).writeWord(-400);
-        assertEquals(-400, fpuRegisterFile.getFile(register).readWord());
+        fpuRegisterFileArray.getFile(register).writeWord(-400);
+        assertEquals(-400, fpuRegisterFileArray.getFile(register).readWord());
     }
 
     @Test
     public void testReadDword() {
-        fpuRegisterFile.getFile(register).writeDword(400);
-        assertEquals(400, fpuRegisterFile.getFile(register).readDword());
+        fpuRegisterFileArray.getFile(register).writeDword(400);
+        assertEquals(400, fpuRegisterFileArray.getFile(register).readDword());
     }
 
     @Test
     public void testReadDword2() {
-        fpuRegisterFile.getFile(register).writeDword(-400);
-        assertEquals(-400, fpuRegisterFile.getFile(register).readDword());
+        fpuRegisterFileArray.getFile(register).writeDword(-400);
+        assertEquals(-400, fpuRegisterFileArray.getFile(register).readDword());
     }
 
 
     @Test
     public void testReadSingle() {
-        fpuRegisterFile.getFile(register).writeSingle(400f);
-        assertEquals(400f, fpuRegisterFile.getFile(register).readSingle(),0);
+        fpuRegisterFileArray.getFile(register).writeSingle(400f);
+        assertEquals(400f, fpuRegisterFileArray.getFile(register).readSingle(),0);
     }
 
     @Test
     public void testReadSingle2() {
-        fpuRegisterFile.getFile(register).writeSingle(-400f);
-        assertEquals(-400f, fpuRegisterFile.getFile(register).readSingle(),0);
+        fpuRegisterFileArray.getFile(register).writeSingle(-400f);
+        assertEquals(-400f, fpuRegisterFileArray.getFile(register).readSingle(),0);
     }
 
 
     @Test
     public void testReadDouble() {
-        fpuRegisterFile.getFile(register).writeDouble(400.5);
-        assertEquals(400.5, fpuRegisterFile.getFile(register).readDouble(),0);
+        fpuRegisterFileArray.getFile(register).writeDouble(400.5);
+        assertEquals(400.5, fpuRegisterFileArray.getFile(register).readDouble(),0);
     }
 
     @Test
     public void testReadDouble2() {
-        fpuRegisterFile.getFile(register).writeDouble(-400.5);
-        assertEquals(-400.5, fpuRegisterFile.getFile(register).readDouble(),0);
+        fpuRegisterFileArray.getFile(register).writeDouble(-400.5);
+        assertEquals(-400.5, fpuRegisterFileArray.getFile(register).readDouble(),0);
     }
 }
