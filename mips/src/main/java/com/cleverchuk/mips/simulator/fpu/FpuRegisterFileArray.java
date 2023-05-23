@@ -22,6 +22,19 @@ public class FpuRegisterFileArray {
 
         private final byte shifts = (byte) 0x8;
 
+        public void writeOnes(int length){
+            for (int i = length - 1; i >= 0; i--){
+                dflops[dflops.length - i - 1] = (byte) (0xff);
+            }
+        }
+
+
+        public void writeZeroes(int length){
+            for (int i = length - 1; i >= 0; i--){
+                dflops[dflops.length - i - 1] = (byte) (0x0);
+            }
+        }
+
         public void writeWord(int word) {
             int i = 0;
             do {

@@ -110,27 +110,27 @@ public enum CpuOpcode implements Opcode {
 
     SYSCALL("syscall");
 
-    public static Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getValue)
+    public static Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getName)
             .collect(Collectors.toSet());
 
-    private final String value;
+    private final String name;
 
-    CpuOpcode(String value) {
-        this.value = value;
+    CpuOpcode(String name) {
+        this.name = name;
     }
 
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return value;
+        return name;
     }
 
     public boolean same(String opcode) {
-        return value.equals(opcode);
+        return name.equals(opcode);
     }
 
     public static CpuOpcode parse(String opcode) {
