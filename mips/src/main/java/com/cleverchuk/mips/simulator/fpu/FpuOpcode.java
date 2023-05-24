@@ -180,15 +180,19 @@ public enum FpuOpcode implements Opcode {
 
     private final String name;
 
-    private final Condition condition;
+    private final int condEncoding;
 
-    FpuOpcode(String name, Condition condition) {
+    FpuOpcode(String name, int condEncoding) {
         this.name = name;
-        this.condition = condition;
+        this.condEncoding = condEncoding;
     }
 
     public String getName() {
         return name;
+    }
+
+    public int getCondEncoding(){
+        return condEncoding;
     }
 
     @NonNull
@@ -209,42 +213,43 @@ public enum FpuOpcode implements Opcode {
         return null;
     }
 
-    public static enum Condition {
-        AF,
-        UN,
-        EQ,
-        UEQ,
-        LT,
-        ULT,
-        LE,
-        ULE,
-        AT,
-        OR,
-        UNE,
-        NE,
-        UGE,
-        OGE,
-        UGT,
-        OGT,
+    public static class Condition {
+        public static final int AF = 0x0;
+        public static final int UN = 0x1;
+        public static final int EQ = 0x2;
+        public static final int UEQ = 0x3;
+        public static final int LT = 0x4;
+        public static final int ULT = 0x5;
+        public static final int LE = 0x6;
+        public static final int ULE = 0x7;
+        public static final int AT = 0x10;
+        public static final int OR = 0x11;
+        public static final int UNE = 0x12;
+        public static final int NE = 0x13;
+        public static final int UGE = 0x14;
+        public static final int OGE = 0x15;
+        public static final int UGT = 0x16;
+        public static final int OGT = 0x17;
 
-        SAF,
-        SUN,
-        SEQ,
-        SUEQ,
-        SLT,
-        SULT,
-        SLE,
-        SULE,
-        SAT,
-        SOR,
-        SUNE,
-        SNE,
-        SUGE,
-        SOGE,
-        SUGT,
-        SOGT,
-        
-        UNDEFINED
+        public static final int SAF = 0x8;
+        public static final int SUN = 0x9;
+        public static final int SEQ = 0xa;
+        public static final int SUEQ = 0xb;
+        public static final int SLT = 0xc;
+        public static final int SULT = 0xd;
+        public static final int SLE = 0xe;
+        public static final int SULE = 0xf;
+        public static final int SAT = 0x18;
+        public static final int SOR = 0x19;
+        public static final int SUNE = 0x1a;
+        public static final int SNE = 0x1b;
+        public static final int SUGE = 0x1c;
+        public static final int SOGE = 0x1d;
+        public static final int SUGT = 0x1e;
+        public static final int SOGT = 0x1f;
+        public static final int UNDEFINED = 0xff;
+
+        public static final int SIGNALING_MASK = 0x10;
 
     }
 }

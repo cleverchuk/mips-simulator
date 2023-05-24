@@ -10,6 +10,7 @@ import com.cleverchuk.mips.dev.OnUserInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.fpu.CoProcessor;
+import com.cleverchuk.mips.simulator.fpu.CoProcessorException;
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
@@ -124,7 +125,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                     cop.execute((FpuInstruction) instruction);
                 }
 
-            } catch (Exception e) {
+            } catch (Exception | CoProcessorException e) {
                 previousState = currentState;
                 currentState = State.HALTED;
                 int computedPC = cpu.getPC() - 1;

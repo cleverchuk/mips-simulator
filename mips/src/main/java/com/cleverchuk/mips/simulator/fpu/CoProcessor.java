@@ -5,6 +5,8 @@ import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static com.cleverchuk.mips.simulator.fpu.FpuOpcode.Condition.SIGNALING_MASK;
+
 /**
  * A 64-bit register model Coprocessor. Even/Odd register is not supported
  */
@@ -25,7 +27,7 @@ public class CoProcessor {
         return fpuRegisterFileArray;
     }
 
-    public void execute(FpuInstruction fpuInstruction) throws Exception {
+    public void execute(FpuInstruction fpuInstruction) throws Exception, CoProcessorException {
         switch (fpuInstruction.opcode) {
             case LDC1:
                 ldc1(fpuInstruction);
@@ -101,8 +103,8 @@ public class CoProcessor {
             case CMP_SOGE_D:
             case CMP_SUGT_D:
             case CMP_SOGT_D:
+                compareDouble(fpuInstruction);
                 break;
-
             case CMP_AF_S:
             case CMP_UN_S:
             case CMP_EQ_S:
@@ -135,8 +137,8 @@ public class CoProcessor {
             case CMP_SOGE_S:
             case CMP_SUGT_S:
             case CMP_SOGT_S:
+                compareSingle(fpuInstruction);
                 break;
-
             case DIV_S:
                 break;
             case DIV_D:
@@ -362,301 +364,163 @@ public class CoProcessor {
                 .writeSingle(fs.readSingle() + ft.readSingle());
     }
 
-    private void compareDouble(FpuInstruction  fpuInstruction){
-
-    }
-    private void cmpAfS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile file = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        file.writeSingle(0);
-    }
-
-    private void cmpAfD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile file = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        file.writeDouble(0);
-    }
-
-    private void cmpUnS(FpuInstruction fpuInstruction) {
+    private void compareDouble(FpuInstruction fpuInstruction) throws CoProcessorException {
         FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
         FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
+        double fsV = fs.readDouble(), ftV = ft.readDouble();
+        int cond = fpuInstruction.opcode.getCondEncoding();
+        boolean unordered = Double.isNaN(fsV) || Double.isNaN(ftV);
+
+        if ((cond & SIGNALING_MASK) > 0 && unordered) {
+            throw new CoProcessorException("Signaling", 0xff);
         }
-    }
 
-    private void cmpUnD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+        boolean verdict = false;
+        switch (fpuInstruction.opcode.getCondEncoding()) {
+            case FpuOpcode.Condition.AF:
+            case FpuOpcode.Condition.SAF:
+                break;
 
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
+            case FpuOpcode.Condition.UN:
+            case FpuOpcode.Condition.SUN:
+                verdict = unordered;
+                break;
+
+            case FpuOpcode.Condition.EQ:
+            case FpuOpcode.Condition.SEQ:
+                verdict = Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.UEQ:
+            case FpuOpcode.Condition.SUEQ:
+                verdict = unordered || Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.LT:
+            case FpuOpcode.Condition.SLT:
+                verdict = fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.ULT:
+            case FpuOpcode.Condition.SULT:
+                verdict = unordered || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.LE:
+            case FpuOpcode.Condition.SLE:
+                verdict = Objects.equals(fsV, ftV) || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.ULE:
+            case FpuOpcode.Condition.SULE:
+                verdict = unordered || Objects.equals(fsV, ftV) || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.OR:
+            case FpuOpcode.Condition.SOR:
+                verdict = !unordered;
+                break;
+
+            case FpuOpcode.Condition.UNE:
+            case FpuOpcode.Condition.SUNE:
+                verdict = !Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.NE:
+            case FpuOpcode.Condition.SNE:
+                verdict = !unordered && !Objects.equals(fsV, ftV);
+                break;
+
+            default:
+                throw new CoProcessorException("Unimplemented", 0xff);
+        }
+
+        if (verdict) {
             fd.writeOnes(8);
         } else {
             fd.writeZeroes(8);
         }
     }
 
-    private void cmpEqS(FpuInstruction fpuInstruction) {
+    private void compareSingle(FpuInstruction fpuInstruction) throws CoProcessorException {
         FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
         FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
-        if (Objects.equals(fs.readSingle(), ft.readSingle())) {
+        float fsV = fs.readSingle(), ftV = ft.readSingle();
+        int cond = fpuInstruction.opcode.getCondEncoding();
+        boolean unordered = Float.isNaN(fsV) || Float.isNaN(ftV);
+
+        if ((cond & SIGNALING_MASK) > 0 && unordered) {
+            throw new CoProcessorException("Signaling", 0xff);
+        }
+
+        boolean verdict = false;
+        switch (fpuInstruction.opcode.getCondEncoding()) {
+            case FpuOpcode.Condition.AF:
+            case FpuOpcode.Condition.SAF:
+                break;
+
+            case FpuOpcode.Condition.UN:
+            case FpuOpcode.Condition.SUN:
+                verdict = unordered;
+                break;
+
+            case FpuOpcode.Condition.EQ:
+            case FpuOpcode.Condition.SEQ:
+                verdict = Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.UEQ:
+            case FpuOpcode.Condition.SUEQ:
+                verdict = unordered || Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.LT:
+            case FpuOpcode.Condition.SLT:
+                verdict = fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.ULT:
+            case FpuOpcode.Condition.SULT:
+                verdict = unordered || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.LE:
+            case FpuOpcode.Condition.SLE:
+                verdict = Objects.equals(fsV, ftV) || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.ULE:
+            case FpuOpcode.Condition.SULE:
+                verdict = unordered || Objects.equals(fsV, ftV) || fsV < ftV;
+                break;
+
+            case FpuOpcode.Condition.OR:
+            case FpuOpcode.Condition.SOR:
+                verdict = !unordered;
+                break;
+
+            case FpuOpcode.Condition.UNE:
+            case FpuOpcode.Condition.SUNE:
+                verdict = !Objects.equals(fsV, ftV);
+                break;
+
+            case FpuOpcode.Condition.NE:
+            case FpuOpcode.Condition.SNE:
+                verdict = !unordered && !Objects.equals(fsV, ftV);
+                break;
+
+            default:
+                throw new CoProcessorException("Unimplemented", 0xff);
+        }
+
+        if (verdict) {
             fd.writeOnes(4);
         } else {
             fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpEqD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpUeqS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeOnes(4);
-        } else if (Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpUeqD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeOnes(8);
-        } else if (Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpLtS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (fs.readSingle() < ft.readSingle()) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpLtD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (fs.readDouble() < ft.readDouble()) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpUltS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeOnes(4);
-        } else if (fs.readSingle() < ft.readSingle()) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpUltD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeOnes(8);
-        } else if (fs.readDouble() < ft.readDouble()) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpLeS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (fs.readSingle() < ft.readSingle() || Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpLeD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (fs.readDouble() < ft.readDouble() || Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpUleS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeOnes(4);
-        } else if (fs.readSingle() < ft.readSingle() || Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpUleD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeOnes(8);
-        } else if (fs.readDouble() < ft.readDouble() || Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
-        }
-    }
-
-    private void cmpOrS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeZeroes(4);
-        } else {
-            fd.writeOnes(4);
-        }
-    }
-
-    private void cmpOrD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeZeroes(8);
-        } else {
-            fd.writeOnes(8);
-        }
-    }
-
-
-    private void cmpUneS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeZeroes(4);
-        } else {
-            fd.writeOnes(4);
-        }
-    }
-
-    private void cmpUneD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeZeroes(8);
-        } else {
-            fd.writeOnes(8);
-        }
-    }
-
-    private void cmpNeS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeZeroes(4);
-        } else if (!Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeZeroes(4);
-        } else {
-            fd.writeOnes(4);
-        }
-    }
-
-    private void cmpNeD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeZeroes(8);
-        } else if (!Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeZeroes(8);
-        } else {
-            fd.writeOnes(8);
-        }
-    }
-
-    private void cmpSafS(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Float.isNaN(fs.readSingle()) || Float.isNaN(ft.readSingle())) {
-            fd.writeOnes(4);
-        } else if (fs.readSingle() < ft.readSingle() || Objects.equals(fs.readSingle(), ft.readSingle())) {
-            fd.writeOnes(4);
-        } else {
-            fd.writeZeroes(4);
-        }
-    }
-
-    private void cmpSafD(FpuInstruction fpuInstruction) {
-        FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-        FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
-
-        if (Double.isNaN(fs.readDouble()) || Double.isNaN(ft.readDouble())) {
-            fd.writeOnes(8);
-        } else if (fs.readDouble() < ft.readDouble() || Objects.equals(fs.readDouble(), ft.readDouble())) {
-            fd.writeOnes(8);
-        } else {
-            fd.writeZeroes(8);
         }
     }
 }
