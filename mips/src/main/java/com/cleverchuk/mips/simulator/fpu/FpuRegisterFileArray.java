@@ -44,19 +44,19 @@ public class FpuRegisterFileArray {
             while (word > 0);
         }
 
-        public void writeDword(long word) {
+        public void writeDword(long dword) {
             int i = 0;
             do {
-                dflops[i++] = (byte) (word & mask);
-                word >>>= shifts;
+                dflops[i++] = (byte) (dword & mask);
+                dword >>>= shifts;
             }
-            while (word > 0);
+            while (dword > 0);
 
         }
 
-        public void writeSingle(float word) {
+        public void writeSingle(float single) {
             int i = 0;
-            int intBits = Float.floatToIntBits(word);
+            int intBits = Float.floatToRawIntBits(single);
 
             do {
                 dflops[i++] = (byte) (intBits & mask);
@@ -65,9 +65,9 @@ public class FpuRegisterFileArray {
             while (intBits > 0);
         }
 
-        public void writeDouble(double word) {
+        public void writeDouble(double doubl) {
             int i = 0;
-            long longBits = Double.doubleToLongBits(word);
+            long longBits = Double.doubleToRawLongBits(doubl);
 
             do {
                 dflops[i++] = (byte) (longBits & mask);
