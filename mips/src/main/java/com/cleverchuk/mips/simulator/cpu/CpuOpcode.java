@@ -110,7 +110,7 @@ public enum CpuOpcode implements Opcode {
 
     SYSCALL("syscall");
 
-    public static Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getName)
+    public static final Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getName)
             .collect(Collectors.toSet());
 
     private final String name;

@@ -56,12 +56,11 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
         this.cpu = new Cpu(memory, this);
-        this.cop = new CoProcessor(memory, new FpuRegisterFileArray(), this.cpu::getRegisterFile);
+        this.cop = new CoProcessor(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
         this.memory = memory;
-
     }
 
     public int getPC() {

@@ -13,9 +13,10 @@ public class Cpu {
 
     private final CpuRegisterFile registerFile;
 
-    private int PC;
+    private volatile int PC;
 
     private final SystemServiceProvider serviceProvider;
+
     private final static String FATAL_ERROR_MSG_FMT = "Fatal error! Illegal usage of %s on line: %d";
 
     public Cpu(Memory memory, SystemServiceProvider serviceProvider) {
@@ -28,11 +29,11 @@ public class Cpu {
         return registerFile;
     }
 
-    public void setLabels(Map<Object, Integer> labels){
+    public void setLabels(Map<Object, Integer> labels) {
         this.labels = labels;
     }
 
-    public void setStackPointer(int address){
+    public void setStackPointer(int address) {
         registerFile.write("$sp", address);
     }
 
@@ -989,4 +990,9 @@ public class Cpu {
     public synchronized int getNextPC() {
         return PC++;
     }
+
+    public synchronized void setPC(int offset) {
+        PC += offset;
+    }
+
 }

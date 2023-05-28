@@ -72,6 +72,7 @@ public final class CodeGenerator {
     /**
      * Transforms AST to simulator instructions. The operand are destination register(rd/fd), source register(rs/fs),
      * source register(rt/ft) then followed by any other operand for special opcodes
+     *
      * @param root AST root
      */
     public void generate(Node root) {
@@ -234,7 +235,14 @@ public final class CodeGenerator {
         }
 
         if (MipsLexer.isRegister(operand0)) {
-            builder.fd("$" + operand0);
+            try {
+                short offset = Short.parseShort(operand1);
+                builder.ft("$" + operand0);
+                builder.offset(offset);
+
+            } catch (Exception ignore) {
+                builder.fd("$" + operand0);
+            }
         }
 
         if (MipsLexer.isRegister(operand1)) {
