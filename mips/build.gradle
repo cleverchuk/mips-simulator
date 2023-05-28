@@ -13,7 +13,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        versionName = "1.0.0"
+        versionName = versions.name
     }
 
     buildTypes {
@@ -42,15 +42,15 @@ publishing {
         release(MavenPublication) {
             groupId 'com.cleverchuk'
             artifactId 'mips-simulator'
-            version '1.0.0'
+            version versions.name
             pom {
                 name = 'mips-simulator'
                 description = 'Mips iDE\'s simulator and compiler backend'
                 url = 'https://github.com/CleverChuk/mips-simulator'
                 licenses {
                     license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name = 'MIT License'
+                        url = 'https://github.com/CleverChuk/mips-simulator/blob/main/LICENSE'
                     }
                 }
                 developers {
