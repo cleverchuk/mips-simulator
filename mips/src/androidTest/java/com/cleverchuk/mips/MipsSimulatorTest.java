@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 import android.util.SparseIntArray;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
 import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.codegen.CodeGenerator;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
@@ -20,6 +20,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
+import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
 import org.junit.Before;
@@ -28,37 +29,7 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-/*
-* # s0 = scores base address, s1 = i
 
- addi s1, zero, 0 # i = 0
-
- addi t2, zero, 200 # t2 = 200
-
- addi t3, zero, 10 # t3 = 10
-
- fcvt.s.w ft0, t3 # ft0 = 10.0
-
-for:
-
- bge s1, t2, done # if i &gt;= 200 then done
-
- slli t3, s1, 2 # t3 = i * 4
-
- add t3, t3, s0 # address of scores[i]
-
- flw ft1, 0(t3) # ft1 = scores[i]
-
- fadd.s ft1, ft1, ft0 # ft1 = scores[i] + 10
-
- fsw ft1, 0(t3) # scores[i] = t1
-
- addi s1, s1, 1 # i = i + 1
-
- j for # repeat
-
-done:
-* */
 @SuppressWarnings("All")
 @RunWith(AndroidJUnit4.class)
 public class MipsSimulatorTest {
@@ -68,6 +39,8 @@ public class MipsSimulatorTest {
     private Context context;
 
     private CpuRegisterFile registerFile;
+
+    private FpuRegisterFileArray fpuRegisterFileArray;
 
     private final String[] instructions = {
             ".text",
@@ -105,6 +78,7 @@ public class MipsSimulatorTest {
                 new MipsSimulator(new Handler(context.getMainLooper()), new MipsCompiler(parser, new CodeGenerator(bigEndianMainMemory)), bigEndianMainMemory);
         registerFile = mipsSimulator.getCpu().getRegisterFile();
 
+        fpuRegisterFileArray = mipsSimulator.getCop().getFpuRegisterFile();
         mipsSimulator.start();
     }
 
@@ -1654,4 +1628,54 @@ public class MipsSimulatorTest {
         long val = registerFile.read("$t0");
         assertEquals(2, val);
     }
+
+    @Test
+    public void testldc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .double 5.560, 0.9999, 1.0",
+                ".text",
+                "la $t4, fps",
+                "ldc1 $f10, 0($t4)",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+        assertEquals(5.560, val, 0.0);
+    }
+
+    //FPU tests
+    /*
+* # s0 = scores base address, s1 = i
+
+ addi s1, zero, 0 # i = 0
+
+ addi t2, zero, 200 # t2 = 200
+
+ addi t3, zero, 10 # t3 = 10
+
+ fcvt.s.w ft0, t3 # ft0 = 10.0
+
+for:
+
+ bge s1, t2, done # if i &gt;= 200 then done
+
+ slli t3, s1, 2 # t3 = i * 4
+
+ add t3, t3, s0 # address of scores[i]
+
+ flw ft1, 0(t3) # ft1 = scores[i]
+
+ fadd.s ft1, ft1, ft0 # ft1 = scores[i] + 10
+
+ fsw ft1, 0(t3) # scores[i] = t1
+
+ addi s1, s1, 1 # i = i + 1
+
+ j for # repeat
+
+done:
+* */
 }

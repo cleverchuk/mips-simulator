@@ -34,7 +34,6 @@ public enum Construct {
     PARENREG,
     FACTOR,
     TERMS,
-    FLOATREG,
     OPCODE,
     FOUROP
 }

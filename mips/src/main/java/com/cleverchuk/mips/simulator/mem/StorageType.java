@@ -12,4 +12,6 @@ public enum StorageType {
     EMPTY,
     ASCIIZ,
     ASCII,
+    FLOAT,
+    DOUBLE
 }

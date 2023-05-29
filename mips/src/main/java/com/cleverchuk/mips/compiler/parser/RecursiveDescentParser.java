@@ -220,7 +220,6 @@ public final class RecursiveDescentParser {
                 if (ll1.getTokenType() == TokenType.STRING) {
                     Node node = Node.builder()
                             .nodeType(TERMINAL)
-
                             .line(ll1.getLine())
                             .value(ll1.getValue())
                             .build();
@@ -254,7 +253,7 @@ public final class RecursiveDescentParser {
                 return errorRecovery();
             }
 
-            if (ll1.getTokenType() == TokenType.SPACESTORAGE) {
+            if (ll1.getTokenType() == TokenType.SPACE_STORAGE) {
                 data.addChild(curr);
                 Node expr = expr();
                 if (expr == null) {
@@ -292,11 +291,11 @@ public final class RecursiveDescentParser {
         if (ll1.getTokenType() == TokenType.DOT) {
             ll1 = lexer.getNextToken();
             switch (ll1.getTokenType()) {
-                case BYTESTORAGE:
-                case WORDSTORAGE:
-                case HALFSTORAGE:
-                case FLOATSTORAGE:
-                case DOUBLESTORAGE:
+                case BYTE_STORAGE:
+                case WORD_STORAGE:
+                case HALF_STORAGE:
+                case FLOAT_STORAGE:
+                case DOUBLE_STORAGE:
                     dataMode.addChild(Node.builder()
                             .nodeType(TERMINAL)
                             .line(ll1.getLine())
@@ -366,7 +365,7 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.FLOAT) {
+        if (ll1.getTokenType() == TokenType.FLOATING_POINT) {
             Node node = Node.builder()
                     .nodeType(TERMINAL)
                     .line(ll1.getLine())
@@ -998,7 +997,7 @@ public final class RecursiveDescentParser {
                 .build();
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.DOLLARSIGN) {
+        if (ll1.getTokenType() == TokenType.DOLLAR_SIGN) {
             ll1 = lexer.getNextToken();
             if (ll1.getTokenType() == TokenType.REG) {
                 register.addChild(Node.builder()
@@ -1035,11 +1034,11 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.LPAREN) {
+        if (ll1.getTokenType() == TokenType.L_PAREN) {
             Node register = register();
             if (register != null) {
                 ll1 = lexer.getNextToken();
-                if (ll1.getTokenType() == TokenType.RPAREN) {
+                if (ll1.getTokenType() == TokenType.R_PAREN) {
                     parenRegister.addChild(register);
                     return parenRegister;
                 }

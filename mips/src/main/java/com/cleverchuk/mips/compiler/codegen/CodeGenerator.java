@@ -388,6 +388,15 @@ public final class CodeGenerator {
             case ASCII:
                 writeASCII(tokens);
                 break;
+            case FLOAT:
+                for (int i = 2; i < tokens.length; i++, memOffset += 4) {
+                    memory.storeWord(Float.floatToRawIntBits(Float.parseFloat(tokens[i])), memOffset);
+                }
+                break;
+            case DOUBLE:
+                for (int i = 2; i < tokens.length; i++, memOffset += 4) {
+                    memory.storeDword(Double.doubleToRawLongBits(Double.parseDouble(tokens[i])), memOffset);
+                }
         }
     }
 

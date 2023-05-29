@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_COMMENT;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_DECI;
-import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_FLOAT;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_FLOATING_POINT;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_HEX;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_IDENTIFIER;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_OCTAL;
@@ -27,7 +27,7 @@ public final class MipsLexer {
 
     private static final Pattern DECI = Pattern.compile("[0-9][0-9]*");
 
-    private static final Pattern FLOAT = Pattern.compile("[0-9]+\\.[0-9]*");
+    private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*");
 
     private static final Pattern HEX = Pattern.compile("0[xX][a-f0-9]+");
 
@@ -46,12 +46,12 @@ public final class MipsLexer {
         put("text", TokenType.TEXT);
         put("ascii", TokenType.ASCII);
         put("asciiz", TokenType.ASCIIZ);
-        put("space", TokenType.SPACESTORAGE);
-        put("byte", TokenType.BYTESTORAGE);
-        put("half", TokenType.HALFSTORAGE);
-        put("word", TokenType.WORDSTORAGE);
-        put("float", TokenType.FLOATSTORAGE);
-        put("double", TokenType.DOUBLESTORAGE);
+        put("space", TokenType.SPACE_STORAGE);
+        put("byte", TokenType.BYTE_STORAGE);
+        put("half", TokenType.HALF_STORAGE);
+        put("word", TokenType.WORD_STORAGE);
+        put("float", TokenType.FLOAT_STORAGE);
+        put("double", TokenType.DOUBLE_STORAGE);
         put("globl", TokenType.GLOBL);
 
     }};
@@ -165,10 +165,10 @@ public final class MipsLexer {
             default:
             case LEX_START:
                 return null; // This must not happen
-            case LEX_FLOAT:
+            case LEX_FLOATING_POINT:
                 state = LEX_START;
                 return Token.builder()
-                        .tokenType(TokenType.FLOAT)
+                        .tokenType(TokenType.FLOATING_POINT)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
@@ -304,8 +304,8 @@ public final class MipsLexer {
             stringBuilder.append(c);
             if (COMMENT.matcher(stringBuilder.toString()).matches()) {
                 state = LEX_COMMENT;
-            } else if (FLOAT.matcher(stringBuilder.toString()).matches()) {
-                state = LEX_FLOAT;
+            } else if (FLOATING_POINT.matcher(stringBuilder.toString()).matches()) {
+                state = LEX_FLOATING_POINT;
             } else if (OCTAL.matcher(stringBuilder.toString()).matches()) {
                 state = LEX_OCTAL;
             } else if (DECI.matcher(stringBuilder.toString()).matches()) {
@@ -367,7 +367,7 @@ public final class MipsLexer {
                     case '$':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.DOLLARSIGN)
+                                .tokenType(TokenType.DOLLAR_SIGN)
                                 .value("$")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)
@@ -391,7 +391,7 @@ public final class MipsLexer {
                     case '(':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.LPAREN)
+                                .tokenType(TokenType.L_PAREN)
                                 .value("(")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)
@@ -399,7 +399,7 @@ public final class MipsLexer {
                     case ')':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.RPAREN)
+                                .tokenType(TokenType.R_PAREN)
                                 .value(")")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)

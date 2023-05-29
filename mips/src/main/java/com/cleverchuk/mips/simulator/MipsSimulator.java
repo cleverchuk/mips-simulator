@@ -71,6 +71,10 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         return cpu;
     }
 
+    public CoProcessor getCop() {
+        return cop;
+    }
+
     public void stepping() {
         if (currentState == State.STEPPING || currentState == State.ERROR) {
             return;
