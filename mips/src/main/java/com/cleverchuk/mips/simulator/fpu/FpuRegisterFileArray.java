@@ -15,6 +15,18 @@ public class FpuRegisterFileArray {
         return registerFile.get(reg);
     }
 
+    public String regContents() {
+        StringBuilder content = new StringBuilder();
+        for (Map.Entry<String, RegisterFile> regEntry :
+                registerFile.entrySet()) {
+            content.append(regEntry.getKey()).append(": ")
+                    .append(regEntry.getValue().hexValue())
+                    .append("\n");
+        }
+
+        return content.toString();
+    }
+
     public static class RegisterFile {
         private final byte[] dflops = new byte[8];
 
@@ -22,15 +34,19 @@ public class FpuRegisterFileArray {
 
         private final byte shifts = (byte) 0x8;
 
-        public void writeOnes(int length){
-            for (int i = length - 1; i >= 0; i--){
+        public void writeOnes(int length) {
+            for (int i = length - 1; i >= 0; i--) {
                 dflops[dflops.length - i - 1] = (byte) (0xff);
             }
         }
 
+        private String hexValue() {
+            long dword = readDword();
+            return Long.toHexString(dword);
+        }
 
-        public void writeZeroes(int length){
-            for (int i = length - 1; i >= 0; i--){
+        public void writeZeroes(int length) {
+            for (int i = length - 1; i >= 0; i--) {
                 dflops[dflops.length - i - 1] = (byte) (0x0);
             }
         }
