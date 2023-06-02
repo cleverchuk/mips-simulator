@@ -248,7 +248,7 @@ public final class CodeGenerator {
         if (MipsLexer.isRegister(operand1)) {
             builder.fs("$" + operand1);
         } else if (operand1.contains("#")) {
-            String[] tokens = operand2.split("#");
+            String[] tokens = operand1.split("#");
             builder.offset(Integer.parseInt(tokens[0]));
             builder.fs("$" + tokens[1]);
         } else {
@@ -261,7 +261,7 @@ public final class CodeGenerator {
         }
 
         if (MipsLexer.isRegister(operand2)) {
-            builder.ft("$" + operand1);
+            builder.ft("$" + operand2);
         }
 
         return builder.build();

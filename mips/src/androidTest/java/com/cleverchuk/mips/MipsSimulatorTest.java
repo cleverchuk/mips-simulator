@@ -1633,7 +1633,7 @@ public class MipsSimulatorTest {
     public void testldc1(){
         String[] instructions = {
                 ".data",
-                "fps: .double 5.560, 0.9999, 1.0",
+                "fps: .word 0, 9, 1",
                 ".text",
                 "la $t4, fps",
                 "ldc1 $f10, 0($t4)",
@@ -1642,8 +1642,8 @@ public class MipsSimulatorTest {
         mipsSimulator.running();
 
         while (mipsSimulator.isRunning()) ;
-        double val = fpuRegisterFileArray.getFile("$f10").readDouble();
-        assertEquals(5.560, val, 0.0);
+        long val = fpuRegisterFileArray.getFile("$f10").readDword();
+        assertEquals(9, val);
     }
 
     //FPU tests

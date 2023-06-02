@@ -44,7 +44,7 @@ public class BigEndianMainMemory implements Memory {
     public long readDWord(int offset) {
         offset = offset % backingStore.length;
         long out = readWord(offset);
-        out = (out << 0x20) | readHalf(offset + 4);
+        out = (out << 0x20) | readWord(offset + 4);
         return out;
     }
 
