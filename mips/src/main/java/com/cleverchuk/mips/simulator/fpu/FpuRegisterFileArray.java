@@ -8,7 +8,8 @@ public class FpuRegisterFileArray {
     private final Map<String, RegisterFile> registerFile = new HashMap<>();
 
     public FpuRegisterFileArray() {
-        MipsLexer.DECI_TO_FPU_REG.values().forEach(reg -> registerFile.put("$" + reg, new RegisterFile()));
+        MipsLexer.DECI_TO_FPU_REG.forEach((key, value) -> registerFile.put("$" + value, new DefaultRegisterFile(Integer.parseInt(key))));
+        registerFile.put("$f0", new ReadOnlyRegisterFile(new DefaultRegisterFile(0), 0x00_f3_40_06));
     }
 
     public RegisterFile getFile(String reg) {
@@ -27,12 +28,23 @@ public class FpuRegisterFileArray {
         return content.toString();
     }
 
-    public static class RegisterFile {
+    public static class DefaultRegisterFile implements RegisterFile {
         private final byte[] dflops = new byte[8];
 
         private final short mask = (short) 0xff;
 
         private final byte shifts = (byte) 0x8;
+
+        private final int id;
+
+        public DefaultRegisterFile(int id) {
+            this.id = id;
+        }
+
+        @Override
+        public int id() {
+            return id;
+        }
 
         public void writeOnes(int length) {
             for (int i = length - 1; i >= 0; i--) {
@@ -40,7 +52,7 @@ public class FpuRegisterFileArray {
             }
         }
 
-        private String hexValue() {
+        public String hexValue() {
             long dword = readDword();
             return Long.toHexString(dword);
         }
@@ -131,5 +143,78 @@ public class FpuRegisterFileArray {
 
             return Double.longBitsToDouble(doubly);
         }
+    }
+
+    public static class ReadOnlyRegisterFile implements RegisterFile {
+        private final RegisterFile delegate;
+
+        public ReadOnlyRegisterFile(RegisterFile delegate, int defaultValue) {
+            this.delegate = delegate;
+            this.delegate.writeWord(defaultValue);
+        }
+
+        @Override
+        public int id() {
+            return delegate.id();
+        }
+
+        @Override
+        public String hexValue() {
+            return delegate.hexValue();
+        }
+
+        @Override
+        public int readWord() {
+            return delegate.readWord();
+        }
+
+        @Override
+        public long readDword() {
+            return delegate.readWord();
+        }
+
+        @Override
+        public float readSingle() {
+            return delegate.readWord();
+        }
+
+        @Override
+        public double readDouble() {
+            return delegate.readWord();
+        }
+    }
+
+    public interface RegisterFile {
+
+        int id();
+
+        String hexValue();
+
+        default void writeOnes(int length) {
+        }
+
+        default void writeZeroes(int length) {
+        }
+
+        default void writeWord(int word) {
+        }
+
+        default void writeDword(long dword) {
+        }
+
+        default void writeSingle(float single) {
+        }
+
+        default void writeDouble(double doubl) {
+        }
+
+        int readWord();
+
+        long readDword();
+
+        float readSingle();
+
+        double readDouble();
+
     }
 }

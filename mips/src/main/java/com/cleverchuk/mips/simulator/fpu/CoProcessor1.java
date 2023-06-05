@@ -11,7 +11,7 @@ import static com.cleverchuk.mips.simulator.fpu.FpuOpcode.Condition.SIGNALING_MA
 /**
  * A 64-bit register model Coprocessor. Even/Odd register is not supported
  */
-public class CoProcessor {
+public class CoProcessor1 {
     private final Memory memory;
 
     private final FpuRegisterFileArray fpuRegisterFileArray;
@@ -20,7 +20,29 @@ public class CoProcessor {
 
     private final Supplier<Cpu> cpuSupplier;
 
-    public CoProcessor(Memory memory, FpuRegisterFileArray fpuRegisterFileArray, Supplier<Cpu> cpuSupplier, Supplier<CpuRegisterFile> cpuRegisterFileSupplier) {
+    // FCSR field masks
+    private static final int FCC_MASK = 0xfe_80_00_00;
+
+    private static final int FS_MASK = 0x01_00_00_00;
+
+    private static final int IMPL_MASK = 0x60_00_00;
+
+    private static final int O_MASK = 0x10_00_00;
+
+    private static final int ABS_MASK = 0x08_00_00;
+
+    private static final int NAN_MASK = 0x04_00_00;
+
+    private static final int CAUSE_MASK = 0x03_f0_00;
+
+    private static final int ENABLES_MASK = 0x0f_80;
+
+    private static final int FLAGS_MASK = 0x7c;
+
+    private static final int RM_MASK = 0x3;
+
+    public CoProcessor1(Memory memory, FpuRegisterFileArray fpuRegisterFileArray, Supplier<Cpu> cpuSupplier,
+            Supplier<CpuRegisterFile> cpuRegisterFileSupplier) {
         this.memory = memory;
         this.fpuRegisterFileArray = fpuRegisterFileArray;
         this.cpuSupplier = cpuSupplier;
@@ -375,14 +397,48 @@ public class CoProcessor {
     }
 
     private void cfc1(FpuInstruction fpuInstruction) {
+        // FIXME ignores configs from the COP0 and not trapping because there's no COP0
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
+        if (fs.id() == 0) {
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
+
+        } else if (fs.id() == 26) {
+            int word = fs.readWord() & (CAUSE_MASK | FLAGS_MASK);
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
+
+        } else if (fs.id() == 28) {
+            int word = fs.readWord() & (ENABLES_MASK | FS_MASK | RM_MASK);
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
+
+        } else if (fs.id() == 31) {
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
+        }
     }
 
     private void ctc1(FpuInstruction fpuInstruction) {
+        //FIXME ignores configs from the COP0 and not trapping because there's no COP0
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-        int value = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
-        fs.writeWord(value);
+        FpuRegisterFileArray.RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
+        int word = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
+
+        if (fs.id() == 26) {
+            boolean truthy = (word & (FCC_MASK | FS_MASK | IMPL_MASK | O_MASK | ABS_MASK | NAN_MASK)) == 0;
+            if (truthy) {
+                int updatedFcsr = fcsr.readWord() | (word & (CAUSE_MASK | FLAGS_MASK));
+                fcsr.writeWord(updatedFcsr);
+            }
+        } else if (fs.id() == 28) {
+            boolean truthy = (word & (FCC_MASK | FS_MASK | IMPL_MASK | O_MASK | ABS_MASK | NAN_MASK | CAUSE_MASK)) == 0;
+            if (truthy) {
+                int updatedFcsr = fcsr.readWord() | (word & (ENABLES_MASK | FS_MASK | RM_MASK));
+                fcsr.writeWord(updatedFcsr);
+            }
+        } else if(fs.id() == 31){
+            boolean truthy = (word & (O_MASK | ABS_MASK | NAN_MASK)) == 0;
+            if (truthy) {
+                fcsr.writeWord(word);
+            }
+        }
     }
 
     private void mfc1(FpuInstruction fpuInstruction) {

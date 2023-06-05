@@ -9,7 +9,7 @@ import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.dev.OnUserInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
-import com.cleverchuk.mips.simulator.fpu.CoProcessor;
+import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
 import com.cleverchuk.mips.simulator.fpu.CoProcessorException;
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
@@ -48,7 +48,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private final Cpu cpu;
 
-    private final CoProcessor cop;
+    private final CoProcessor1 cop;
 
     private final Memory memory;
 
@@ -56,7 +56,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
         this.cpu = new Cpu(memory, this);
-        this.cop = new CoProcessor(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
+        this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
@@ -71,7 +71,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         return cpu;
     }
 
-    public CoProcessor getCop() {
+    public CoProcessor1 getCop() {
         return cop;
     }
 

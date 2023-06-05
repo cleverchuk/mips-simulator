@@ -92,7 +92,7 @@ public final class MipsLexer {
     }};
 
     public static final Map<String, String> DECI_TO_FPU_REG = new HashMap<String, String>() {{
-        put("0", "f0");
+        put("0", "f0"); //FIR readonly
         put("1", "f1");
         put("2", "f2");
         put("3", "f3");
@@ -123,7 +123,7 @@ public final class MipsLexer {
         put("28", "f28");
         put("29", "f29");
         put("30", "f30");
-        put("31", "f31");
+        put("31", "f31"); //FCSR read-write
     }};
 
     public static final Set<String> CPU_REG = new HashSet<>(DECI_TO_CPU_REG.values());
