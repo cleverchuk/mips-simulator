@@ -473,10 +473,10 @@ public final class RecursiveDescentParser {
             case DECI:
                 return constant;
             case HEX:
-                node.setValue(Short.decode(node.getValue().toString()));
+                node.setValue(Long.decode(node.getValue().toString()));
                 return constant;
             case OCTAL:
-                node.setValue(Short.parseShort(node.getValue().toString(), 8));
+                node.setValue(Long.parseLong(node.getValue().toString(), 8));
                 return constant;
         }
 

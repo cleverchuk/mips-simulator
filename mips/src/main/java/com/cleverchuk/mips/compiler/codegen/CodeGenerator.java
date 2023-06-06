@@ -394,7 +394,7 @@ public final class CodeGenerator {
                 }
                 break;
             case DOUBLE:
-                for (int i = 2; i < tokens.length; i++, memOffset += 4) {
+                for (int i = 2; i < tokens.length; i++, memOffset += 8) {
                     memory.storeDword(Double.doubleToRawLongBits(Double.parseDouble(tokens[i])), memOffset);
                 }
         }

@@ -28,7 +28,7 @@ public class BigEndianMainMemory implements Memory {
         short out = 0x0;
         out |= backingStore[offset];
         out <<= 0x8;
-        out |= backingStore[offset + 1];
+        out |= ((short) backingStore[offset + 1]) & 0xff;
         return out;
     }
 

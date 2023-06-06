@@ -64,44 +64,34 @@ public class FpuRegisterFileArray {
         }
 
         public void writeWord(int word) {
-            int i = 0;
-            do {
-                dflops[i++] = (byte) (word & mask);
+            for (int i = 0; i < 4; i++) {
+                dflops[i] = (byte) (word & mask);
                 word >>>= shifts;
             }
-            while (word > 0);
         }
 
         public void writeDword(long dword) {
-            int i = 0;
-            do {
-                dflops[i++] = (byte) (dword & mask);
+            for (int i = 0; i < 8; i++) {
+                dflops[i] = (byte) (dword & mask);
                 dword >>>= shifts;
             }
-            while (dword > 0);
 
         }
 
         public void writeSingle(float single) {
-            int i = 0;
             int intBits = Float.floatToRawIntBits(single);
-
-            do {
-                dflops[i++] = (byte) (intBits & mask);
+            for (int i = 0; i < 4; i++) {
+                dflops[i] = (byte) (intBits & mask);
                 intBits >>>= shifts;
             }
-            while (intBits > 0);
         }
 
         public void writeDouble(double doubl) {
-            int i = 0;
             long longBits = Double.doubleToRawLongBits(doubl);
-
-            do {
-                dflops[i++] = (byte) (longBits & mask);
+            for (int i = 0; i < 8; i++) {
+                dflops[i] = (byte) (longBits & mask);
                 longBits >>>= shifts;
             }
-            while (longBits > 0);
         }
 
         public int readWord() {

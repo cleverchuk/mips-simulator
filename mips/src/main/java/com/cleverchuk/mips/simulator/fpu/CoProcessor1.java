@@ -399,19 +399,20 @@ public class CoProcessor1 {
     private void cfc1(FpuInstruction fpuInstruction) {
         // FIXME ignores configs from the COP0 and not trapping because there's no COP0
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+        FpuRegisterFileArray.RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
         if (fs.id() == 0) {
-            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fcsr.readWord());
 
         } else if (fs.id() == 26) {
-            int word = fs.readWord() & (CAUSE_MASK | FLAGS_MASK);
+            int word = fcsr.readWord() & (CAUSE_MASK | FLAGS_MASK);
             cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
 
         } else if (fs.id() == 28) {
-            int word = fs.readWord() & (ENABLES_MASK | FS_MASK | RM_MASK);
+            int word = fcsr.readWord() & (FS_MASK | ENABLES_MASK | RM_MASK);
             cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
 
         } else if (fs.id() == 31) {
-            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fcsr.readWord());
         }
     }
 
@@ -430,7 +431,7 @@ public class CoProcessor1 {
         } else if (fs.id() == 28) {
             boolean truthy = (word & (FCC_MASK | FS_MASK | IMPL_MASK | O_MASK | ABS_MASK | NAN_MASK | CAUSE_MASK)) == 0;
             if (truthy) {
-                int updatedFcsr = fcsr.readWord() | (word & (ENABLES_MASK | FS_MASK | RM_MASK));
+                int updatedFcsr = fcsr.readWord() | (word & (FS_MASK | ENABLES_MASK | RM_MASK));
                 fcsr.writeWord(updatedFcsr);
             }
         } else if(fs.id() == 31){

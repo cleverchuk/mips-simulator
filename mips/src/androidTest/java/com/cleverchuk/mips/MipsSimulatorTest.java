@@ -1701,6 +1701,43 @@ public class MipsSimulatorTest {
         assertEquals(5, val);
     }
 
+    @Test
+    public void testcfc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .word 5, 0x1004, 0x01000081",
+                ".text",
+
+                // load for first branch
+                "la $t4, fps",
+                "lwc1 $f31, 0($t4)",
+                "cfc1 $t0, $f0",
+
+                // load for second branch
+                "la $t4, fps",
+                "lwc1 $f31, 4($t4)",
+                "cfc1 $t1, $f26",
+
+                // load for third branch
+                "la $t4, fps",
+                "lwc1 $f31, 8($t4)",
+                "cfc1 $t2, $f28",
+
+                // load for fourth branch
+                "la $t4, fps",
+                "lwc1 $f31, 0($t4)",
+                "cfc1 $t3, $f31",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(5, registerFile.read("$t0"));
+        assertEquals(0x1004, registerFile.read("$t1"));
+
+        assertEquals(0x01000081, registerFile.read("$t2"));
+        assertEquals(5, registerFile.read("$t3"));
+    }
 
     //FPU tests
     /*
