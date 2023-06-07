@@ -19,7 +19,7 @@ public class BigEndianMainMemory implements Memory {
     @Override
     public int read(int offset) {
         offset = offset % backingStore.length;
-        return backingStore[offset];
+        return ((int) backingStore[offset]) & 0xff;
     }
 
     @Override
@@ -27,8 +27,11 @@ public class BigEndianMainMemory implements Memory {
         offset = offset % backingStore.length;
         short out = 0x0;
         out |= backingStore[offset];
+
+        out &= 0xff;
         out <<= 0x8;
         out |= ((short) backingStore[offset + 1]) & 0xff;
+
         return out;
     }
 

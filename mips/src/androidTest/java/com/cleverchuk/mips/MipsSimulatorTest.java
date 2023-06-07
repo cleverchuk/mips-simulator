@@ -1735,8 +1735,47 @@ public class MipsSimulatorTest {
         assertEquals(5, registerFile.read("$t0"));
         assertEquals(0x1004, registerFile.read("$t1"));
 
-        assertEquals(0x01000081, registerFile.read("$t2"));
+        assertEquals(0x00000085, registerFile.read("$t2"));
         assertEquals(5, registerFile.read("$t3"));
+    }
+
+    @Test
+    public void testctc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .word 0, 0x1004, 0x00000081, 5",
+                ".text",
+
+                // load for first branch
+                "la $t4, fps",
+                "lwc1 $f31, 0($t4) # zero fcsr",
+                "lw $t0, 4($t4)",
+                "ctc1 $t0, $f26",
+                "cfc1 $t0, $f26",
+
+                // load for second branch
+                "la $t4, fps",
+                "lwc1 $f31, 0($t4) # zero fcsr",
+                "lw $t1, 8($t4)",
+                "ctc1 $t1, $f28",
+                "cfc1 $t1, $f28",
+
+                // load for third branch
+                "la $t4, fps",
+                "lwc1 $f31, 0($t4) # zero fcsr",
+                "lw $t2, 12($t4)",
+                "ctc1 $t2, $f31",
+                "cfc1 $t2, $f31",
+
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        assertEquals(0x1004, registerFile.read("$t0"));
+
+        assertEquals(0x00000081, registerFile.read("$t1"));
+        assertEquals(5, registerFile.read("$t2"));
     }
 
     //FPU tests

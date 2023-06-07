@@ -408,8 +408,11 @@ public class CoProcessor1 {
             cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
 
         } else if (fs.id() == 28) {
-            int word = fcsr.readWord() & (FS_MASK | ENABLES_MASK | RM_MASK);
-            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, word);
+            int fsFrag = (fcsr.readWord() & FS_MASK) >>> 0x16;
+            int enable = fcsr.readWord() & ENABLES_MASK;
+            int mode = fcsr.readWord() & RM_MASK;
+
+            cpuRegisterFileSupplier.get().write(fpuInstruction.fd, enable | fsFrag | mode);
 
         } else if (fs.id() == 31) {
             cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fcsr.readWord());
@@ -423,18 +426,18 @@ public class CoProcessor1 {
         int word = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
 
         if (fs.id() == 26) {
-            boolean truthy = (word & (FCC_MASK | FS_MASK | IMPL_MASK | O_MASK | ABS_MASK | NAN_MASK)) == 0;
+            boolean truthy = (word & ~(CAUSE_MASK | FLAGS_MASK)) == 0;
             if (truthy) {
                 int updatedFcsr = fcsr.readWord() | (word & (CAUSE_MASK | FLAGS_MASK));
                 fcsr.writeWord(updatedFcsr);
             }
         } else if (fs.id() == 28) {
-            boolean truthy = (word & (FCC_MASK | FS_MASK | IMPL_MASK | O_MASK | ABS_MASK | NAN_MASK | CAUSE_MASK)) == 0;
+            boolean truthy = (word & ~(ENABLES_MASK | RM_MASK)) == 0;
             if (truthy) {
                 int updatedFcsr = fcsr.readWord() | (word & (FS_MASK | ENABLES_MASK | RM_MASK));
                 fcsr.writeWord(updatedFcsr);
             }
-        } else if(fs.id() == 31){
+        } else if (fs.id() == 31) {
             boolean truthy = (word & (O_MASK | ABS_MASK | NAN_MASK)) == 0;
             if (truthy) {
                 fcsr.writeWord(word);
