@@ -1630,7 +1630,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testldc1(){
+    public void test_ldc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 9, 1",
@@ -1647,7 +1647,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testlwc1(){
+    public void test_lwc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 9, 1",
@@ -1664,7 +1664,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testsdc1(){
+    public void test_sdc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1683,7 +1683,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testswc1(){
+    public void test_swc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1702,7 +1702,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testcfc1(){
+    public void test_cfc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0x1004, 0x01000081",
@@ -1740,7 +1740,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void testctc1(){
+    public void test_ctc1(){
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 0x1004, 0x00000081, 5",
@@ -1776,6 +1776,181 @@ public class MipsSimulatorTest {
 
         assertEquals(0x00000081, registerFile.read("$t1"));
         assertEquals(5, registerFile.read("$t2"));
+    }
+
+    @Test
+    public void test_mfc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .word 5, 0, 0",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "mfc1 $t1, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        long val = registerFile.read("$t1");
+        assertEquals(5, val);
+    }
+
+    @Test
+    public void test_mfhc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .double 0x0000000100000000, 0, 0",
+                ".text",
+                "la $t4, fps",
+                "ldc1 $f10, 0($t4)",
+                "mfhc1 $t1, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        long val = registerFile.read("$t1");
+        assertEquals(1106247680, val);
+    }
+
+    @Test
+    public void test_mtc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .word 5, 0, 0",
+                ".text",
+                "la $t4, fps",
+                "lw $t1, 0($t4)",
+                "mtc1 $t1, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        int val = fpuRegisterFileArray.getFile("$f10").readWord();
+        assertEquals(5, val);
+    }
+
+    @Test
+    public void test_mthc1(){
+        String[] instructions = {
+                ".data",
+                "fps: .word 0, 1, 0",
+                ".text",
+                "la $t4, fps",
+                "lw $t1, 4($t4)",
+                "ldc1 $f10, 0($t4)",
+                "mthc1 $t1, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        long val = fpuRegisterFileArray.getFile("$f10").readDword();
+        assertEquals(4294967297L, val);
+    }
+
+    @Test
+    public void test_abs_s(){
+        String[] instructions = {
+                ".data",
+                "fps: .word -5",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "cvt.s.w $f10, $f10",
+                "abs.s $f10, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+        assertEquals(5, val, 0.0);
+    }
+
+    @Test
+    public void test_abs_d(){
+        String[] instructions = {
+                ".data",
+                "fps: .word -5",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "cvt.d.w $f10, $f10",
+                "abs.d $f10, $f10",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+        assertEquals(5, val, 0.0);
+    }
+
+    @Test
+    public void test_add_s(){
+        String[] instructions = {
+                ".data",
+                "fps: .word -5",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "lwc1 $f11, 0($t4)",
+                "cvt.s.w $f10, $f10",
+                "cvt.s.w $f11, $f11",
+                "add.s $f10, $f10, $f11",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+        assertEquals(-10, val, 0.0);
+    }
+
+    @Test
+    public void test_add_d(){
+        String[] instructions = {
+                ".data",
+                "fps: .word -5",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "lwc1 $f11, 0($t4)",
+                "cvt.d.w $f10, $f10",
+                "cvt.d.w $f11, $f11",
+                "add.d $f10, $f10, $f11",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+        assertEquals(-10, val, 0.0);
+    }
+
+
+    @Test
+    public void test_cmp_af_d(){
+        String[] instructions = {
+                ".data",
+                "fps: .word -5",
+                ".text",
+                "la $t4, fps",
+                "lwc1 $f10, 0($t4)",
+                "lwc1 $f11, 0($t4)",
+                "cvt.d.w $f10, $f10",
+                "cvt.d.w $f11, $f11",
+                "cmp.af.d $f10, $f10, $f11",
+        };
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+
+        while (mipsSimulator.isRunning()) ;
+        double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+        assertEquals(0.0, val, 0.0);
     }
 
     //FPU tests

@@ -25,7 +25,7 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
 public final class MipsLexer {
     private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9.]*");
 
-    private static final Pattern DECI = Pattern.compile("[0-9][0-9]*");
+    private static final Pattern DECI = Pattern.compile("[0-9]+");
 
     private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*");
 
@@ -155,7 +155,7 @@ public final class MipsLexer {
                 || c == ',' || c == ':' || c == '(' || c == ')';
     }
 
-    private boolean isDelimiter(char c){
+    private boolean isDelimiter(char c) {
         return c == ' ';
     }
 

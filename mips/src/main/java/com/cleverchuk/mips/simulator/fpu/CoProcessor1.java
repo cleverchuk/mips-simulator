@@ -465,7 +465,7 @@ public class CoProcessor1 {
     private void mthc1(FpuInstruction fpuInstruction) {
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
         long value = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
-        fs.writeDword((value << 0x20) | (fs.readDword() & 0xff_ff_ff_ff_00_00_00_00L));
+        fs.writeDword((value << 0x20) | (fs.readDword() & 0x00_00_00_00_ff_ff_ff_ffL));
     }
 
     private void absS(FpuInstruction fpuInstruction) {
@@ -491,7 +491,7 @@ public class CoProcessor1 {
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
         FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
         fpuRegisterFileArray.getFile(fpuInstruction.fd)
-                .writeSingle(fs.readSingle() + ft.readSingle());
+                .writeDouble(fs.readDouble() + ft.readDouble());
     }
 
     private void compareDouble(FpuInstruction fpuInstruction) throws CoProcessorException {
