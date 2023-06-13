@@ -249,7 +249,7 @@ public enum FpuOpcode implements Opcode {
         public static final int SOGT = 0x1f;
         public static final int UNDEFINED = 0xff;
 
-        public static final int SIGNALING_MASK = 0x10;
+        public static final int SIGNALING_MASK = 0x20;
 
     }
 }

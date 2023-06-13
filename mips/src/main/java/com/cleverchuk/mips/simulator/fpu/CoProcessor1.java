@@ -3,7 +3,6 @@ package com.cleverchuk.mips.simulator.fpu;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
 import com.cleverchuk.mips.simulator.mem.Memory;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import static com.cleverchuk.mips.simulator.fpu.FpuOpcode.Condition.SIGNALING_MASK;
@@ -520,12 +519,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.EQ:
             case FpuOpcode.Condition.SEQ:
-                verdict = Objects.equals(fsV, ftV);
+                verdict = fsV == ftV;
                 break;
 
             case FpuOpcode.Condition.UEQ:
             case FpuOpcode.Condition.SUEQ:
-                verdict = unordered || Objects.equals(fsV, ftV);
+                verdict = unordered || fsV == ftV;
                 break;
 
             case FpuOpcode.Condition.LT:
@@ -540,12 +539,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.LE:
             case FpuOpcode.Condition.SLE:
-                verdict = Objects.equals(fsV, ftV) || fsV < ftV;
+                verdict = fsV == ftV || fsV < ftV;
                 break;
 
             case FpuOpcode.Condition.ULE:
             case FpuOpcode.Condition.SULE:
-                verdict = unordered || Objects.equals(fsV, ftV) || fsV < ftV;
+                verdict = unordered || fsV == ftV || fsV < ftV;
                 break;
 
             case FpuOpcode.Condition.OR:
@@ -555,12 +554,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.UNE:
             case FpuOpcode.Condition.SUNE:
-                verdict = !Objects.equals(fsV, ftV);
+                verdict = !(fsV == ftV);
                 break;
 
             case FpuOpcode.Condition.NE:
             case FpuOpcode.Condition.SNE:
-                verdict = !unordered && !Objects.equals(fsV, ftV);
+                verdict = !unordered && !(fsV == ftV);
                 break;
 
             default:
@@ -600,12 +599,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.EQ:
             case FpuOpcode.Condition.SEQ:
-                verdict = Objects.equals(fsV, ftV);
+                verdict = fsV == ftV;
                 break;
 
             case FpuOpcode.Condition.UEQ:
             case FpuOpcode.Condition.SUEQ:
-                verdict = unordered || Objects.equals(fsV, ftV);
+                verdict = unordered || fsV == ftV;
                 break;
 
             case FpuOpcode.Condition.LT:
@@ -620,12 +619,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.LE:
             case FpuOpcode.Condition.SLE:
-                verdict = Objects.equals(fsV, ftV) || fsV < ftV;
+                verdict = fsV == ftV || fsV < ftV;
                 break;
 
             case FpuOpcode.Condition.ULE:
             case FpuOpcode.Condition.SULE:
-                verdict = unordered || Objects.equals(fsV, ftV) || fsV < ftV;
+                verdict = unordered || fsV == ftV || fsV < ftV;
                 break;
 
             case FpuOpcode.Condition.OR:
@@ -635,12 +634,12 @@ public class CoProcessor1 {
 
             case FpuOpcode.Condition.UNE:
             case FpuOpcode.Condition.SUNE:
-                verdict = !Objects.equals(fsV, ftV);
+                verdict = !(fsV == ftV);
                 break;
 
             case FpuOpcode.Condition.NE:
             case FpuOpcode.Condition.SNE:
-                verdict = !unordered && !Objects.equals(fsV, ftV);
+                verdict = !unordered && !(fsV == ftV);
                 break;
 
             default:

@@ -39,7 +39,10 @@ public class BigEndianMainMemory implements Memory {
     public int readWord(int offset) {
         offset = offset % backingStore.length;
         int out = readHalf(offset);
-        out = (out << 0x10) | readHalf(offset + 2);
+        out &= 0xffff;
+
+        out <<= 0x10;
+        out |= readHalf(offset + 2);
         return out;
     }
 
@@ -47,7 +50,10 @@ public class BigEndianMainMemory implements Memory {
     public long readDWord(int offset) {
         offset = offset % backingStore.length;
         long out = readWord(offset);
-        out = (out << 0x20) | readWord(offset + 4);
+        out &= 0xffff_ffff;
+
+        out <<= 0x20;
+        out |= readWord(offset + 4);
         return out;
     }
 
