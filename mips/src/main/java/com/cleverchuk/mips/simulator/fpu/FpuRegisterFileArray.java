@@ -47,8 +47,8 @@ public class FpuRegisterFileArray {
         }
 
         public void writeOnes(int length) {
-            for (int i = length - 1; i >= 0; i--) {
-                dflops[dflops.length - i - 1] = (byte) (0xff);
+            for (int i = 0; i < length; i++) {
+                dflops[i] = (byte) (0xff);
             }
         }
 
@@ -58,8 +58,8 @@ public class FpuRegisterFileArray {
         }
 
         public void writeZeroes(int length) {
-            for (int i = length - 1; i >= 0; i--) {
-                dflops[dflops.length - i - 1] = (byte) (0x0);
+            for (int i = 0; i < length; i++) {
+                dflops[i] = (byte) (0x0);
             }
         }
 
@@ -96,7 +96,7 @@ public class FpuRegisterFileArray {
 
         public int readWord() {
             int word = 0;
-            for (int i = 7; i >= 0; i--) {
+            for (int i = 3; i >= 0; i--) {
                 word <<= shifts;
                 word |= (mask & dflops[i]);
             }
@@ -116,7 +116,7 @@ public class FpuRegisterFileArray {
 
         public float readSingle() {
             int single = 0;
-            for (int i = 7; i >= 0; i--) {
+            for (int i = 3; i >= 0; i--) {
                 single <<= shifts;
                 single |= (mask & dflops[i]);
             }
