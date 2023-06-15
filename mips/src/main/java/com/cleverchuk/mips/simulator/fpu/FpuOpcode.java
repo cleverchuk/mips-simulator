@@ -118,11 +118,11 @@ public enum FpuOpcode implements Opcode {
     CLASS_D("class.d", Condition.UNDEFINED),
     MAX_S("max.s", Condition.UNDEFINED),
     MAX_D("max.d", Condition.UNDEFINED),
-    MAXA_S("maxa.d", Condition.UNDEFINED),
+    MAXA_S("maxa.s", Condition.UNDEFINED),
     MAXA_D("maxa.d", Condition.UNDEFINED),
     MIN_S("min.s", Condition.UNDEFINED),
     MIN_D("min.d", Condition.UNDEFINED),
-    MINA_S("mina.d", Condition.UNDEFINED),
+    MINA_S("mina.s", Condition.UNDEFINED),
     MINA_D("mina.d", Condition.UNDEFINED),
 
     // FPU Conversion Operations Using the FCSR Rounding Mode

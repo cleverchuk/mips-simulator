@@ -508,6 +508,15 @@ public final class RecursiveDescentParser {
             return negConstant;
         }
 
+        if (ll1.getTokenType() == TokenType.FLOATING_POINT) {
+            negConstant.addChild(Node.builder()
+                    .nodeType(TERMINAL)
+                    .line(ll1.getLine())
+                    .value(-1 * Double.parseDouble(ll1.getValue().toString()))
+                    .build());
+            return negConstant;
+        }
+
         lexer.reset(resetPos);
         return null;
     }

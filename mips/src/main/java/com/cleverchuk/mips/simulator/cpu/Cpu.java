@@ -991,7 +991,7 @@ public class Cpu {
         return PC++;
     }
 
-    public synchronized void setPC(int offset) {
+    public synchronized void incrementPC(int offset) {
         PC += offset;
     }
 

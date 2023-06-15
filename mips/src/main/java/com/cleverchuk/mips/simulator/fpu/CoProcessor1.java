@@ -898,6 +898,7 @@ public class CoProcessor1 {
         FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
+        //FIXME no rounding
         fd.writeDouble((double) fs.readWord());
     }
 
@@ -905,6 +906,7 @@ public class CoProcessor1 {
         FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
         FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
+        //FIXME no rounding
         fd.writeDouble((double) fs.readDword());
     }
 
@@ -1182,7 +1184,7 @@ public class CoProcessor1 {
 
         int ftV = ft.readWord();
         if ((ftV & 0x1) == 0) {
-            cpuSupplier.get().setPC(fpuInstruction.offset);
+            cpuSupplier.get().incrementPC(fpuInstruction.offset);
         }
     }
 
@@ -1191,7 +1193,7 @@ public class CoProcessor1 {
 
         long ftV = ft.readDword();
         if ((ftV & 0x1) > 0) {
-            cpuSupplier.get().setPC(fpuInstruction.offset);
+            cpuSupplier.get().incrementPC(fpuInstruction.offset);
         }
     }
 

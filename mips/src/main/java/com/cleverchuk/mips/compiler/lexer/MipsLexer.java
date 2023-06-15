@@ -278,7 +278,11 @@ public final class MipsLexer {
         StringBuilder stringBuilder = new StringBuilder();
         while (true) {
             if (sourcePos == source.length) {
-                return new Token(TokenType.EOF, null, lineNumber);
+                return Token.builder()
+                        .tokenType(TokenType.EOF)
+                        .value(null)
+                        .line(lineNumber)
+                        .build();
             }
             char c = source[sourcePos++];
             if (c == '\n' || c == 0 || (Character.isWhitespace(c) && state != LEX_STRING && state != LEX_COMMENT)) {

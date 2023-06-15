@@ -251,7 +251,14 @@ public final class CodeGenerator {
             String[] tokens = operand1.split("#");
             builder.offset(Integer.parseInt(tokens[0]));
             builder.fs("$" + tokens[1]);
-        } else {
+        }
+
+        if (MipsLexer.isRegister(operand2)) {
+            builder.ft("$" + operand2);
+        }
+
+        FpuInstruction fpuInstruction = builder.build();
+        if (Objects.equals(fpuInstruction.fd, fpuInstruction.ft) && Objects.equals(fpuInstruction.fd, fpuInstruction.fs)){
             ErrorRecorder.recordError(
                     ErrorRecorder.Error.builder()
                             .line(line)
@@ -260,11 +267,7 @@ public final class CodeGenerator {
             );
         }
 
-        if (MipsLexer.isRegister(operand2)) {
-            builder.ft("$" + operand2);
-        }
-
-        return builder.build();
+        return fpuInstruction;
     }
 
     private CpuInstruction buildCpuInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
