@@ -56,7 +56,7 @@ public final class MipsLexer {
 
     }};
 
-    public static final Map<String, String> DECI_TO_CPU_REG = new HashMap<>() {{
+    public static final Map<String, String> DECI_TO_CPU_REG = new HashMap<String, String>() {{
         put("0", "zero");
         put("1", "at");
         put("2", "v0");
@@ -91,7 +91,7 @@ public final class MipsLexer {
         put("31", "ra");
     }};
 
-    public static final Map<String, String> DECI_TO_FPU_REG = new HashMap<>() {{
+    public static final Map<String, String> DECI_TO_FPU_REG = new HashMap<String, String>() {{
         put("0", "f0"); //FIR readonly
         put("1", "f1");
         put("2", "f2");
