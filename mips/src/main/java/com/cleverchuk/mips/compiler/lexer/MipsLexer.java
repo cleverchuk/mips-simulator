@@ -41,7 +41,7 @@ public final class MipsLexer {
     public MipsLexer() {
     }
 
-    public static final Map<String, TokenType> RESERVED = new HashMap<>() {{
+    public static final Map<String, TokenType> RESERVED = new HashMap<String, String>() {{
         put("data", TokenType.DATA);
         put("text", TokenType.TEXT);
         put("ascii", TokenType.ASCII);
