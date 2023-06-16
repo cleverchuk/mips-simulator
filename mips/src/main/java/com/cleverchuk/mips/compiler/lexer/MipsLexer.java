@@ -14,7 +14,7 @@ import javax.inject.Inject;
 
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_COMMENT;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_DECI;
-import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_FLOAT;
+import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_FLOATING_POINT;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_HEX;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_IDENTIFIER;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_OCTAL;
@@ -25,9 +25,9 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
 public final class MipsLexer {
     private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9.]*");
 
-    private static final Pattern DECI = Pattern.compile("[0-9][0-9]*");
+    private static final Pattern DECI = Pattern.compile("[0-9]+");
 
-    private static final Pattern FLOAT = Pattern.compile("[0-9]+\\.[0-9]*");
+    private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*");
 
     private static final Pattern HEX = Pattern.compile("0[xX][a-f0-9]+");
 
@@ -46,12 +46,12 @@ public final class MipsLexer {
         put("text", TokenType.TEXT);
         put("ascii", TokenType.ASCII);
         put("asciiz", TokenType.ASCIIZ);
-        put("space", TokenType.SPACESTORAGE);
-        put("byte", TokenType.BYTESTORAGE);
-        put("half", TokenType.HALFSTORAGE);
-        put("word", TokenType.WORDSTORAGE);
-        put("float", TokenType.FLOATSTORAGE);
-        put("double", TokenType.DOUBLESTORAGE);
+        put("space", TokenType.SPACE_STORAGE);
+        put("byte", TokenType.BYTE_STORAGE);
+        put("half", TokenType.HALF_STORAGE);
+        put("word", TokenType.WORD_STORAGE);
+        put("float", TokenType.FLOAT_STORAGE);
+        put("double", TokenType.DOUBLE_STORAGE);
         put("globl", TokenType.GLOBL);
 
     }};
@@ -92,7 +92,7 @@ public final class MipsLexer {
     }};
 
     public static final Map<String, String> DECI_TO_FPU_REG = new HashMap<String, String>() {{
-        put("0", "f0");
+        put("0", "f0"); //FIR readonly
         put("1", "f1");
         put("2", "f2");
         put("3", "f3");
@@ -123,10 +123,12 @@ public final class MipsLexer {
         put("28", "f28");
         put("29", "f29");
         put("30", "f30");
-        put("31", "f31");
+        put("31", "f31"); //FCSR read-write
     }};
 
     public static final Set<String> CPU_REG = new HashSet<>(DECI_TO_CPU_REG.values());
+
+    public static final Set<String> FPU_REG = new HashSet<>(DECI_TO_FPU_REG.values());
 
     public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
 
@@ -150,7 +152,11 @@ public final class MipsLexer {
 
     private boolean isLiteral(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '$'
-                || c == ',' || c == ':' || c == '.' || c == '(' || c == ')';
+                || c == ',' || c == ':' || c == '(' || c == ')';
+    }
+
+    private boolean isDelimiter(char c) {
+        return c == ' ';
     }
 
     @Nullable
@@ -159,10 +165,10 @@ public final class MipsLexer {
             default:
             case LEX_START:
                 return null; // This must not happen
-            case LEX_FLOAT:
+            case LEX_FLOATING_POINT:
                 state = LEX_START;
                 return Token.builder()
-                        .tokenType(TokenType.FLOAT)
+                        .tokenType(TokenType.FLOATING_POINT)
                         .value(value)
                         .line(lineNumber)
                         .pos(sourcePos - value.length())
@@ -209,9 +215,26 @@ public final class MipsLexer {
                             .pos(sourcePos - value.length() - 1)
                             .build();
                 }
+
+                if (FPU_REG.contains(value)) {
+                    return Token.builder()
+                            .tokenType(TokenType.REG)
+                            .value(value)
+                            .line(lineNumber)
+                            .pos(sourcePos - value.length() - 1)
+                            .build();
+                }
                 if (CPU_OPCODES.contains(value)) {
                     return Token.builder()
                             .tokenType(TokenType.CPU_OPCODE)
+                            .value(value)
+                            .line(lineNumber)
+                            .pos(sourcePos - value.length())
+                            .build();
+                }
+                if (FPU_OPCODES.contains(value)) {
+                    return Token.builder()
+                            .tokenType(TokenType.FPU_OPCODE)
                             .value(value)
                             .line(lineNumber)
                             .pos(sourcePos - value.length())
@@ -255,7 +278,11 @@ public final class MipsLexer {
         StringBuilder stringBuilder = new StringBuilder();
         while (true) {
             if (sourcePos == source.length) {
-                return new Token(TokenType.EOF, null, lineNumber);
+                return Token.builder()
+                        .tokenType(TokenType.EOF)
+                        .value(null)
+                        .line(lineNumber)
+                        .build();
             }
             char c = source[sourcePos++];
             if (c == '\n' || c == 0 || (Character.isWhitespace(c) && state != LEX_STRING && state != LEX_COMMENT)) {
@@ -281,8 +308,8 @@ public final class MipsLexer {
             stringBuilder.append(c);
             if (COMMENT.matcher(stringBuilder.toString()).matches()) {
                 state = LEX_COMMENT;
-            } else if (FLOAT.matcher(stringBuilder.toString()).matches()) {
-                state = LEX_FLOAT;
+            } else if (FLOATING_POINT.matcher(stringBuilder.toString()).matches()) {
+                state = LEX_FLOATING_POINT;
             } else if (OCTAL.matcher(stringBuilder.toString()).matches()) {
                 state = LEX_OCTAL;
             } else if (DECI.matcher(stringBuilder.toString()).matches()) {
@@ -344,7 +371,7 @@ public final class MipsLexer {
                     case '$':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.DOLLARSIGN)
+                                .tokenType(TokenType.DOLLAR_SIGN)
                                 .value("$")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)
@@ -368,7 +395,7 @@ public final class MipsLexer {
                     case '(':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.LPAREN)
+                                .tokenType(TokenType.L_PAREN)
                                 .value("(")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)
@@ -376,7 +403,7 @@ public final class MipsLexer {
                     case ')':
                         state = LEX_START;
                         return Token.builder()
-                                .tokenType(TokenType.RPAREN)
+                                .tokenType(TokenType.R_PAREN)
                                 .value(")")
                                 .line(lineNumber)
                                 .pos(sourcePos - 1)
@@ -389,7 +416,7 @@ public final class MipsLexer {
                     state = LEX_START;
                 }
             }
-            if (isLiteral(source[sourcePos]) && state != LEX_STRING && state != LEX_COMMENT) {
+            if ((isLiteral(source[sourcePos]) || isDelimiter(source[sourcePos])) && state != LEX_STRING && state != LEX_COMMENT) {
                 return buildToken(stringBuilder.toString());
             }
         }
@@ -404,7 +431,14 @@ public final class MipsLexer {
     }
 
     public static boolean isRegister(String token) {
-        return CPU_REG.contains(token);
+        return CPU_REG.contains(token) || FPU_REG.contains(token);
+    }
+
+    public static String registerNumberToName(String number) {
+        if (DECI_TO_CPU_REG.containsKey(number)) {
+            return DECI_TO_CPU_REG.get(number);
+        }
+        return DECI_TO_FPU_REG.get(number);
     }
 
     public boolean hasNextToken() {

@@ -220,7 +220,6 @@ public final class RecursiveDescentParser {
                 if (ll1.getTokenType() == TokenType.STRING) {
                     Node node = Node.builder()
                             .nodeType(TERMINAL)
-
                             .line(ll1.getLine())
                             .value(ll1.getValue())
                             .build();
@@ -254,7 +253,7 @@ public final class RecursiveDescentParser {
                 return errorRecovery();
             }
 
-            if (ll1.getTokenType() == TokenType.SPACESTORAGE) {
+            if (ll1.getTokenType() == TokenType.SPACE_STORAGE) {
                 data.addChild(curr);
                 Node expr = expr();
                 if (expr == null) {
@@ -292,11 +291,11 @@ public final class RecursiveDescentParser {
         if (ll1.getTokenType() == TokenType.DOT) {
             ll1 = lexer.getNextToken();
             switch (ll1.getTokenType()) {
-                case BYTESTORAGE:
-                case WORDSTORAGE:
-                case HALFSTORAGE:
-                case FLOATSTORAGE:
-                case DOUBLESTORAGE:
+                case BYTE_STORAGE:
+                case WORD_STORAGE:
+                case HALF_STORAGE:
+                case FLOAT_STORAGE:
+                case DOUBLE_STORAGE:
                     dataMode.addChild(Node.builder()
                             .nodeType(TERMINAL)
                             .line(ll1.getLine())
@@ -366,7 +365,7 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.FLOAT) {
+        if (ll1.getTokenType() == TokenType.FLOATING_POINT) {
             Node node = Node.builder()
                     .nodeType(TERMINAL)
                     .line(ll1.getLine())
@@ -474,10 +473,10 @@ public final class RecursiveDescentParser {
             case DECI:
                 return constant;
             case HEX:
-                node.setValue(Short.decode(node.getValue().toString()));
+                node.setValue(Long.decode(node.getValue().toString()));
                 return constant;
             case OCTAL:
-                node.setValue(Short.parseShort(node.getValue().toString(), 8));
+                node.setValue(Long.parseLong(node.getValue().toString(), 8));
                 return constant;
         }
 
@@ -505,6 +504,15 @@ public final class RecursiveDescentParser {
                     .nodeType(TERMINAL)
                     .line(ll1.getLine())
                     .value(-1 * Integer.parseInt(ll1.getValue().toString()))
+                    .build());
+            return negConstant;
+        }
+
+        if (ll1.getTokenType() == TokenType.FLOATING_POINT) {
+            negConstant.addChild(Node.builder()
+                    .nodeType(TERMINAL)
+                    .line(ll1.getLine())
+                    .value(-1 * Double.parseDouble(ll1.getValue().toString()))
                     .build());
             return negConstant;
         }
@@ -631,7 +639,7 @@ public final class RecursiveDescentParser {
             int resetPos0 = lexer.getTokenPos();
             ll1 = lexer.getNextToken();
 
-            if (ll1.getTokenType() == TokenType.CPU_OPCODE) {
+            if (ll1.getTokenType() == TokenType.CPU_OPCODE || ll1.getTokenType() == TokenType.FPU_OPCODE) {
                 lexer.reset(resetPos0);
                 textDecl.addChild(label);
                 Node instruction = instruction();
@@ -690,7 +698,7 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE && ll1.getTokenType() != TokenType.FPU_OPCODE) {
             if (ll1.getTokenType() != TokenType.EOF && ll1.getTokenType() != TokenType.DOT) {
                 ErrorRecorder.recordError(ErrorRecorder.Error.builder()
                         .line(ll1.getLine())
@@ -932,7 +940,7 @@ public final class RecursiveDescentParser {
                 .line(ll1.getLine())
                 .value(ll1.getValue())
                 .build());
-        if (ll1.getTokenType() != TokenType.CPU_OPCODE) {
+        if (ll1.getTokenType() != TokenType.CPU_OPCODE && ll1.getTokenType() != TokenType.FPU_OPCODE) {
             return null;
         }
         return zeroOp;
@@ -998,11 +1006,10 @@ public final class RecursiveDescentParser {
                 .build();
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.DOLLARSIGN) {
+        if (ll1.getTokenType() == TokenType.DOLLAR_SIGN) {
             ll1 = lexer.getNextToken();
             if (ll1.getTokenType() == TokenType.REG) {
                 register.addChild(Node.builder()
-
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
                         .value(ll1.getValue())
@@ -1012,10 +1019,9 @@ public final class RecursiveDescentParser {
 
             if (ll1.getTokenType() == TokenType.DECI) {
                 register.addChild(Node.builder()
-
                         .nodeType(TERMINAL)
                         .line(ll1.getLine())
-                        .value(MipsLexer.DECI_TO_CPU_REG.get(ll1.getValue().toString()))
+                        .value(MipsLexer.registerNumberToName(ll1.getValue().toString()))
                         .build());
                 return register;
             }
@@ -1037,11 +1043,11 @@ public final class RecursiveDescentParser {
 
         int resetPos = lexer.getTokenPos();
         ll1 = lexer.getNextToken();
-        if (ll1.getTokenType() == TokenType.LPAREN) {
+        if (ll1.getTokenType() == TokenType.L_PAREN) {
             Node register = register();
             if (register != null) {
                 ll1 = lexer.getNextToken();
-                if (ll1.getTokenType() == TokenType.RPAREN) {
+                if (ll1.getTokenType() == TokenType.R_PAREN) {
                     parenRegister.addChild(register);
                     return parenRegister;
                 }

@@ -40,7 +40,7 @@ public class CpuRegisterFile {
     }
 
     public void accSetHI(int value) {
-        int temp = (int) (accumulator & 0xffff_ffff);
+        int temp = (int) accumulator;
         accumulator &= 0x0;
         accumulator |= value;
         accumulator <<= 0x20;

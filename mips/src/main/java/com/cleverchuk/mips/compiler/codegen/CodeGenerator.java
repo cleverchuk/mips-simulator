@@ -6,12 +6,16 @@ import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
+import com.cleverchuk.mips.simulator.VirtualInstruction;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import com.cleverchuk.mips.simulator.mem.StorageType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 import javax.inject.Inject;
 
@@ -21,7 +25,7 @@ public final class CodeGenerator {
 
     private final Memory memory;
 
-    private final List<CpuInstruction> cpuInstructions = new ArrayList<>();
+    private final List<VirtualInstruction> instructions = new ArrayList<>();
 
     private int dataSegmentOffset = -1;
 
@@ -37,8 +41,8 @@ public final class CodeGenerator {
         return memory;
     }
 
-    public List<CpuInstruction> getInstructions() {
-        return cpuInstructions;
+    public List<VirtualInstruction> getInstructions() {
+        return instructions;
     }
 
     public int getDataSegmentOffset() {
@@ -62,9 +66,15 @@ public final class CodeGenerator {
         dataSegmentOffset = -1;
         textSegmentOffset = -1;
         memOffset = 0;
-        cpuInstructions.clear();
+        instructions.clear();
     }
 
+    /**
+     * Transforms AST to simulator instructions. The operand are destination register(rd/fd), source register(rs/fs),
+     * source register(rt/ft) then followed by any other operand for special opcodes
+     *
+     * @param root AST root
+     */
     public void generate(Node root) {
         for (Node child : root.getChildren()) {
             generate(child);
@@ -79,27 +89,27 @@ public final class CodeGenerator {
                     break;
 
                 case ZEROOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(), null,
                             null, null, null));
                     break;
 
                 case ONEOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(), null,
                             null, null));
                     break;
 
                 case TWOOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(), null, null));
                     break;
 
                 case THREEOP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -107,7 +117,7 @@ public final class CodeGenerator {
                     break;
 
                 case FOUROP:
-                    cpuInstructions.add(buildInstruction(root.getChildren().get(0).getLine(),
+                    instructions.add(buildInstruction(root.getChildren().get(0).getLine(),
                             root.getChildren().get(0).getValue().toString(),
                             root.getChildren().get(1).getValue().toString(),
                             root.getChildren().get(2).getValue().toString(),
@@ -128,7 +138,7 @@ public final class CodeGenerator {
                 case TEXTDECL:
                     Node label = root.getChildren().get(0);
                     if (label.getConstruct() == Construct.LABEL) {
-                        SymbolTable.insert(label.getValue().toString(), cpuInstructions.size() - 1);
+                        SymbolTable.insert(label.getValue().toString(), instructions.size() - 1);
                     }
                     break;
 
@@ -205,7 +215,62 @@ public final class CodeGenerator {
         return c == '-' || c == '+' || c == '*' || c == '/';
     }
 
-    private CpuInstruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
+    private VirtualInstruction buildInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
+        CpuOpcode cpuOpcode = CpuOpcode.parse(opcode);
+        if (cpuOpcode != null) {
+            return buildCpuInstruction(line, opcode, operand0, operand1, operand2, operand3);
+        }
+
+        return buildFpuInstruction(line, opcode, operand0, operand1, operand2);
+    }
+
+    private VirtualInstruction buildFpuInstruction(int line, String opcode, String operand0, String operand1, String operand2) {
+        FpuOpcode opCode = FpuOpcode.parse(opcode);
+        FpuInstruction.FpuInstructionBuilder builder = FpuInstruction.builder()
+                .line(line)
+                .opcode(opCode);
+
+        if (operand0 == null || operand1 == null) {
+            throw new RuntimeException("Unknown instruction");
+        }
+
+        if (MipsLexer.isRegister(operand0)) {
+            try {
+                short offset = Short.parseShort(operand1);
+                builder.ft("$" + operand0);
+                builder.offset(offset);
+
+            } catch (Exception ignore) {
+                builder.fd("$" + operand0);
+            }
+        }
+
+        if (MipsLexer.isRegister(operand1)) {
+            builder.fs("$" + operand1);
+        } else if (operand1.contains("#")) {
+            String[] tokens = operand1.split("#");
+            builder.offset(Integer.parseInt(tokens[0]));
+            builder.fs("$" + tokens[1]);
+        }
+
+        if (MipsLexer.isRegister(operand2)) {
+            builder.ft("$" + operand2);
+        }
+
+        FpuInstruction fpuInstruction = builder.build();
+        if (Objects.equals(fpuInstruction.fd, fpuInstruction.ft) && Objects.equals(fpuInstruction.fd, fpuInstruction.fs)){
+            ErrorRecorder.recordError(
+                    ErrorRecorder.Error.builder()
+                            .line(line)
+                            .msg("Invalid fpu instruction")
+                            .build()
+            );
+        }
+
+        return fpuInstruction;
+    }
+
+    private CpuInstruction buildCpuInstruction(int line, String opcode, String operand0, String operand1, String operand2, String operand3) {
         CpuOpcode opCode = CpuOpcode.valueOf(opcode.toUpperCase());
         CpuInstruction.CpuInstructionBuilder builder = CpuInstruction.builder()
                 .line(line)
@@ -257,7 +322,7 @@ public final class CodeGenerator {
 
             if (MipsLexer.isRegister(operand2)) {
                 builder.rt("$" + operand2);
-            } else if (operand2.contains("#")) {// Check that offset is non-negative
+            } else if (operand2.contains("#")) {
                 String[] tokens = operand2.split("#");
                 builder.offset(Integer.parseInt(tokens[0]));
                 builder.rt("$" + tokens[1]);
@@ -326,6 +391,15 @@ public final class CodeGenerator {
             case ASCII:
                 writeASCII(tokens);
                 break;
+            case FLOAT:
+                for (int i = 2; i < tokens.length; i++, memOffset += 4) {
+                    memory.storeWord(Float.floatToRawIntBits(Float.parseFloat(tokens[i])), memOffset);
+                }
+                break;
+            case DOUBLE:
+                for (int i = 2; i < tokens.length; i++, memOffset += 8) {
+                    memory.storeDword(Double.doubleToRawLongBits(Double.parseDouble(tokens[i])), memOffset);
+                }
         }
     }
 

@@ -1,11 +1,12 @@
 package com.cleverchuk.mips.simulator.cpu;
 
 import androidx.annotation.NonNull;
+import com.cleverchuk.mips.simulator.Opcode;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public enum CpuOpcode {
+public enum CpuOpcode implements Opcode {
     // ARITHMETIC OPERATIONS
     ADD("add"),
     ADDI("addi"),
@@ -109,30 +110,34 @@ public enum CpuOpcode {
 
     SYSCALL("syscall");
 
-    public static Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getValue)
+    public static final Set<String> CPU_OPCODES = Arrays.stream(CpuOpcode.values()).map(CpuOpcode::getName)
             .collect(Collectors.toSet());
 
-    private final String value;
+    private final String name;
 
-    CpuOpcode(String value) {
-        this.value = value;
+    CpuOpcode(String name) {
+        this.name = name;
     }
 
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return value;
+        return name;
     }
 
-    public boolean same(String opcode){
-        return value.equals(opcode);
+    public boolean same(String opcode) {
+        return name.equals(opcode);
     }
 
     public static CpuOpcode parse(String opcode) {
-        return valueOf(opcode.toUpperCase());
+        try {
+            return valueOf(opcode.toUpperCase());
+        } catch (Throwable ignore) {
+        }
+        return null;
     }
 }

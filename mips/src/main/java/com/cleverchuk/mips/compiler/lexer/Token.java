@@ -7,30 +7,28 @@ public class Token {
 
     private final Object value;
 
-    private int line;
+    private final int line;
 
-    private int pos;
+    private final int pos;
+
+    private final String code;
 
     private DataFormat format;
-
     public Token(TokenType tokenType, Object value, int line) {
         this.tokenType = tokenType;
         this.value = value;
         this.line = line;
+        this.pos = -1;
+        this.code = null;
+        this.format = null;
     }
 
-    public Token(TokenType tokenType, Object value, int line, int pos) {
+    public Token(TokenType tokenType, Object value, int line, int pos, String code, DataFormat format) {
         this.tokenType = tokenType;
         this.value = value;
         this.line = line;
         this.pos = pos;
-    }
-
-    public Token(TokenType tokenType, Object value, int line, int pos, DataFormat format) {
-        this.tokenType = tokenType;
-        this.value = value;
-        this.line = line;
-        this.pos = pos;
+        this.code = code;
         this.format = format;
     }
 
@@ -54,6 +52,10 @@ public class Token {
         return format;
     }
 
+    public String getCode() {
+        return code;
+    }
+
     public static TokenBuilder builder() {
         return new TokenBuilder();
     }
@@ -68,6 +70,8 @@ public class Token {
         private int pos;
 
         private DataFormat format;
+
+        private String code;
 
         public TokenBuilder tokenType(TokenType tokenType) {
             this.tokenType = tokenType;
@@ -95,7 +99,7 @@ public class Token {
         }
 
         public Token build() {
-            return new Token(tokenType, value, line, pos);
+            return new Token(tokenType, value, line, pos, code, format);
         }
     }
 }

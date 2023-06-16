@@ -47,6 +47,11 @@ public class CpuInstruction implements VirtualInstruction {
         return new CpuInstructionBuilder();
     }
 
+    @Override
+    public int line() {
+        return line;
+    }
+
     public static class CpuInstructionBuilder {
         private String rd, rs, rt; // register names i.e $t0 , $v0 etc
 

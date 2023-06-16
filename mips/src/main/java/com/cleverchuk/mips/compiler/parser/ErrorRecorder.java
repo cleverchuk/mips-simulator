@@ -33,9 +33,12 @@ public class ErrorRecorder {
 
         private final String msg;
 
-        public Error(int line, String msg) {
+        private final String code;
+
+        public Error(int line, String msg, String code) {
             this.line = line;
             this.msg = msg;
+            this.code = code;
         }
 
         public int getLine() {
@@ -61,6 +64,8 @@ public class ErrorRecorder {
 
             private String msg;
 
+            private String code;
+
             public ErrorBuilder line(int line){
                 this.line = line;
                 return this;
@@ -71,8 +76,13 @@ public class ErrorRecorder {
                 return this;
             }
 
+            public ErrorBuilder code(String code){
+                this.code = code;
+                return this;
+            }
+
             public Error build(){
-                return new Error(line, msg);
+                return new Error(line, msg, code);
             }
         }
     }

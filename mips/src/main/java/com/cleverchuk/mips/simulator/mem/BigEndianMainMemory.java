@@ -19,32 +19,41 @@ public class BigEndianMainMemory implements Memory {
     @Override
     public int read(int offset) {
         offset = offset % backingStore.length;
-        return backingStore[offset];
+        return (0x00ff & backingStore[offset]);
     }
 
     @Override
     public int readHalf(int offset) {
         offset = offset % backingStore.length;
-        short out = 0x0;
+        int out = 0x0;
         out |= backingStore[offset];
+
+        out &= 0xff;
         out <<= 0x8;
-        out |= backingStore[offset + 1];
+        out |= (0x00ff & backingStore[offset + 1]);
+
         return out;
     }
 
     @Override
     public int readWord(int offset) {
         offset = offset % backingStore.length;
-        int out = readHalf(offset);
-        out = (out << 0x10) | readHalf(offset + 2);
-        return out;
+        long out = readHalf(offset);
+        out &= 0xffff;
+
+        out <<= 0x10;
+        out |= (0x0000_ffff & readHalf(offset + 2));
+        return (int) (out);
     }
 
     @Override
     public long readDWord(int offset) {
         offset = offset % backingStore.length;
         long out = readWord(offset);
-        out = (out << 0x20) | readHalf(offset + 4);
+        out &= 0xffff_ffff;
+
+        out <<= 0x20;
+        out |= (0x0000_ffff_ffffL & readWord(offset + 4));
         return out;
     }
 

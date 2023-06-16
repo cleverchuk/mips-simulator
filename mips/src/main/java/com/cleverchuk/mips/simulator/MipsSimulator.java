@@ -2,13 +2,17 @@ package com.cleverchuk.mips.simulator;
 
 import android.os.Handler;
 import android.util.SparseIntArray;
-import com.cleverchuk.mips.communication.OnUserInputListener;
 import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
+import com.cleverchuk.mips.dev.OnUserInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
-import com.cleverchuk.mips.simulator.cpu.MipsCpu;
+import com.cleverchuk.mips.simulator.cpu.Cpu;
+import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
+import com.cleverchuk.mips.simulator.fpu.CoProcessorException;
+import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
+import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -32,7 +36,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private int instructionEndPos = 0;
 
-    private final ArrayList<CpuInstruction> cpuInstructionMemory;
+    private final ArrayList<VirtualInstruction> cpuInstructionMemory;
 
     private volatile State currentState = State.IDLE;
 
@@ -42,27 +46,33 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private final MipsCompiler compiler;
 
-    private final MipsCpu cpu;
+    private final Cpu cpu;
+
+    private final CoProcessor1 cop;
 
     private final Memory memory;
 
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory) {
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
-        this.cpu = new MipsCpu(memory, this);
+        this.cpu = new Cpu(memory, this);
+        this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
         this.memory = memory;
-
     }
 
     public int getPC() {
         return cpu.getPC();
     }
 
-    public MipsCpu getCpu() {
+    public Cpu getCpu() {
         return cpu;
+    }
+
+    public CoProcessor1 getCop() {
+        return cop;
     }
 
     public void stepping() {
@@ -111,15 +121,19 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
     private void step() {
         if (currentState == State.STEPPING || currentState == State.RUNNING) {
             try {
-                CpuInstruction cpuInstruction = cpuInstructionMemory.get(cpu.getNextPC());
-                cpu.execute(cpuInstruction);
+                VirtualInstruction instruction = cpuInstructionMemory.get(cpu.getNextPC());
+                if (instruction instanceof CpuInstruction) {
+                    cpu.execute((CpuInstruction) instruction);
+                } else {
+                    cop.execute((FpuInstruction) instruction);
+                }
 
-            } catch (Exception e) {
+            } catch (Exception | CoProcessorException e) {
                 previousState = currentState;
                 currentState = State.HALTED;
                 int computedPC = cpu.getPC() - 1;
 
-                int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line : -1;
+                int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line() : -1;
                 String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
 
                 ioHandler.obtainMessage(100, error)
@@ -207,7 +221,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     public int getLineNumberToExecute() {
         if (cpu.getPC() < instructionEndPos) {
-            return cpuInstructionMemory.get(cpu.getPC()).line;
+            return cpuInstructionMemory.get(cpu.getPC()).line();
         }
         return 0;
     }
