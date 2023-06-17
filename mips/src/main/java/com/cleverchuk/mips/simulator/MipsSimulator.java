@@ -30,7 +30,6 @@ import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
-import com.cleverchuk.mips.dev.TerminalInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.fpu.CoProcessor1;

@@ -4002,37 +4002,4 @@ public class MipsSimulatorTest {
         assertEquals(50.5, val, 0.0);
     }
 
-
-    //FPU tests
-    /*
-* # s0 = scores base address, s1 = i
-
- addi s1, zero, 0 # i = 0
-
- addi t2, zero, 200 # t2 = 200
-
- addi t3, zero, 10 # t3 = 10
-
- fcvt.s.w ft0, t3 # ft0 = 10.0
-
-for:
-
- bge s1, t2, done # if i &gt;= 200 then done
-
- slli t3, s1, 2 # t3 = i * 4
-
- add t3, t3, s0 # address of scores[i]
-
- flw ft1, 0(t3) # ft1 = scores[i]
-
- fadd.s ft1, ft1, ft0 # ft1 = scores[i] + 10
-
- fsw ft1, 0(t3) # scores[i] = t1
-
- addi s1, s1, 1 # i = i + 1
-
- j for # repeat
-
-done:
-* */
 }
