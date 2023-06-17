@@ -3,7 +3,7 @@ package com.cleverchuk.mips.simulator.fpu;
 import androidx.annotation.NonNull;
 import java.util.Locale;
 
-public class CoProcessorException extends Throwable {
+public class CoProcessorException extends Exception {
     private final int code;
 
     public CoProcessorException(String message, int code) {

@@ -48,15 +48,19 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private final Cpu cpu;
 
-    private final CoProcessor1 cop;
+    private final Processor<FpuInstruction> cop;
 
     private final Memory memory;
 
-    public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory) {
+    public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory, byte processorFlags) {
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
         this.cpu = new Cpu(memory, this);
-        this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
+        if ((processorFlags & 0x2) > 0) {
+            this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
+        }else{
+            this.cop = new NoOpProcessor();
+        }
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
@@ -71,7 +75,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         return cpu;
     }
 
-    public CoProcessor1 getCop() {
+    public Processor<FpuInstruction> getCop() {
         return cop;
     }
 
@@ -128,7 +132,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                     cop.execute((FpuInstruction) instruction);
                 }
 
-            } catch (Exception | CoProcessorException e) {
+            } catch (Exception e) {
                 previousState = currentState;
                 currentState = State.HALTED;
                 int computedPC = cpu.getPC() - 1;

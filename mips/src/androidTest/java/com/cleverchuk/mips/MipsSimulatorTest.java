@@ -20,6 +20,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
+import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
@@ -76,10 +77,14 @@ public class MipsSimulatorTest {
 
         BigEndianMainMemory bigEndianMainMemory = new BigEndianMainMemory(1024);
         mipsSimulator =
-                new MipsSimulator(new Handler(context.getMainLooper()), new MipsCompiler(parser, new CodeGenerator(bigEndianMainMemory)), bigEndianMainMemory);
-        registerFile = mipsSimulator.getCpu().getRegisterFile();
+                new MipsSimulator(
+                        new Handler(context.getMainLooper()),
+                        new MipsCompiler(parser, new CodeGenerator(bigEndianMainMemory)),
+                        bigEndianMainMemory,
+                        (byte) 0x2);
 
-        fpuRegisterFileArray = mipsSimulator.getCop().getFpuRegisterFile();
+        registerFile = mipsSimulator.getCpu().getRegisterFile();
+        fpuRegisterFileArray = (mipsSimulator.getCop()).registerFiles();
         mipsSimulator.start();
     }
 
@@ -1631,7 +1636,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_ldc1(){
+    public void test_ldc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 9, 1",
@@ -1648,7 +1653,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_lwc1(){
+    public void test_lwc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 9, 1",
@@ -1665,7 +1670,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sdc1(){
+    public void test_sdc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1684,7 +1689,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_swc1(){
+    public void test_swc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1703,7 +1708,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cfc1(){
+    public void test_cfc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0x1004, 0x01000081",
@@ -1741,7 +1746,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_ctc1(){
+    public void test_ctc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 0x1004, 0x00000081, 5",
@@ -1780,7 +1785,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mfc1(){
+    public void test_mfc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1798,7 +1803,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mfhc1(){
+    public void test_mfhc1() {
         String[] instructions = {
                 ".data",
                 "fps: .double 0x0000000100000000, 0, 0",
@@ -1816,7 +1821,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mtc1(){
+    public void test_mtc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 5, 0, 0",
@@ -1834,7 +1839,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mthc1(){
+    public void test_mthc1() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 1, 0",
@@ -1853,7 +1858,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_abs_s(){
+    public void test_abs_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1872,7 +1877,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_abs_d(){
+    public void test_abs_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1891,7 +1896,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_add_s(){
+    public void test_add_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1912,7 +1917,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_add_d(){
+    public void test_add_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1933,7 +1938,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_af_d(){
+    public void test_cmp_af_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1954,7 +1959,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_saf_d(){
+    public void test_cmp_saf_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -1975,7 +1980,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_un_d(){
+    public void test_cmp_un_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -1994,7 +1999,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sun_d(){
+    public void test_cmp_sun_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -2013,7 +2018,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_eq_d(){
+    public void test_cmp_eq_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -2032,7 +2037,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_seq_d(){
+    public void test_cmp_seq_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -2051,7 +2056,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ueq_d(){
+    public void test_cmp_ueq_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -2070,7 +2075,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sueq_d(){
+    public void test_cmp_sueq_d() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7ff80000, 00000000",
@@ -2089,7 +2094,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_lt_d(){
+    public void test_cmp_lt_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 3.8, 6.5",
@@ -2108,7 +2113,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_slt_d(){
+    public void test_cmp_slt_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.8, 0.5",
@@ -2127,7 +2132,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ult_d(){
+    public void test_cmp_ult_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.2, 0.5",
@@ -2146,7 +2151,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sult_d(){
+    public void test_cmp_sult_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.8, 0.5",
@@ -2165,7 +2170,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_le_d(){
+    public void test_cmp_le_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.0, 0.5",
@@ -2184,7 +2189,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sle_d(){
+    public void test_cmp_sle_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.8",
@@ -2203,7 +2208,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ule_d(){
+    public void test_cmp_ule_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 0x7ff8000000000000, 0.5",
@@ -2222,7 +2227,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sule_d(){
+    public void test_cmp_sule_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.8",
@@ -2241,7 +2246,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_or_d(){
+    public void test_cmp_or_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5, 0.5",
@@ -2260,7 +2265,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sor_d(){
+    public void test_cmp_sor_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5.5",
@@ -2279,7 +2284,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_une_d(){
+    public void test_cmp_une_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5",
@@ -2298,7 +2303,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sune_d(){
+    public void test_cmp_sune_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5, 6",
@@ -2317,7 +2322,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ne_d(){
+    public void test_cmp_ne_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 0x7ff8000000000000",
@@ -2336,7 +2341,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sne_d(){
+    public void test_cmp_sne_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 5, 6",
@@ -2356,7 +2361,7 @@ public class MipsSimulatorTest {
 
 
     @Test
-    public void test_cmp_af_s(){
+    public void test_cmp_af_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -2377,7 +2382,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_saf_s(){
+    public void test_cmp_saf_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word -5",
@@ -2398,7 +2403,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_un_s(){
+    public void test_cmp_un_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7fc00000",
@@ -2417,7 +2422,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sun_s(){
+    public void test_cmp_sun_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7fc00000",
@@ -2436,7 +2441,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_eq_s(){
+    public void test_cmp_eq_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.2",
@@ -2455,7 +2460,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_seq_s(){
+    public void test_cmp_seq_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7fc00000",
@@ -2474,7 +2479,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ueq_s(){
+    public void test_cmp_ueq_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7fc00000",
@@ -2493,7 +2498,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sueq_s(){
+    public void test_cmp_sueq_s() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0x7fc00000",
@@ -2512,7 +2517,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_lt_s(){
+    public void test_cmp_lt_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 3.8, 6.5",
@@ -2531,7 +2536,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_slt_s(){
+    public void test_cmp_slt_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.2, 0.5",
@@ -2550,7 +2555,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ult_s(){
+    public void test_cmp_ult_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.2, 0.5",
@@ -2569,7 +2574,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sult_s(){
+    public void test_cmp_sult_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.8, 0.5",
@@ -2588,7 +2593,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_le_s(){
+    public void test_cmp_le_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.0, 0.5",
@@ -2607,7 +2612,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sle_s(){
+    public void test_cmp_sle_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.2",
@@ -2626,7 +2631,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ule_s(){
+    public void test_cmp_ule_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 0x7fc00000, 0.5",
@@ -2645,7 +2650,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sule_s(){
+    public void test_cmp_sule_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.8",
@@ -2664,7 +2669,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_or_s(){
+    public void test_cmp_or_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5, 0.5",
@@ -2683,7 +2688,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sor_s(){
+    public void test_cmp_sor_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5.5",
@@ -2702,7 +2707,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_une_s(){
+    public void test_cmp_une_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5",
@@ -2721,7 +2726,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sune_s(){
+    public void test_cmp_sune_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5, 6",
@@ -2740,7 +2745,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_ne_s(){
+    public void test_cmp_ne_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 0x7fc00000",
@@ -2759,7 +2764,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cmp_sne_s(){
+    public void test_cmp_sne_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 5, 6",
@@ -2778,7 +2783,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_div_s(){
+    public void test_div_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 6.4, 2.0",
@@ -2797,7 +2802,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_div_d(){
+    public void test_div_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 6.4, 2.0",
@@ -2816,7 +2821,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mul_s(){
+    public void test_mul_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 6.4, 2.0",
@@ -2835,7 +2840,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mul_d(){
+    public void test_mul_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 6.4, 2.0",
@@ -2854,7 +2859,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_neg_s(){
+    public void test_neg_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 2.0",
@@ -2872,7 +2877,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_neg_d(){
+    public void test_neg_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 2.0",
@@ -2890,7 +2895,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sqrt_s(){
+    public void test_sqrt_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -2908,7 +2913,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sqrt_d(){
+    public void test_sqrt_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -2926,7 +2931,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sub_s(){
+    public void test_sub_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0, 2.0",
@@ -2945,7 +2950,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sub_d(){
+    public void test_sub_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0, 3.0",
@@ -2964,7 +2969,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_recip_s(){
+    public void test_recip_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -2982,7 +2987,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_recip_d(){
+    public void test_recip_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -3000,7 +3005,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_rsqrt_s(){
+    public void test_rsqrt_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3018,7 +3023,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_rsqrt_d(){
+    public void test_rsqrt_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -3036,7 +3041,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_maddf_s(){
+    public void test_maddf_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3055,7 +3060,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_maddf_d(){
+    public void test_maddf_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -3074,7 +3079,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_msubf_s(){
+    public void test_msubf_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3093,7 +3098,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_msubf_d(){
+    public void test_msubf_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -3112,7 +3117,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_max_s(){
+    public void test_max_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0, 6.9",
@@ -3131,7 +3136,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_max_d(){
+    public void test_max_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0, 6.9",
@@ -3150,7 +3155,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_maxa_s(){
+    public void test_maxa_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0, -6.9",
@@ -3169,7 +3174,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_maxa_d(){
+    public void test_maxa_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0, -6.9",
@@ -3188,7 +3193,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_min_s(){
+    public void test_min_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0, 6.9",
@@ -3207,7 +3212,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_min_d(){
+    public void test_min_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0, 6.9",
@@ -3226,7 +3231,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mina_s(){
+    public void test_mina_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0, -6.9",
@@ -3245,7 +3250,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mina_d(){
+    public void test_mina_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0, -6.9",
@@ -3264,7 +3269,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_d_s(){
+    public void test_cvt_d_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3282,7 +3287,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_d_w(){
+    public void test_cvt_d_w() {
         String[] instructions = {
                 ".data",
                 "fps: .word 4",
@@ -3300,7 +3305,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_d_l(){
+    public void test_cvt_d_l() {
         String[] instructions = {
                 ".data",
                 "fps: .word 4",
@@ -3318,7 +3323,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_s_d(){
+    public void test_cvt_s_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 4.0",
@@ -3336,7 +3341,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_s_w(){
+    public void test_cvt_s_w() {
         String[] instructions = {
                 ".data",
                 "fps: .word 4",
@@ -3354,7 +3359,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_s_l(){
+    public void test_cvt_s_l() {
         String[] instructions = {
                 ".data",
                 "fps: .word 0, 400",
@@ -3372,7 +3377,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_l_s(){
+    public void test_cvt_l_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3390,7 +3395,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_l_d(){
+    public void test_cvt_l_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3408,7 +3413,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_w_s(){
+    public void test_cvt_w_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 4.0",
@@ -3426,7 +3431,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_cvt_w_d(){
+    public void test_cvt_w_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3444,7 +3449,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_rint_s(){
+    public void test_rint_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3462,7 +3467,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_rint_d(){
+    public void test_rint_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3480,7 +3485,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_ceil_l_s(){
+    public void test_ceil_l_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3498,7 +3503,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_ceil_l_d(){
+    public void test_ceil_l_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3517,7 +3522,7 @@ public class MipsSimulatorTest {
 
 
     @Test
-    public void test_ceil_w_s(){
+    public void test_ceil_w_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3535,7 +3540,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_ceil_w_d(){
+    public void test_ceil_w_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3553,7 +3558,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_floor_l_s(){
+    public void test_floor_l_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3571,7 +3576,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_floor_l_d(){
+    public void test_floor_l_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3590,7 +3595,7 @@ public class MipsSimulatorTest {
 
 
     @Test
-    public void test_floor_w_s(){
+    public void test_floor_w_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3608,7 +3613,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_floor_w_d(){
+    public void test_floor_w_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3626,7 +3631,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_round_l_s(){
+    public void test_round_l_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3644,7 +3649,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_round_l_d(){
+    public void test_round_l_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3663,7 +3668,7 @@ public class MipsSimulatorTest {
 
 
     @Test
-    public void test_round_w_s(){
+    public void test_round_w_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3681,7 +3686,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_round_w_d(){
+    public void test_round_w_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3699,7 +3704,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_trunc_l_s(){
+    public void test_trunc_l_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3717,7 +3722,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_trunc_l_d(){
+    public void test_trunc_l_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3736,7 +3741,7 @@ public class MipsSimulatorTest {
 
 
     @Test
-    public void test_trunc_w_s(){
+    public void test_trunc_w_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3754,7 +3759,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_trunc_w_d(){
+    public void test_trunc_w_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3772,7 +3777,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mov_s(){
+    public void test_mov_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5",
@@ -3790,7 +3795,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_mov_d(){
+    public void test_mov_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 40.5",
@@ -3806,8 +3811,9 @@ public class MipsSimulatorTest {
         double val = fpuRegisterFileArray.getFile("$f11").readDouble();
         assertEquals(40.5, val, 0.0);
     }
+
     @Test
-    public void test_sel_s(){
+    public void test_sel_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 1.33, 40.5, 50.5",
@@ -3827,7 +3833,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_sel_d(){
+    public void test_sel_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 1.667, 40.5, 50.5",
@@ -3847,7 +3853,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_seleqz_s(){
+    public void test_seleqz_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 40.5, 50.5, 1.33",
@@ -3867,7 +3873,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_seleqz_d(){
+    public void test_seleqz_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 50.4, 40.5, 1.667",
@@ -3887,7 +3893,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_selnez_s(){
+    public void test_selnez_s() {
         String[] instructions = {
                 ".data",
                 "fps: .float 0, 40.5, 1.33",
@@ -3907,7 +3913,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_selnez_d(){
+    public void test_selnez_d() {
         String[] instructions = {
                 ".data",
                 "fps: .double 1.33, 40.5, 50.5",
@@ -3927,7 +3933,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_bc1eqz(){
+    public void test_bc1eqz() {
         String[] instructions = {
                 ".data",
                 "fps: .double 50.5, 40.5, 0",
@@ -3950,7 +3956,7 @@ public class MipsSimulatorTest {
     }
 
     @Test
-    public void test_bc1nez(){
+    public void test_bc1nez() {
         String[] instructions = {
                 ".data",
                 "fps: .double 50.5, 40.5, 1.667",
@@ -3971,11 +3977,6 @@ public class MipsSimulatorTest {
         val = fpuRegisterFileArray.getFile("$f10").readDouble();
         assertEquals(50.5, val, 0.0);
     }
-
-
-
-
-
 
 
     //FPU tests

@@ -1,7 +1,5 @@
 package com.cleverchuk.mips.compiler.lexer;
 
-import com.cleverchuk.mips.simulator.fpu.DataFormat;
-
 public class Token {
     private final TokenType tokenType;
 
@@ -13,23 +11,20 @@ public class Token {
 
     private final String code;
 
-    private DataFormat format;
     public Token(TokenType tokenType, Object value, int line) {
         this.tokenType = tokenType;
         this.value = value;
         this.line = line;
         this.pos = -1;
         this.code = null;
-        this.format = null;
     }
 
-    public Token(TokenType tokenType, Object value, int line, int pos, String code, DataFormat format) {
+    public Token(TokenType tokenType, Object value, int line, int pos, String code) {
         this.tokenType = tokenType;
         this.value = value;
         this.line = line;
         this.pos = pos;
         this.code = code;
-        this.format = format;
     }
 
     public TokenType getTokenType() {
@@ -46,10 +41,6 @@ public class Token {
 
     public int getPos() {
         return pos;
-    }
-
-    public DataFormat getFormat() {
-        return format;
     }
 
     public String getCode() {
@@ -69,7 +60,6 @@ public class Token {
 
         private int pos;
 
-        private DataFormat format;
 
         private String code;
 
@@ -93,13 +83,8 @@ public class Token {
             return this;
         }
 
-        public TokenBuilder format(DataFormat format) {
-            this.format = format;
-            return this;
-        }
-
         public Token build() {
-            return new Token(tokenType, value, line, pos, code, format);
+            return new Token(tokenType, value, line, pos, code);
         }
     }
 }
