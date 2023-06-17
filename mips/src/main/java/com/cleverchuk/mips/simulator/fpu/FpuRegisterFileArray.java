@@ -9,7 +9,6 @@ public class FpuRegisterFileArray {
 
     public FpuRegisterFileArray() {
         MipsLexer.DECI_TO_FPU_REG.forEach((key, value) -> registerFile.put("$" + value, new DefaultRegisterFile(Integer.parseInt(key))));
-        registerFile.put("$f0", new ReadOnlyRegisterFile(new DefaultRegisterFile(0), 0x00_f3_40_06));
     }
 
     public RegisterFile getFile(String reg) {
