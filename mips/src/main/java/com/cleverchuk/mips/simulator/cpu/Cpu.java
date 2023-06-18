@@ -1,10 +1,11 @@
 package com.cleverchuk.mips.simulator.cpu;
 
+import com.cleverchuk.mips.simulator.Processor;
 import com.cleverchuk.mips.simulator.SystemServiceProvider;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.Map;
 
-public class Cpu {
+public class Cpu implements Processor<CpuInstruction> {
     private Map<Object, Integer> labels;
 
     private final Memory memory;
@@ -13,7 +14,7 @@ public class Cpu {
 
     private final CpuRegisterFile registerFile;
 
-    private volatile int PC;
+    private int PC;
 
     private final SystemServiceProvider serviceProvider;
 

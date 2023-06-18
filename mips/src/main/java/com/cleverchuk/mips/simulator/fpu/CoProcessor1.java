@@ -1,5 +1,6 @@
 package com.cleverchuk.mips.simulator.fpu;
 
+import com.cleverchuk.mips.simulator.Processor;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
 import com.cleverchuk.mips.simulator.mem.Memory;
@@ -10,7 +11,7 @@ import static com.cleverchuk.mips.simulator.fpu.FpuOpcode.Condition.SIGNALING_MA
 /**
  * A 64-bit register model Coprocessor. Even/Odd register is not supported
  */
-public class CoProcessor1 {
+public class CoProcessor1 implements Processor<FpuInstruction> {
     private final Memory memory;
 
     private final FpuRegisterFileArray fpuRegisterFileArray;
@@ -48,11 +49,12 @@ public class CoProcessor1 {
         this.cpuRegisterFileSupplier = cpuRegisterFileSupplier;
     }
 
-    public FpuRegisterFileArray getFpuRegisterFile() {
+    @Override
+    public FpuRegisterFileArray registerFiles() {
         return fpuRegisterFileArray;
     }
 
-    public void execute(FpuInstruction fpuInstruction) throws Exception, CoProcessorException {
+    public void execute(FpuInstruction fpuInstruction) throws Exception {
         switch (fpuInstruction.opcode) {
             case LDC1:
                 ldc1(fpuInstruction);

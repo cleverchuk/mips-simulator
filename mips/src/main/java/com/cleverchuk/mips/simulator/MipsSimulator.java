@@ -6,18 +6,30 @@ import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
-import com.cleverchuk.mips.dev.OnUserInputListener;
+import com.cleverchuk.mips.dev.TerminalInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
-import com.cleverchuk.mips.simulator.fpu.CoProcessorException;
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MipsSimulator extends Thread implements OnUserInputListener<Integer>, SystemServiceProvider {
+import static com.cleverchuk.mips.simulator.SystemService.DEBUG;
+import static com.cleverchuk.mips.simulator.SystemService.HALT;
+import static com.cleverchuk.mips.simulator.SystemService.PAUSE;
+import static com.cleverchuk.mips.simulator.SystemService.PRINT_CHAR;
+import static com.cleverchuk.mips.simulator.SystemService.PRINT_DOUBLE;
+import static com.cleverchuk.mips.simulator.SystemService.PRINT_FLOAT;
+import static com.cleverchuk.mips.simulator.SystemService.PRINT_INT;
+import static com.cleverchuk.mips.simulator.SystemService.PRINT_STRING;
+import static com.cleverchuk.mips.simulator.SystemService.READ_CHAR;
+import static com.cleverchuk.mips.simulator.SystemService.READ_DOUBLE;
+import static com.cleverchuk.mips.simulator.SystemService.READ_FLOAT;
+import static com.cleverchuk.mips.simulator.SystemService.READ_INT;
+
+public class MipsSimulator extends Thread implements TerminalInputListener, SystemServiceProvider {
 
     private enum State {
         IDLE,
@@ -29,6 +41,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         STOP,
         PAUSED
     }
+
 
     private SparseIntArray breakpoints;
 
@@ -48,15 +61,19 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     private final Cpu cpu;
 
-    private final CoProcessor1 cop;
+    private final Processor<FpuInstruction> cop;
 
     private final Memory memory;
 
-    public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory) {
+    public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory, byte processorFlags) {
         super("MipsSimulatorThread");
         cpuInstructionMemory = new ArrayList<>();
         this.cpu = new Cpu(memory, this);
-        this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
+        if ((processorFlags & 0x2) > 0) {
+            this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
+        }else{
+            this.cop = new NoOpProcessor();
+        }
 
         this.ioHandler = ioHandler;
         this.compiler = compiler;
@@ -71,7 +88,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         return cpu;
     }
 
-    public CoProcessor1 getCop() {
+    public Processor<FpuInstruction> getCop() {
         return cop;
     }
 
@@ -128,7 +145,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                     cop.execute((FpuInstruction) instruction);
                 }
 
-            } catch (Exception | CoProcessorException e) {
+            } catch (Exception e) {
                 previousState = currentState;
                 currentState = State.HALTED;
                 int computedPC = cpu.getPC() - 1;
@@ -136,15 +153,15 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                 int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line() : -1;
                 String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
 
-                ioHandler.obtainMessage(100, error)
+                ioHandler.obtainMessage(PRINT_STRING.code, error)
                         .sendToTarget();
-                ioHandler.obtainMessage(10)
+                ioHandler.obtainMessage(HALT.code)
                         .sendToTarget();
             }
             if (cpu.getPC() >= instructionEndPos) {
                 previousState = currentState;
                 currentState = State.HALTED;
-                ioHandler.obtainMessage(10)
+                ioHandler.obtainMessage(HALT.code)
                         .sendToTarget();
             }
         }
@@ -157,7 +174,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             if (currentState == State.RUNNING && breakpoints != null && breakpoints.get(getLineNumberToExecute()) > 0) {
                 previousState = currentState;
                 currentState = State.WAITING;
-                ioHandler.obtainMessage(101)
+                ioHandler.obtainMessage(DEBUG.code)
                         .sendToTarget();
             }
 
@@ -169,15 +186,11 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                 previousState = currentState;
                 currentState = State.WAITING;
 
-                ioHandler.obtainMessage(101)
+                ioHandler.obtainMessage(DEBUG.code)
                         .sendToTarget();
 
             } else if (currentState == State.STOP) {
                 return;
-
-            } else if (currentState == State.WAITING) {
-                ioHandler.obtainMessage(102)
-                        .sendToTarget();
             }
         }
     }
@@ -233,7 +246,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         } catch (SyntaxError syntaxError) {
             previousState = currentState;
             currentState = State.ERROR;
-            ioHandler.obtainMessage(100, syntaxError.getMessage())
+            ioHandler.obtainMessage(PRINT_STRING.code, syntaxError.getMessage())
                     .sendToTarget();
 
         } catch (Exception e) {
@@ -243,7 +256,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                     String.format("OoOps! Something went awry: %s\n If you think this is a bug, please report issue: https://github" +
                             ".com/CleverChuk/MipsIde-bug-track\n", e.getLocalizedMessage());
 
-            ioHandler.obtainMessage(100, error)
+            ioHandler.obtainMessage(PRINT_STRING.code, error)
                     .sendToTarget();
         }
     }
@@ -256,7 +269,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             previousState = currentState;
             currentState = State.ERROR;
             if (!silent) {
-                ioHandler.obtainMessage(100, syntaxError.getMessage())
+                ioHandler.obtainMessage(PRINT_STRING.code, syntaxError.getMessage())
                         .sendToTarget();
             }
 
@@ -267,7 +280,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
                     String.format("OoOps! Something went awry: %s\n If you think this is a bug, please report issue: https://github" +
                             ".com/CleverChuk/MipsIde-bug-track\n", e.getLocalizedMessage());
             if (!silent) {
-                ioHandler.obtainMessage(100, error)
+                ioHandler.obtainMessage(PRINT_STRING.code, error)
                         .sendToTarget();
             }
         }
@@ -275,54 +288,75 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
 
     @Override
     public void requestService(int which) throws Exception {
-        switch (which) {
-            case 1:
-                //Print Int
-                ioHandler.obtainMessage(1, cpu.getRegisterFile().read("$a0"))
+        SystemService systemService = SystemService.parse(which);
+        switch (systemService) {
+            case PRINT_INT:
+                ioHandler.obtainMessage(PRINT_INT.code, cpu.getRegisterFile().read("$a0"))
                         .sendToTarget();
                 break;
 
-            case 4: {
-                //Print String
+            case PRINT_STRING: {
                 int arg = cpu.getRegisterFile().read("$a0"), c;
                 StringBuilder builder = new StringBuilder();
                 while ((c = memory.read(arg++)) != 0) {
                     builder.append((char) c);
                 }
-
-                ioHandler.obtainMessage(4, builder.toString())
+                ioHandler.obtainMessage(PRINT_STRING.code, builder.toString())
                         .sendToTarget();
                 break;
             }
 
-            case 11:
-                //Print Char
+            case PRINT_CHAR:
                 int arg = cpu.getRegisterFile().read("$a0");
-                ioHandler.obtainMessage(11, (char) (arg))
+                ioHandler.obtainMessage(PRINT_CHAR.code, (char) (arg))
                         .sendToTarget();
                 break;
 
-            case 10:
+            case PRINT_FLOAT:
+                float single = cop.registerFiles().getFile("$f12").readSingle();
+                ioHandler.obtainMessage(PRINT_FLOAT.code, single)
+                        .sendToTarget();
+                break;
+
+            case PRINT_DOUBLE:
+                double doubl = cop.registerFiles().getFile("$f12").readDouble();
+                ioHandler.obtainMessage(PRINT_DOUBLE.code, doubl)
+                        .sendToTarget();
+                break;
+
+            case HALT:
                 previousState = currentState;
                 currentState = State.HALTED;
-                ioHandler.obtainMessage(10)
+                ioHandler.obtainMessage(HALT.code)
                         .sendToTarget();
-
                 cpu.resetPC();
                 break;
 
-            case 5: // Read int
+            case READ_INT: // Read int
                 previousState = currentState;
                 currentState = State.WAITING;
-                ioHandler.obtainMessage(5)
+                ioHandler.obtainMessage(READ_INT.code)
                         .sendToTarget();
-
                 break;
 
-            case 12: //Read Char
+            case READ_CHAR: //Read Char
                 previousState = currentState;
                 currentState = State.WAITING;
-                ioHandler.obtainMessage(12)
+                ioHandler.obtainMessage(READ_CHAR.code)
+                        .sendToTarget();
+                break;
+
+            case READ_FLOAT: // Read int
+                previousState = currentState;
+                currentState = State.WAITING;
+                ioHandler.obtainMessage(READ_FLOAT.code)
+                        .sendToTarget();
+                break;
+
+            case READ_DOUBLE: //Read Char
+                previousState = currentState;
+                currentState = State.WAITING;
+                ioHandler.obtainMessage(READ_DOUBLE.code)
                         .sendToTarget();
                 break;
 
@@ -331,9 +365,7 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
         }
     }
 
-    @Override
-    public void onInputComplete(Integer data) {
-        cpu.getRegisterFile().write("$v0", data);
+    private void transitionStateOnInput(){
         if (cpu.getPC() >= instructionEndPos) {
             currentState = State.HALTED;
         }
@@ -347,5 +379,38 @@ public class MipsSimulator extends Thread implements OnUserInputListener<Integer
             previousState = currentState;
             currentState = State.STEPPING;
         }
+    }
+
+    @Override
+    public void onIntInput(int data) {
+        cpu.getRegisterFile().write("$v0", data);
+        transitionStateOnInput();
+    }
+
+    @Override
+    public void onCharInput(char data) {
+        onIntInput(data);
+    }
+
+    @Override
+    public void onFloatInput(float data) {
+        cop.registerFiles().getFile("$f0").writeSingle(data);
+        transitionStateOnInput();
+    }
+
+    @Override
+    public void onDoubleInput(double data) {
+        cop.registerFiles().getFile("$f0").writeDouble(data);
+        transitionStateOnInput();
+    }
+
+    @Override
+    public void onStringInput(String data) {
+        int address = cpu.getRegisterFile().read("$a0");
+        int length = cpu.getRegisterFile().read("$a1");
+        for (int offset = 0; offset < length; offset++){
+            memory.store((byte) data.charAt(offset), address + offset);
+        }
+        transitionStateOnInput();
     }
 }
