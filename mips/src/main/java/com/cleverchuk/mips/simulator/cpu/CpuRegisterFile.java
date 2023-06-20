@@ -40,14 +40,13 @@ public class CpuRegisterFile {
     }
 
     public void accSetHI(int value) {
-        int temp = (int) accumulator;
-        accumulator &= 0x0;
-        accumulator |= value;
-        accumulator <<= 0x20;
-        accumulator |= temp;
+        long temp = value;
+        accumulator &= 0x0000_0000_ffff_ffff;
+        accumulator |= (temp << 0x20);
     }
 
     public void accSetLO(int value) {
+        accumulator &= 0xffff_ffff_0000_0000L;
         accumulator |= value;
     }
 
@@ -65,9 +64,15 @@ public class CpuRegisterFile {
 
     public String dump() {
         StringBuilder builder = new StringBuilder();
-        for (String file : regFile.keySet()) {
-            builder.append(file).append(" : ").append(read(file)).append("\n");
-        }
+        regFile.keySet()
+                .stream()
+                .sorted()
+                .forEach(file -> builder.append(file)
+                        .append(" : ")
+                        .append(read(file))
+                        .append("\n")
+                );
+
         return builder.toString();
     }
 }

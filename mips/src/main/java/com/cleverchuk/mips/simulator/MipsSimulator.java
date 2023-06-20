@@ -211,7 +211,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
             instructionEndPos = cpuInstructionMemory.size();
 
             cpu.setLabels(SymbolTable.getTable());
-            cpu.setStackPointer(compiler.memBoundary() + 10); // initialize stack pointer
+            cpu.setStackPointer(memory.getCapacity() - 10); // initialize stack pointer
 
             if (cpu.getPC() >= instructionEndPos || isHalted() || isPaused()) {
                 idle();

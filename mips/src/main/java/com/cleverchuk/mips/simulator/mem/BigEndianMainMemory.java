@@ -93,11 +93,15 @@ public class BigEndianMainMemory implements Memory {
     }
 
     @Override
-    public int resize(int size) {
+    public void resize(int size) {
         byte[] temp = new byte[size];
         System.arraycopy(backingStore, 0, temp, 0, backingStore.length);
         backingStore = temp;
-        return size;
+    }
+
+    @Override
+    public int getCapacity() {
+        return backingStore.length;
     }
 
     private void ensureCap(int offset) {

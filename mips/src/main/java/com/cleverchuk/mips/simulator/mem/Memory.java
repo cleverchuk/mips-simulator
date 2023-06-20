@@ -61,8 +61,10 @@ public interface Memory {
 
     /**
      * increase the underlying backing store to size
+     *
      * @param size size of backing store
-     * @return size reserved
      */
-    int resize(int size);
+    void resize(int size);
+
+    int getCapacity();
 }
