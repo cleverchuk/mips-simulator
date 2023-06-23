@@ -365,7 +365,7 @@ public class Cpu implements Processor<CpuInstruction> {
         if (address == null) {
             throw new Exception(String.format(FATAL_ERROR_MSG_FMT, cpuInstruction.CPUOpcode.name(), cpuInstruction.line));
         }
-        registerFile.write("$ra", PC + 1);
+        registerFile.write("$ra", PC);
         PC = address;
     }
 

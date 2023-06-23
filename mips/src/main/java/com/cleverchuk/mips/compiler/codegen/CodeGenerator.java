@@ -258,7 +258,7 @@ public final class CodeGenerator {
         }
 
         FpuInstruction fpuInstruction = builder.build();
-        if (Objects.equals(fpuInstruction.fd, fpuInstruction.ft) && Objects.equals(fpuInstruction.fd, fpuInstruction.fs)){
+        if (Objects.equals(null, fpuInstruction.fd)  && Objects.equals(null, fpuInstruction.ft) && Objects.equals(null, fpuInstruction.fs)){
             ErrorRecorder.recordError(
                     ErrorRecorder.Error.builder()
                             .line(line)
