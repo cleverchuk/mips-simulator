@@ -1,13 +1,13 @@
 # This code calculates the arithmetic mean of the array
 .data
-fpu: .double 1.0, 2.0, 3.0, 4.0, 5.0, 6.0  # Array of floating-point numbers
+array: .double 1.0, 2.0, 3.0, 4.0, 5.0, 6.0  # Array of floating-point numbers
 len: .word 6                              # Length of the array
 
 .text
 mtc1 $zero, $f12     # Set $f12 to 0.0 (initialize the sum to 0.0)
 mthc1 $zero, $f12    # Set $f12 to 0.0 (initialize the sum to 0.0)
 
-la $t4, fpu          # Load the address of the array into $t4
+la $t4, array          # Load the address of the array into $t4
 li $t2, 48           # Load the index of the last element of the array (6 elements * 8 bytes per double = 48 bytes)
 
 loop:
@@ -237,7 +237,6 @@ syscall
 .data
 x0: .float 1.5       # Initial guess for the root
 epsilon: .float 0.001 # Error tolerance
-result: .space 4     # Variable to store the result
 
 .text
 .globl main
@@ -281,18 +280,17 @@ lwc1 $f5, 4($sp)       # Load x0^2 from the stack
 li $t4, 2
 mtc1 $t4, $f12
 cvt.s.w $f12, $f12
-mul.s $f6, $f4, $f12   # Compute 2 * x0 (derivative value)
+mul.s $f6, $f4, $f12   # Compute 2 * x0
+li $t4, 1
+mtc1 $t4, $f12
+cvt.s.w $f12, $f12
+sub.s $f6, $f6, $f12   # Compute 2 * x0  - 1 (derivative value)
 jr $ra
 
 exit:
-# Store the result in memory
-la $t0, result
-swc1 $f0, 0($t0)       # Store the final approximation in 'result'
-
 # Print the result
 li $v0, 2             # System call code for printing float
-la $t0, result
-lwc1 $f12, 0($t0)      # Load the result from memory to $f12
+mov.s $f12, $f0     # Load the result from memory to $f12
 syscall
 
 # Print the line
