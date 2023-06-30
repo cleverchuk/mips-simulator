@@ -4,11 +4,11 @@ array: .double 1.0, 2.0, 3.0, 4.0, 5.0, 6.0  # Array of floating-point numbers
 len: .word 6                              # Length of the array
 
 .text
-mtc1 $zero, $f12     # Set $f12 to 0.0 (initialize the sum to 0.0)
-mthc1 $zero, $f12    # Set $f12 to 0.0 (initialize the sum to 0.0)
+mtc1 $zero, $f12     # Set $f12 low 32-bits to 0.0 (initialize the sum to 0.0)
+mthc1 $zero, $f12    # Set $f12 high 32-bits to 0.0 (initialize the sum to 0.0)
 
 la $t4, array          # Load the address of the array into $t4
-li $t2, 48           # Load the index of the last element of the array (6 elements * 8 bytes per double = 48 bytes)
+li $t2, 48           # Load the size of the array in bytes (6 elements * 8 bytes per double = 48 bytes)
 
 loop:
 bnez $t2, 1          # If $t2 is not zero, continue to the next iteration of the loop
