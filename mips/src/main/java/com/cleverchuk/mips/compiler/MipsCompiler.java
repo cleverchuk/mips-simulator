@@ -6,12 +6,13 @@ import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.simulator.VirtualInstruction;
-import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public final class MipsCompiler {
     private final RecursiveDescentParser parser;
 

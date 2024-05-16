@@ -18,8 +18,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 
+@Singleton
 public final class CodeGenerator {
     public static final char VALUE_DELIMITER = '#';
 
@@ -32,6 +34,8 @@ public final class CodeGenerator {
     private int textSegmentOffset = -1;
 
     private int memOffset = 0;
+
+    private boolean fpuInstruction;
 
     public static char getValueDelimiter() {
         return VALUE_DELIMITER;
@@ -267,6 +271,7 @@ public final class CodeGenerator {
             );
         }
 
+        this.fpuInstruction = true;
         return fpuInstruction;
     }
 
@@ -500,5 +505,9 @@ public final class CodeGenerator {
 
     private boolean check16BitConstant(CpuInstruction cpuInstruction) {
         return Short.MIN_VALUE <= cpuInstruction.immediateValue && cpuInstruction.immediateValue <= Short.MAX_VALUE;
+    }
+
+    public boolean hasFpuInstruction() {
+        return fpuInstruction;
     }
 }
