@@ -423,7 +423,7 @@ public final class CodeGenerator {
     }
 
     private boolean checkBitWidth(CpuInstruction cpuInstruction) {
-        switch (cpuInstruction.CPUOpcode) {
+        switch (cpuInstruction.opcode) {
             default:
                 return true;
 

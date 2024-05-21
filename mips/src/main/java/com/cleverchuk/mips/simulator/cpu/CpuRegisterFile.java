@@ -2,7 +2,7 @@ package com.cleverchuk.mips.simulator.cpu;
 
 import androidx.annotation.NonNull;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("all")
@@ -10,7 +10,7 @@ public class CpuRegisterFile {
 
     private final int[] DEFAULT = new int[]{0};
 
-    private final Map<String, int[]> regFile = new Hashtable<>();
+    private final Map<String, int[]> regFile = new HashMap<>();
 
     private long accumulator;
 

@@ -9,7 +9,7 @@ public class BigEndianMainMemory implements Memory {
 
     @Inject
     public BigEndianMainMemory() {
-        this(4096);
+        this(512);
     }
 
     public BigEndianMainMemory(int capacity) {
@@ -50,7 +50,7 @@ public class BigEndianMainMemory implements Memory {
     public long readDWord(int offset) {
         offset = offset % backingStore.length;
         long out = readWord(offset);
-        out &= 0xffff_ffff;
+        out &= 0xffff_ffffL;
 
         out <<= 0x20;
         out |= (0x0000_ffff_ffffL & readWord(offset + 4));

@@ -3,13 +3,13 @@ package com.cleverchuk.mips.simulator.cpu;
 
 import com.cleverchuk.mips.simulator.VirtualInstruction;
 
-@SuppressWarnings({"UnusedReturnValue","Unused"})
+@SuppressWarnings({"UnusedReturnValue", "Unused"})
 public class CpuInstruction implements VirtualInstruction {
     public String rd, rs, rt; // register names i.e $t0 , $v0 etc
 
     public String label; // label if any
 
-    public CpuOpcode CPUOpcode;
+    public CpuOpcode opcode;
 
     public int immediateValue;
 
@@ -21,12 +21,12 @@ public class CpuInstruction implements VirtualInstruction {
 
     public int line;
 
-    public CpuInstruction(String rd, String rs, String rt, String label, CpuOpcode CPUOpcode, int immediateValue, int size, int pos, int offset, int line) {
+    public CpuInstruction(String rd, String rs, String rt, String label, CpuOpcode opcode, int immediateValue, int size, int pos, int offset, int line) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.CPUOpcode = CPUOpcode;
+        this.opcode = opcode;
         this.immediateValue = immediateValue;
         this.size = size;
         this.pos = pos;
@@ -34,12 +34,12 @@ public class CpuInstruction implements VirtualInstruction {
         this.line = line;
     }
 
-    public CpuInstruction(CpuOpcode CPUOpcode, String rd, String rs, String rt, String label, int offset) {
+    public CpuInstruction(CpuOpcode opcode, String rd, String rs, String rt, String label, int offset) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.CPUOpcode = CPUOpcode;
+        this.opcode = opcode;
         this.offset = offset;
     }
 
