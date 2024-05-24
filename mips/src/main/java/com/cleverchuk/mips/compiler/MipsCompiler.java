@@ -34,9 +34,7 @@ import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-@Singleton
 public final class MipsCompiler {
     private final RecursiveDescentParser parser;
 

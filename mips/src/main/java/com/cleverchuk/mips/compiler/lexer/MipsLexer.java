@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_COMMENT;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_DECI;
@@ -47,7 +46,6 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_START;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
 
 
-@Singleton
 public final class MipsLexer {
     private static final Pattern ID = Pattern.compile("[A-Za-z][A-Za-z0-9.]*");
 
