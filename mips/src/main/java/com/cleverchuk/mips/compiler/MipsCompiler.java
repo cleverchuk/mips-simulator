@@ -48,12 +48,12 @@ public final class MipsCompiler {
         this.codeGenerator = codeGenerator;
     }
 
-    public boolean compile(String source) {
-        if (sourceHash == source.hashCode()) {
+    public void compile(String source) {
+        if (sourceHash == source.hashCode() && !codeGenerator.getInstructions().isEmpty()) {
             if (ErrorRecorder.hasErrors()) {
                 throw new SyntaxError(ErrorRecorder.printErrors());
             }
-            return false;
+            return;
         }
 
         sourceHash = source.hashCode();
@@ -69,7 +69,6 @@ public final class MipsCompiler {
             throw new SyntaxError(ErrorRecorder.printErrors());
         }
 
-        return true;
     }
 
     public Memory getDataSegment() {

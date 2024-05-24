@@ -253,7 +253,8 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
 
     private void init(String raw) throws Exception {
-        if (compiler.compile(raw) || isPaused() && !ErrorRecorder.hasErrors()) {
+        compiler.compile(raw);
+        if (!isPaused() && !ErrorRecorder.hasErrors()) {
             textSegmentOffset = compiler.textSegmentOffset();
             boolean hasTextSectionSpecified = textSegmentOffset == -1; // .text section is missing if this is True
 
@@ -402,7 +403,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                         .sendToTarget();
                 break;
 
-            case READ_FLOAT: // Read floaot
+            case READ_FLOAT: // Read float
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_FLOAT.code)
