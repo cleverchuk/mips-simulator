@@ -30,13 +30,11 @@ import com.cleverchuk.mips.compiler.lexer.Token;
 import com.cleverchuk.mips.compiler.lexer.TokenType;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import static com.cleverchuk.mips.compiler.parser.NodeType.NONTERMINAL;
 import static com.cleverchuk.mips.compiler.parser.NodeType.TERMINAL;
 
 
-@Singleton
 public final class RecursiveDescentParser {
     private final MipsLexer lexer;
 

@@ -42,10 +42,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 
-@Singleton
 public final class CodeGenerator {
     public static final char VALUE_DELIMITER = '#';
 
