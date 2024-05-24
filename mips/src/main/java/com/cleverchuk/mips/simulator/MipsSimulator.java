@@ -252,7 +252,8 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
 
     private void init(String raw) throws Exception {
-        if (compiler.compile(raw) || isPaused() && !ErrorRecorder.hasErrors()) {
+        compiler.compile(raw);
+        if (!isPaused() && !ErrorRecorder.hasErrors()) {
             textSegmentOffset = compiler.textSegmentOffset();
             boolean hasTextSectionSpecified = textSegmentOffset == -1; // .text section is missing if this is True
 
