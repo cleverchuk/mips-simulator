@@ -30,6 +30,7 @@ import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
+import com.cleverchuk.mips.dev.TerminalInputListener;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
@@ -402,7 +403,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                         .sendToTarget();
                 break;
 
-            case READ_FLOAT: // Read floaot
+            case READ_FLOAT: // Read float
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_FLOAT.code)
