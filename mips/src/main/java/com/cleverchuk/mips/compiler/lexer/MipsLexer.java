@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 CleverChuk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.cleverchuk.mips.compiler.lexer;
 
 import androidx.annotation.Nullable;
@@ -125,6 +149,78 @@ public final class MipsLexer {
         put("30", "f30");
         put("31", "f31"); //FCSR read-write
     }};
+
+
+    public static final Map<String, Integer> CPU_REG_TO_DECI = new HashMap<String, Integer>() {{
+        put("zero", 0);
+        put("at", 1);
+        put("v0", 2);
+        put("v1", 3);
+        put("a0", 4);
+        put("a1", 5);
+        put("a2", 6);
+        put("a3", 7);
+        put("t0", 8);
+        put("t1", 9);
+        put("t2", 10);
+        put("t3", 11);
+        put("t4", 12);
+        put("t5", 13);
+        put("t6", 14);
+        put("t7", 15);
+        put("s0", 16);
+        put("s1", 17);
+        put("s2", 18);
+        put("s3", 19);
+        put("s4", 20);
+        put("s5", 21);
+        put("s6", 22);
+        put("s7", 23);
+        put("t8", 24);
+        put("t9", 25);
+        put("k0", 26);
+        put("k1", 27);
+        put("gp", 28);
+        put("sp", 29);
+        put("fp", 30);
+        put("ra", 31);
+    }};
+
+    public static final Map<String, Integer> FPU_REG_TO_DECI = new HashMap<String, Integer>() {{
+        put("f0", 0); //FIR readonly
+        put("f1", 1);
+        put("f2", 2);
+        put("f3", 3);
+        put("f4", 4);
+        put("f5", 5);
+        put("f6", 6);
+        put("f7", 7);
+        put("f8", 8);
+        put("f9", 9);
+        put("f10", 10);
+        put("f11", 11);
+        put("f12", 12);
+        put("f13", 13);
+        put("f14", 14);
+        put("f15", 15);
+        put("f16", 16);
+        put("f17", 17);
+        put("f18", 18);
+        put("f19", 19);
+        put("f20", 20);
+        put("f21", 21);
+        put("f22", 22);
+        put("f23", 23);
+        put("f24", 24);
+        put("f25", 25);
+        put("f26", 26);
+        put("f27", 27);
+        put("f28", 28);
+        put("f29", 29);
+        put("f30", 30);
+        put("f31", 31); //FCSR read-write
+    }};
+
 
     public static final Set<String> CPU_REG = new HashSet<>(DECI_TO_CPU_REG.values());
 

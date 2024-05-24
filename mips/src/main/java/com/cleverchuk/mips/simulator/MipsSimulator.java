@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 CleverChuk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.cleverchuk.mips.simulator;
 
 import android.os.Handler;
@@ -18,7 +42,7 @@ import java.util.Locale;
 
 import static com.cleverchuk.mips.simulator.SystemService.DEBUG;
 import static com.cleverchuk.mips.simulator.SystemService.HALT;
-import static com.cleverchuk.mips.simulator.SystemService.PAUSE;
+
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_CHAR;
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_DOUBLE;
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_FLOAT;
@@ -49,7 +73,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
     private int instructionEndPos = 0;
 
-    private final ArrayList<VirtualInstruction> cpuInstructionMemory;
+    private final ArrayList<VirtualInstruction> virtualInstructions;
 
     private volatile State currentState = State.IDLE;
 
@@ -67,7 +91,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
     public MipsSimulator(Handler ioHandler, MipsCompiler compiler, Memory memory, byte processorFlags) {
         super("MipsSimulatorThread");
-        cpuInstructionMemory = new ArrayList<>();
+        virtualInstructions = new ArrayList<>();
         this.cpu = new Cpu(memory, this);
         if ((processorFlags & 0x2) > 0) {
             this.cop = new CoProcessor1(memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
@@ -125,6 +149,38 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         currentState = State.STOP;
     }
 
+    public SparseIntArray getBreakpoints() {
+        return breakpoints;
+    }
+
+    public int getInstructionEndPos() {
+        return instructionEndPos;
+    }
+
+    public ArrayList<VirtualInstruction> getVirtualInstructions() {
+        return virtualInstructions;
+    }
+
+    public State getCurrentState() {
+        return currentState;
+    }
+
+    public State getPreviousState() {
+        return previousState;
+    }
+
+    public Handler getIoHandler() {
+        return ioHandler;
+    }
+
+    public MipsCompiler getCompiler() {
+        return compiler;
+    }
+
+    public Memory getMemory() {
+        return memory;
+    }
+
     public void pause() {
         previousState = currentState;
         currentState = State.PAUSED;
@@ -138,7 +194,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
     private void step() {
         if (currentState == State.STEPPING || currentState == State.RUNNING) {
             try {
-                VirtualInstruction instruction = cpuInstructionMemory.get(cpu.getNextPC());
+                VirtualInstruction instruction = virtualInstructions.get(cpu.getNextPC());
                 if (instruction instanceof CpuInstruction) {
                     cpu.execute((CpuInstruction) instruction);
                 } else {
@@ -150,7 +206,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                 currentState = State.HALTED;
                 int computedPC = cpu.getPC() - 1;
 
-                int line = computedPC >= 0 && computedPC < instructionEndPos ? cpuInstructionMemory.get(computedPC).line() : -1;
+                int line = computedPC >= 0 && computedPC < instructionEndPos ? virtualInstructions.get(computedPC).line() : -1;
                 String error = String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
 
                 ioHandler.obtainMessage(PRINT_STRING.code, error)
@@ -206,9 +262,9 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                 throw new Exception("Must have .text section");
             }
 
-            cpuInstructionMemory.clear();
-            cpuInstructionMemory.addAll(compiler.getTextSegment());
-            instructionEndPos = cpuInstructionMemory.size();
+            virtualInstructions.clear();
+            virtualInstructions.addAll(compiler.getTextSegment());
+            instructionEndPos = virtualInstructions.size();
 
             cpu.setLabels(SymbolTable.getTable());
             cpu.setStackPointer(memory.getCapacity() - 10); // initialize stack pointer
@@ -234,7 +290,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
     public int getLineNumberToExecute() {
         if (cpu.getPC() < instructionEndPos) {
-            return cpuInstructionMemory.get(cpu.getPC()).line();
+            return virtualInstructions.get(cpu.getPC()).line();
         }
         return 0;
     }
@@ -346,14 +402,14 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                         .sendToTarget();
                 break;
 
-            case READ_FLOAT: // Read int
+            case READ_FLOAT: // Read floaot
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_FLOAT.code)
                         .sendToTarget();
                 break;
 
-            case READ_DOUBLE: //Read Char
+            case READ_DOUBLE: //Read double
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_DOUBLE.code)

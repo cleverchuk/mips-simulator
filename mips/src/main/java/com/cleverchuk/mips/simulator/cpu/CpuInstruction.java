@@ -1,15 +1,39 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 CleverChuk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.cleverchuk.mips.simulator.cpu;
 
 
 import com.cleverchuk.mips.simulator.VirtualInstruction;
 
-@SuppressWarnings({"UnusedReturnValue","Unused"})
+@SuppressWarnings({"UnusedReturnValue", "Unused"})
 public class CpuInstruction implements VirtualInstruction {
     public String rd, rs, rt; // register names i.e $t0 , $v0 etc
 
     public String label; // label if any
 
-    public CpuOpcode CPUOpcode;
+    public CpuOpcode opcode;
 
     public int immediateValue;
 
@@ -21,12 +45,12 @@ public class CpuInstruction implements VirtualInstruction {
 
     public int line;
 
-    public CpuInstruction(String rd, String rs, String rt, String label, CpuOpcode CPUOpcode, int immediateValue, int size, int pos, int offset, int line) {
+    public CpuInstruction(String rd, String rs, String rt, String label, CpuOpcode opcode, int immediateValue, int size, int pos, int offset, int line) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.CPUOpcode = CPUOpcode;
+        this.opcode = opcode;
         this.immediateValue = immediateValue;
         this.size = size;
         this.pos = pos;
@@ -34,12 +58,12 @@ public class CpuInstruction implements VirtualInstruction {
         this.line = line;
     }
 
-    public CpuInstruction(CpuOpcode CPUOpcode, String rd, String rs, String rt, String label, int offset) {
+    public CpuInstruction(CpuOpcode opcode, String rd, String rs, String rt, String label, int offset) {
         this.rd = rd;
         this.rs = rs;
         this.rt = rt;
         this.label = label;
-        this.CPUOpcode = CPUOpcode;
+        this.opcode = opcode;
         this.offset = offset;
     }
 

@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 CleverChuk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.cleverchuk.mips.compiler.codegen;
 
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
@@ -8,10 +32,10 @@ import com.cleverchuk.mips.compiler.parser.NodeType;
 import com.cleverchuk.mips.compiler.parser.SymbolTable;
 import com.cleverchuk.mips.simulator.VirtualInstruction;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
+import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
 import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import com.cleverchuk.mips.simulator.mem.Memory;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import com.cleverchuk.mips.simulator.mem.StorageType;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +56,8 @@ public final class CodeGenerator {
     private int textSegmentOffset = -1;
 
     private int memOffset = 0;
+
+    private boolean fpuInstruction;
 
     public static char getValueDelimiter() {
         return VALUE_DELIMITER;
@@ -267,6 +293,7 @@ public final class CodeGenerator {
             );
         }
 
+        this.fpuInstruction = true;
         return fpuInstruction;
     }
 
@@ -418,7 +445,7 @@ public final class CodeGenerator {
     }
 
     private boolean checkBitWidth(CpuInstruction cpuInstruction) {
-        switch (cpuInstruction.CPUOpcode) {
+        switch (cpuInstruction.opcode) {
             default:
                 return true;
 
@@ -500,5 +527,9 @@ public final class CodeGenerator {
 
     private boolean check16BitConstant(CpuInstruction cpuInstruction) {
         return Short.MIN_VALUE <= cpuInstruction.immediateValue && cpuInstruction.immediateValue <= Short.MAX_VALUE;
+    }
+
+    public boolean hasFpuInstruction() {
+        return fpuInstruction;
     }
 }
