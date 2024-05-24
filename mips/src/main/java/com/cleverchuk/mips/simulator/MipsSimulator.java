@@ -42,6 +42,7 @@ import java.util.Locale;
 
 import static com.cleverchuk.mips.simulator.SystemService.DEBUG;
 import static com.cleverchuk.mips.simulator.SystemService.HALT;
+
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_CHAR;
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_DOUBLE;
 import static com.cleverchuk.mips.simulator.SystemService.PRINT_FLOAT;
@@ -401,14 +402,14 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
                         .sendToTarget();
                 break;
 
-            case READ_FLOAT: // Read int
+            case READ_FLOAT: // Read floaot
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_FLOAT.code)
                         .sendToTarget();
                 break;
 
-            case READ_DOUBLE: //Read Char
+            case READ_DOUBLE: //Read double
                 previousState = currentState;
                 currentState = State.WAITING;
                 ioHandler.obtainMessage(READ_DOUBLE.code)

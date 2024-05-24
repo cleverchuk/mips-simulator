@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+
 package com.cleverchuk.mips.simulator;
 
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
