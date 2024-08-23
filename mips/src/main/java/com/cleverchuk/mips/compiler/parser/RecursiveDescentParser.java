@@ -29,6 +29,8 @@ import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.lexer.Token;
 import com.cleverchuk.mips.compiler.lexer.TokenType;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
+import java.util.LinkedList;
+import java.util.List;
 import javax.inject.Inject;
 
 import static com.cleverchuk.mips.compiler.parser.NodeType.NONTERMINAL;
@@ -40,7 +42,8 @@ public final class RecursiveDescentParser {
 
     private final SemanticAnalyzer semanticAnalyzer;
 
-    private final NodeVisitor visitor;
+
+    private final List<NodeVisitor> visitors = new LinkedList<>();
 
     private Token ll1;
 
@@ -53,7 +56,8 @@ public final class RecursiveDescentParser {
     public RecursiveDescentParser(MipsLexer lexer, SemanticAnalyzer semanticAnalyzer, NodeVisitor visitor) {
         this.lexer = lexer;
         this.semanticAnalyzer = semanticAnalyzer;
-        this.visitor = visitor;
+        visitors.add(visitor);
+        visitors.add(new LWVisitor());
     }
 
     @NonNull
@@ -64,6 +68,24 @@ public final class RecursiveDescentParser {
         return program();
     }
 
+    private void visit(Node node) {
+        visitors.forEach(visitor -> {
+            try {
+                visitor.visit(node);
+            } catch (Exception ignore) {
+
+            }
+        });
+    }
+
+    public void addVisitor(NodeVisitor visitor) {
+        visitors.add(visitor);
+    }
+
+    public boolean removeVisitor(NodeVisitor visitor) {
+        return visitors.remove(visitor);
+    }
+
     private Node program() {
         Node program = Node.builder()
                 .construct(Construct.PROGRAM)
@@ -72,7 +94,7 @@ public final class RecursiveDescentParser {
 
         Node segment = segment();
         program.addChild(segment);
-        visitor.visit(program);
+        visit(program);
         return program;
     }
 
@@ -89,7 +111,7 @@ public final class RecursiveDescentParser {
                 lexer.reset(0);
                 segment.addChild(dataSeg());
                 if (ll1.getTokenType() == TokenType.EOF) {
-                    visitor.visit(segment);
+                    visit(segment);
                     return segment;
                 }
                 segment.addChild(textSeg());
@@ -99,7 +121,7 @@ public final class RecursiveDescentParser {
                 lexer.reset(0);
                 segment.addChild(textSeg());
                 if (ll1.getTokenType() == TokenType.EOF) {
-                    visitor.visit(segment);
+                    visit(segment);
                     return segment;
                 }
                 segment.addChild(dataSeg());
@@ -111,7 +133,7 @@ public final class RecursiveDescentParser {
         }
 
         if (ll1.getTokenType() == TokenType.EOF) {
-            visitor.visit(segment);
+            visit(segment);
             return segment;
         }
 
@@ -130,7 +152,7 @@ public final class RecursiveDescentParser {
 
         ll1 = lexer.getNextToken();
         if (ll1.getTokenType() == TokenType.EOF) {
-            visitor.visit(dataSeg);
+            visit(dataSeg);
             return dataSeg;
         }
 
@@ -145,7 +167,7 @@ public final class RecursiveDescentParser {
 
         dataSeg.setLine(ll1.getLine());
         dataSeg.addChild(greedyDataDecl());
-        visitor.visit(dataSeg);
+        visit(dataSeg);
 
         return dataSeg;
     }
@@ -163,7 +185,7 @@ public final class RecursiveDescentParser {
             greedyRoot.addChild(greedyDataDecl);
         }
 
-        visitor.visit(greedyRoot);
+        visit(greedyRoot);
         return greedyRoot;
     }
 
@@ -179,7 +201,7 @@ public final class RecursiveDescentParser {
             Node data = data();
             dataDecl.addChild(data);
 
-            visitor.visit(dataDecl);
+            visit(dataDecl);
             return dataDecl;
         }
         return null;
@@ -213,7 +235,7 @@ public final class RecursiveDescentParser {
                 }
 
                 SymbolTable.insert(id, currentToken.getLine());
-                visitor.visit(label);
+                visit(label);
                 return label;
             }
 
@@ -269,7 +291,7 @@ public final class RecursiveDescentParser {
                             .build();
 
                     data.addChild(node);
-                    visitor.visit(data);
+                    visit(data);
                     return data;
                 }
                 ErrorRecorder.recordError(ErrorRecorder.Error.builder()
@@ -290,7 +312,7 @@ public final class RecursiveDescentParser {
                             .build();
 
                     data.addChild(node);
-                    visitor.visit(data);
+                    visit(data);
                     return data;
                 }
                 ErrorRecorder.recordError(ErrorRecorder.Error.builder()
@@ -312,7 +334,7 @@ public final class RecursiveDescentParser {
                 }
 
                 data.addChild(expr);
-                visitor.visit(data);
+                visit(data);
                 return data;
             }
         }
@@ -327,7 +349,7 @@ public final class RecursiveDescentParser {
             }
         }
 
-        visitor.visit(data);
+        visit(data);
         return data;
     }
 
@@ -352,7 +374,7 @@ public final class RecursiveDescentParser {
                             .line(ll1.getLine())
                             .value(ll1.getValue())
                             .build());
-                    visitor.visit(dataMode);
+                    visit(dataMode);
                     return dataMode;
             }
 
@@ -378,7 +400,7 @@ public final class RecursiveDescentParser {
             Node greedyDataList = greedyDataList();
             dataList.addChild(greedyDataList);
 
-            visitor.visit(dataList);
+            visit(dataList);
             return dataList;
         }
         return null;
@@ -398,7 +420,7 @@ public final class RecursiveDescentParser {
             Node dataList = dataList();
             if (dataList != null) {
                 greedyRoot.addChild(dataList);
-                visitor.visit(greedyRoot);
+                visit(greedyRoot);
                 return greedyRoot;
             }
 
@@ -428,7 +450,7 @@ public final class RecursiveDescentParser {
                     .build();
 
             dataExpr.addChild(node);
-            visitor.visit(dataExpr);
+            visit(dataExpr);
             return dataExpr;
         }
 
@@ -436,7 +458,7 @@ public final class RecursiveDescentParser {
         Node expr = expr();
         if (expr != null) {
             dataExpr.addChild(expr);
-            visitor.visit(dataExpr);
+            visit(dataExpr);
             return dataExpr;
         }
         return null;
@@ -454,7 +476,7 @@ public final class RecursiveDescentParser {
             Node greedyExpr = greedyExpr();
             expr.addChild(greedyExpr);
 
-            visitor.visit(expr);
+            visit(expr);
             return expr;
         }
         return null;
@@ -472,7 +494,7 @@ public final class RecursiveDescentParser {
             Node greedyTerm = greedyTerm();
             greedyRoot.addChild(greedyTerm);
 
-            visitor.visit(greedyRoot);
+            visit(greedyRoot);
             return greedyRoot;
         }
         return null;
@@ -493,7 +515,7 @@ public final class RecursiveDescentParser {
                 Node greedyTerm = greedyTerm();
                 terms.addChild(greedyTerm);
 
-                visitor.visit(terms);
+                visit(terms);
                 return terms;
             }
             return null;
@@ -513,7 +535,7 @@ public final class RecursiveDescentParser {
         }
 
         factor.addChild(constant);
-        visitor.visit(factor);
+        visit(factor);
         return factor;
     }
 
@@ -534,15 +556,15 @@ public final class RecursiveDescentParser {
         constant.addChild(node);
         switch (ll1.getTokenType()) {
             case DECI:
-                visitor.visit(constant);
+                visit(constant);
                 return constant;
             case HEX:
                 node.setValue(Long.decode(node.getValue().toString()));
-                visitor.visit(constant);
+                visit(constant);
                 return constant;
             case OCTAL:
                 node.setValue(Long.parseLong(node.getValue().toString(), 8));
-                visitor.visit(constant);
+                visit(constant);
                 return constant;
         }
 
@@ -572,7 +594,7 @@ public final class RecursiveDescentParser {
                     .value(-1 * Integer.parseInt(ll1.getValue().toString()))
                     .build());
 
-            visitor.visit(negConstant);
+            visit(negConstant);
             return negConstant;
         }
 
@@ -583,7 +605,7 @@ public final class RecursiveDescentParser {
                     .value(-1 * Double.parseDouble(ll1.getValue().toString()))
                     .build());
 
-            visitor.visit(negConstant);
+            visit(negConstant);
             return negConstant;
         }
 
@@ -608,7 +630,7 @@ public final class RecursiveDescentParser {
                         .value(ll1.getValue())
                         .build());
 
-                visitor.visit(unOp);
+                visit(unOp);
                 return unOp;
         }
         lexer.reset(resetPos);
@@ -630,7 +652,7 @@ public final class RecursiveDescentParser {
                 Node greedyExpr = greedyExpr();
 
                 greedyRoot.addChild(greedyExpr);
-                visitor.visit(greedyRoot);
+                visit(greedyRoot);
                 return greedyRoot;
             }
             return null;
@@ -655,7 +677,7 @@ public final class RecursiveDescentParser {
                         .value(ll1.getValue())
                         .build());
 
-                visitor.visit(binOp);
+                visit(binOp);
                 return binOp;
         }
         lexer.reset(resetPos);
@@ -684,7 +706,7 @@ public final class RecursiveDescentParser {
         Node greedyTextDecl = greedyTextDecl();
         textSeg.addChild(greedyTextDecl);
 
-        visitor.visit(textSeg);
+        visit(textSeg);
         return textSeg;
     }
 
@@ -701,7 +723,7 @@ public final class RecursiveDescentParser {
             greedyRoot.addChild(greedyTextDecl);
         }
 
-        visitor.visit(greedyRoot);
+        visit(greedyRoot);
         return greedyRoot;
     }
 
@@ -730,7 +752,7 @@ public final class RecursiveDescentParser {
                 }
 
                 textDecl.addChild(instruction);
-                visitor.visit(textDecl);
+                visit(textDecl);
                 return textDecl;
             }
 
@@ -749,7 +771,7 @@ public final class RecursiveDescentParser {
             }
 
             textDecl.addChild(instruction);
-            visitor.visit(textDecl);
+            visit(textDecl);
             return textDecl;
         }
 
@@ -763,7 +785,7 @@ public final class RecursiveDescentParser {
                         .value(ll1.getValue())
                         .build());
 
-                visitor.visit(textDecl);
+                visit(textDecl);
                 return textDecl;
             } else {
                 lexer.reset(resetPos);
@@ -801,7 +823,7 @@ public final class RecursiveDescentParser {
         Node fourOp = fourOp();
         if (fourOp != null) {
             instruction.addChild(fourOp);
-            visitor.visit(instruction);
+            visit(instruction);
             return instruction;
         }
 
@@ -809,28 +831,28 @@ public final class RecursiveDescentParser {
         Node threeOp = threeOp();
         if (threeOp != null) {
             instruction.addChild(threeOp);
-            visitor.visit(instruction);
+            visit(instruction);
             return instruction;
         }
 
         Node twoOp = twoOp();
         if (twoOp != null) {
             instruction.addChild(twoOp);
-            visitor.visit(instruction);
+            visit(instruction);
             return instruction;
         }
 
         Node oneOp = oneOp();
         if (oneOp != null) {
             instruction.addChild(oneOp);
-            visitor.visit(instruction);
+            visit(instruction);
             return instruction;
         }
 
         Node zeroOp = zeroOp();
         if (zeroOp != null) {
             instruction.addChild(zeroOp);
-            visitor.visit(instruction);
+            visit(instruction);
             return instruction;
         }
 
@@ -900,7 +922,7 @@ public final class RecursiveDescentParser {
         operand = constant();
         if (operand != null) {
             fourOp.addChild(operand);
-            visitor.visit(fourOp);
+            visit(fourOp);
             return fourOp;
         }
 
@@ -952,7 +974,7 @@ public final class RecursiveDescentParser {
         operand = operand();
         if (operand != null) {
             threeOp.addChild(operand);
-            visitor.visit(threeOp);
+            visit(threeOp);
             return threeOp;
         }
 
@@ -991,7 +1013,7 @@ public final class RecursiveDescentParser {
         operand = operand();
         if (operand != null) {
             twoOp.addChild(operand);
-            visitor.visit(twoOp);
+            visit(twoOp);
             return twoOp;
         }
 
@@ -1017,7 +1039,7 @@ public final class RecursiveDescentParser {
         Node operand = operand();
         if (operand != null) {
             oneOp.addChild(operand);
-            visitor.visit(oneOp);
+            visit(oneOp);
             return oneOp;
         }
 
@@ -1043,7 +1065,7 @@ public final class RecursiveDescentParser {
             return null;
         }
 
-        visitor.visit(zeroOp);
+        visit(zeroOp);
         return zeroOp;
     }
 
@@ -1061,7 +1083,7 @@ public final class RecursiveDescentParser {
                 operand.addChild(expr);
                 operand.addChild(parenRegister);
 
-                visitor.visit(operand);
+                visit(operand);
                 return operand;
             }
             lexer.reset(resetPos); // backoff because matched a constant
@@ -1070,21 +1092,21 @@ public final class RecursiveDescentParser {
         Node constant = constant();
         if (constant != null) {
             operand.addChild(constant);
-            visitor.visit(operand);
+            visit(operand);
             return operand;
         }
 
         Node register = register();
         if (register != null) {
             operand.addChild(register);
-            visitor.visit(operand);
+            visit(operand);
             return operand;
         }
 
         Node parenRegister = parenRegister();
         if (parenRegister != null) {
             operand.addChild(parenRegister);
-            visitor.visit(operand);
+            visit(operand);
             return operand;
         }
 
@@ -1101,7 +1123,7 @@ public final class RecursiveDescentParser {
                         .value(nextToken.getValue())
                         .build());
 
-                visitor.visit(operand);
+                visit(operand);
                 return operand;
             }
         }
@@ -1126,7 +1148,7 @@ public final class RecursiveDescentParser {
                         .value(ll1.getValue())
                         .build());
 
-                visitor.visit(register);
+                visit(register);
                 return register;
             }
 
@@ -1137,7 +1159,7 @@ public final class RecursiveDescentParser {
                         .value(MipsLexer.registerNumberToName(ll1.getValue().toString()))
                         .build());
 
-                visitor.visit(register);
+                visit(register);
                 return register;
             }
             lexer.reset(resetPos);
@@ -1164,7 +1186,7 @@ public final class RecursiveDescentParser {
                 ll1 = lexer.getNextToken();
                 if (ll1.getTokenType() == TokenType.R_PAREN) {
                     parenRegister.addChild(register);
-                    visitor.visit(parenRegister);
+                    visit(parenRegister);
                     return parenRegister;
                 }
                 lexer.reset(resetPos);

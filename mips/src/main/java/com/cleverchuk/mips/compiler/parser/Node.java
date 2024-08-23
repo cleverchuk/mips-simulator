@@ -56,6 +56,10 @@ public class Node {
         children.add(node);
     }
 
+    public void removeChild(Node node) {
+        children.remove(node);
+    }
+
     public Construct getConstruct() {
         return construct;
     }
@@ -101,27 +105,27 @@ public class Node {
 
         private int line;
 
-        public  NodeBuilder construct(Construct construct){
+        public NodeBuilder construct(Construct construct) {
             this.construct = construct;
             return this;
         }
 
-        public  NodeBuilder nodeType(NodeType nodeType){
+        public NodeBuilder nodeType(NodeType nodeType) {
             this.nodeType = nodeType;
             return this;
         }
 
-        public  NodeBuilder value(Object value){
+        public NodeBuilder value(Object value) {
             this.value = value;
             return this;
         }
 
-        public  NodeBuilder line(int line){
+        public NodeBuilder line(int line) {
             this.line = line;
             return this;
         }
 
-        public Node build(){
+        public Node build() {
             return new Node(construct, nodeType, value, line);
         }
     }

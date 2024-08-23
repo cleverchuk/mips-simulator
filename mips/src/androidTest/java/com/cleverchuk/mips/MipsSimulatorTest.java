@@ -44,7 +44,6 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
-import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
@@ -152,6 +151,24 @@ public class MipsSimulatorTest {
 
         assertEquals(0, val);
         val = registerFile.read("$s1");
+        assertEquals(5, val);
+    }
+
+
+    @Test
+    public void testLwAsm() {
+        String[] instructions = {
+                ".data",
+                "label: .word 5,6,7",
+                ".text",
+                "lw $s1, label"
+        };
+
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+        while (mipsSimulator.isRunning()) ;
+
+        int val = registerFile.read("$s1");
         assertEquals(5, val);
     }
 
