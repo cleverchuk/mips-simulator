@@ -96,7 +96,6 @@ public enum CpuOpcode implements Opcode {
     JR("jr"),
     B("b"),
     BAL("bal"),
-    add("beqz"),
     BEQZ("beqz"),
     BGEZ("bgez"),
     BGTZ("bgtz"),

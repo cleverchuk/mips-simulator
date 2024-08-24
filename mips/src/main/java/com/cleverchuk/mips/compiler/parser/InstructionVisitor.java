@@ -55,7 +55,7 @@ public class InstructionVisitor implements NodeVisitor {
 
     private void buildInstruction(Node node, StringBuilder builder) {
         if (node.getNodeType() == TERMINAL) {
-            if (counter > 1 && builder.charAt(builder.length() - 2 /* 2 because of space on line 50*/) != '(') {
+            if (counter > 1 && builder.charAt(builder.length() - 2 /* 2 because of space*/) != '(') {
                 builder.append(", ");
             }
             String  value = node.getValue().toString();

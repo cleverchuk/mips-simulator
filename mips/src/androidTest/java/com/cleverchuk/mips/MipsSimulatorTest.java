@@ -44,7 +44,6 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
-import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
@@ -152,6 +151,24 @@ public class MipsSimulatorTest {
 
         assertEquals(0, val);
         val = registerFile.read("$s1");
+        assertEquals(5, val);
+    }
+
+
+    @Test
+    public void testLwAsm() {
+        String[] instructions = {
+                ".data",
+                "label: .word 5,6,7",
+                ".text",
+                "lw $s1, label"
+        };
+
+        mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
+        mipsSimulator.running();
+        while (mipsSimulator.isRunning()) ;
+
+        int val = registerFile.read("$s1");
         assertEquals(5, val);
     }
 
@@ -364,8 +381,10 @@ public class MipsSimulatorTest {
     @Test
     public void testAdduWithOverflow() {
         String[] instructions = {
+                ".data",
+                "word: .word 2147483647",
                 ".text",
-                "li $t1, 2147483647",
+                "lw $t1, word",
                 "li $t0, 1",
                 "addu $s1, $t0, $t1"
         };
@@ -1506,13 +1525,13 @@ public class MipsSimulatorTest {
     public void testrotr() {
         String[] instructions = {
                 ".text",
-                "li $t1, -2147483646",
+                "li $t1, 1",
                 "rotr $t0, $t1, 2",
         };
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-1610612736, registerFile.read("$t0"));
+        assertEquals(1073741824, registerFile.read("$t0"));
     }
 
     @Test

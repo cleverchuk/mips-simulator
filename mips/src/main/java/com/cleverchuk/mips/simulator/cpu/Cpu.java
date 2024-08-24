@@ -70,9 +70,6 @@ public class Cpu implements Processor<CpuInstruction> {
         // execute the given instruction
         // use switch statement to select the right branch using the opcode
         switch (cpuInstruction.opcode) {
-            case LI:
-                li(cpuInstruction);
-                break;
             case LA:
                 la(cpuInstruction);
                 break;
@@ -99,9 +96,6 @@ public class Cpu implements Processor<CpuInstruction> {
                 break;
             case LUI:
                 lui(cpuInstruction);
-                break;
-            case MOVE:
-                move(cpuInstruction);
                 break;
             case NEGU:
                 negu(cpuInstruction);
@@ -359,10 +353,6 @@ public class Cpu implements Processor<CpuInstruction> {
         registerFile.write(cpuInstruction.rd, t1Value << cpuInstruction.immediateValue);
     }
 
-    private void li(CpuInstruction cpuInstruction) {
-        registerFile.write(cpuInstruction.rd, cpuInstruction.immediateValue);
-    }
-
     private void la(CpuInstruction cpuInstruction) throws Exception {
         Integer address = labels.get(cpuInstruction.label);
         if (address == null) {
@@ -510,10 +500,6 @@ public class Cpu implements Processor<CpuInstruction> {
     private void lui(CpuInstruction cpuInstruction) {
         //the value of the rt is being parsed into Double and saved in rd
         registerFile.write(cpuInstruction.rd, cpuInstruction.immediateValue << 0x10);
-    }
-
-    private void move(CpuInstruction cpuInstruction) {
-        registerFile.write(cpuInstruction.rd, registerFile.read(cpuInstruction.rs));
     }
 
     private void negu(CpuInstruction cpuInstruction) {
