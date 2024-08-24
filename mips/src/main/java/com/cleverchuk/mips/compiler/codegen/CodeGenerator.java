@@ -453,7 +453,7 @@ public final class CodeGenerator {
             case SRL:
             case SRA:
             case SLL:
-                return check5BitWidth(cpuInstruction);
+                return check5BitWidth(cpuInstruction.immediateValue);
 
             case ADDIU:
             case SLTIU:
@@ -465,7 +465,7 @@ public final class CodeGenerator {
             case ORI:
             case XORI:
             case SLTI:
-                return check16BitConstant(cpuInstruction);
+                return check16BitConstant(cpuInstruction.immediateValue);
 
             case LB:
             case LBU:
@@ -483,7 +483,7 @@ public final class CodeGenerator {
             case USW:
             case LL:
             case SC:
-                return check16BitOffset(cpuInstruction);
+                return check16BitOffset(cpuInstruction.offset);
 
             case B:
             case BAL:
@@ -497,36 +497,36 @@ public final class CodeGenerator {
             case BLTZAL:
             case BNEZ:
             case BNE:
-                return check18BitOffset(cpuInstruction);
+                return check18BitOffset(cpuInstruction.immediateValue);
         }
     }
 
-    private boolean check5BitWidth(CpuInstruction cpuInstruction) {
-        if (cpuInstruction.immediateValue >= 0) {
-            return cpuInstruction.immediateValue <= 0x1f;
+    private boolean check5BitWidth(int target) {
+        if (target >= 0) {
+            return target <= 0x1f;
         }
-        return cpuInstruction.immediateValue >= -15;
+        return target >= -15;
     }
 
-    private boolean check16BitOffset(CpuInstruction cpuInstruction) {
-        if (cpuInstruction.offset >= 0) {
-            return cpuInstruction.offset <= 0xff_ff;
+    private boolean check16BitOffset(int target) {
+        if (target >= 0) {
+            return target <= 0xff_ff;
         }
 
-        return Short.MIN_VALUE <= cpuInstruction.offset;
+        return Short.MIN_VALUE <= target;
     }
 
 
-    private boolean check18BitOffset(CpuInstruction cpuInstruction) {
-        if (cpuInstruction.immediateValue >= 0) {
-            return cpuInstruction.immediateValue <= 131072;
+    private boolean check18BitOffset(int target) {
+        if (target >= 0) {
+            return target <= 131072;
         }
 
-        return -131071 <= cpuInstruction.immediateValue;
+        return -131071 <= target;
     }
 
-    private boolean check16BitConstant(CpuInstruction cpuInstruction) {
-        return Short.MIN_VALUE <= cpuInstruction.immediateValue && cpuInstruction.immediateValue <= Short.MAX_VALUE;
+    private boolean check16BitConstant(int target) {
+        return Short.MIN_VALUE <= target && target<= Short.MAX_VALUE;
     }
 
     public boolean hasFpuInstruction() {

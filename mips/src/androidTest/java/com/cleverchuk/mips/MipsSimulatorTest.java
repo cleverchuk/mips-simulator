@@ -381,8 +381,10 @@ public class MipsSimulatorTest {
     @Test
     public void testAdduWithOverflow() {
         String[] instructions = {
+                ".data",
+                "word: .word 2147483647",
                 ".text",
-                "li $t1, 2147483647",
+                "lw $t1, word",
                 "li $t0, 1",
                 "addu $s1, $t0, $t1"
         };
@@ -1523,13 +1525,13 @@ public class MipsSimulatorTest {
     public void testrotr() {
         String[] instructions = {
                 ".text",
-                "li $t1, -2147483646",
+                "li $t1, 1",
                 "rotr $t0, $t1, 2",
         };
         mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
         mipsSimulator.running();
         while (mipsSimulator.isRunning()) ;
-        assertEquals(-1610612736, registerFile.read("$t0"));
+        assertEquals(1073741824, registerFile.read("$t0"));
     }
 
     @Test

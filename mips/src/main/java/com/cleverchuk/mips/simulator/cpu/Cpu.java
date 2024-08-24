@@ -70,9 +70,6 @@ public class Cpu implements Processor<CpuInstruction> {
         // execute the given instruction
         // use switch statement to select the right branch using the opcode
         switch (cpuInstruction.opcode) {
-            case LI:
-                li(cpuInstruction);
-                break;
             case LA:
                 la(cpuInstruction);
                 break;
@@ -354,10 +351,6 @@ public class Cpu implements Processor<CpuInstruction> {
     private void sll(CpuInstruction cpuInstruction) {
         int t1Value = registerFile.read(cpuInstruction.rs);
         registerFile.write(cpuInstruction.rd, t1Value << cpuInstruction.immediateValue);
-    }
-
-    private void li(CpuInstruction cpuInstruction) {
-        registerFile.write(cpuInstruction.rd, cpuInstruction.immediateValue);
     }
 
     private void la(CpuInstruction cpuInstruction) throws Exception {

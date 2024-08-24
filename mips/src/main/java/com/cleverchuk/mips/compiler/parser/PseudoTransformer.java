@@ -38,6 +38,7 @@ public final class PseudoTransformer implements NodeVisitor {
         if (node.getConstruct() == Construct.INSTRUCTION) {
             transformLw(node);
             transformMove(node);
+            transformLi(node);
         }
     }
 
@@ -164,6 +165,40 @@ public final class PseudoTransformer implements NodeVisitor {
     }
 
     private void transformLi(Node instruction) {
+        Node leaf = getLeaf(instruction);
+        if (CpuOpcode.LI.same(leaf.getValue().toString())) {
+            Node li = instruction.getChildren().get(0);
+            instruction.removeChild(li);
 
+            Node ori = Node.builder()
+                    .construct(Construct.THREEOP)
+                    .nodeType(NONTERMINAL)
+                    .line(li.getLine())
+                    .build();
+
+            Node opcode = Node.builder()
+                    .nodeType(TERMINAL)
+                    .value(CpuOpcode.ORI.getName())
+                    .line(li.getLine())
+                    .build();
+
+            Node zeroReg = Node.builder()
+                    .nodeType(NONTERMINAL)
+                    .construct(Construct.REGISTER)
+                    .build()
+                    .addChild(
+                            Node.builder()
+                                    .nodeType(TERMINAL)
+                                    .value("zero")
+                                    .build()
+                    );
+
+            ori.addChild(opcode);
+            ori.addChild(li.getChildren().get(1));
+
+            ori.addChild(zeroReg);
+            ori.addChild(li.getChildren().get(2));
+            instruction.addChild(ori);
+        }
     }
 }

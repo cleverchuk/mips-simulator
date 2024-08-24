@@ -295,30 +295,32 @@ public final class MipsLexer {
                         .build();
             case LEX_IDENTIFIER:
                 state = LEX_START;
-                if (RESERVED.get(value) != null) {
-                    return Token.builder()
-                            .tokenType(RESERVED.get(value))
-                            .value(value)
-                            .line(lineNumber)
-                            .pos(sourcePos - value.length())
-                            .build();
-                }
-                if (CPU_REG.contains(value)) {
-                    return Token.builder()
-                            .tokenType(TokenType.REG)
-                            .value(value)
-                            .line(lineNumber)
-                            .pos(sourcePos - value.length() - 1)
-                            .build();
-                }
+                if (!tokens.isEmpty()) {
+                    if (RESERVED.get(value) != null && tokens.get(tokens.size() - 1).getTokenType() == TokenType.DOT) {
+                        return Token.builder()
+                                .tokenType(RESERVED.get(value))
+                                .value(value)
+                                .line(lineNumber)
+                                .pos(sourcePos - value.length())
+                                .build();
+                    }
+                    if (CPU_REG.contains(value) && tokens.get(tokens.size() - 1).getTokenType() == TokenType.DOLLAR_SIGN) {
+                        return Token.builder()
+                                .tokenType(TokenType.REG)
+                                .value(value)
+                                .line(lineNumber)
+                                .pos(sourcePos - value.length() - 1)
+                                .build();
+                    }
 
-                if (FPU_REG.contains(value)) {
-                    return Token.builder()
-                            .tokenType(TokenType.REG)
-                            .value(value)
-                            .line(lineNumber)
-                            .pos(sourcePos - value.length() - 1)
-                            .build();
+                    if (FPU_REG.contains(value) && tokens.get(tokens.size() - 1).getTokenType() == TokenType.DOLLAR_SIGN) {
+                        return Token.builder()
+                                .tokenType(TokenType.REG)
+                                .value(value)
+                                .line(lineNumber)
+                                .pos(sourcePos - value.length() - 1)
+                                .build();
+                    }
                 }
                 if (CPU_OPCODES.contains(value)) {
                     return Token.builder()

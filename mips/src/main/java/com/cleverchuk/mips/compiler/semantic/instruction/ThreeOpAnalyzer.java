@@ -29,6 +29,7 @@ import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.List;
+import java.util.Objects;
 import javax.inject.Inject;
 
 public class ThreeOpAnalyzer implements Analyzer {
@@ -114,7 +115,7 @@ public class ThreeOpAnalyzer implements Analyzer {
                     .getConstruct();
 
             Node opcode = children.get(0);
-            switch (CpuOpcode.parse((String) opcode.getValue())) {
+            switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
                 default:
                     return false;
                 case SLLV:
@@ -153,7 +154,7 @@ public class ThreeOpAnalyzer implements Analyzer {
                     .getConstruct();
 
             Node opcode = children.get(0);
-            switch (CpuOpcode.parse((String) opcode.getValue())) {
+            switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
                 default:
                     return false;
                 case MOVN:
@@ -189,7 +190,7 @@ public class ThreeOpAnalyzer implements Analyzer {
                     .getConstruct();
 
             Node opcode = children.get(0);
-            switch (CpuOpcode.parse((String) opcode.getValue())) {
+            switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
                 default:
                     return false;
                 case ADD:
