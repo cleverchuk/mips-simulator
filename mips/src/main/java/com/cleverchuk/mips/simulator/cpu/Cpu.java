@@ -100,9 +100,6 @@ public class Cpu implements Processor<CpuInstruction> {
             case LUI:
                 lui(cpuInstruction);
                 break;
-            case MOVE:
-                move(cpuInstruction);
-                break;
             case NEGU:
                 negu(cpuInstruction);
                 break;
@@ -510,10 +507,6 @@ public class Cpu implements Processor<CpuInstruction> {
     private void lui(CpuInstruction cpuInstruction) {
         //the value of the rt is being parsed into Double and saved in rd
         registerFile.write(cpuInstruction.rd, cpuInstruction.immediateValue << 0x10);
-    }
-
-    private void move(CpuInstruction cpuInstruction) {
-        registerFile.write(cpuInstruction.rd, registerFile.read(cpuInstruction.rs));
     }
 
     private void negu(CpuInstruction cpuInstruction) {

@@ -36,7 +36,8 @@ public final class PseudoTransformer implements NodeVisitor {
     @Override
     public void visit(Node node) {
         if (node.getConstruct() == Construct.INSTRUCTION) {
-            transformLW(node);
+            transformLw(node);
+            transformMove(node);
         }
     }
 
@@ -57,7 +58,7 @@ public final class PseudoTransformer implements NodeVisitor {
         return leaf;
     }
 
-    private void transformLW(Node instruction) {
+    private void transformLw(Node instruction) {
         Node twoOp = instruction.getChildren().get(0);
         if (twoOp.getConstruct() == Construct.TWOOP) {
             List<Node> children = twoOp.getChildren();
@@ -122,5 +123,47 @@ public final class PseudoTransformer implements NodeVisitor {
                 instruction.addChild(lw);
             }
         }
+    }
+
+    private void transformMove(Node instruction) {
+        Node leaf = getLeaf(instruction);
+        if (CpuOpcode.MOVE.same(leaf.getValue().toString())) {
+            Node move = instruction.getChildren().get(0);
+            instruction.removeChild(move);
+
+            Node addu = Node.builder()
+                    .construct(Construct.THREEOP)
+                    .nodeType(NONTERMINAL)
+                    .line(move.getLine())
+                    .build();
+
+            Node opcode = Node.builder()
+                    .nodeType(TERMINAL)
+                    .value(CpuOpcode.ADDU.getName())
+                    .line(move.getLine())
+                    .build();
+
+            Node zeroReg = Node.builder()
+                    .nodeType(NONTERMINAL)
+                    .construct(Construct.REGISTER)
+                    .build()
+                    .addChild(
+                            Node.builder()
+                                    .nodeType(TERMINAL)
+                                    .value("zero")
+                                    .build()
+                    );
+
+            addu.addChild(opcode);
+            addu.addChild(move.getChildren().get(1));
+
+            addu.addChild(zeroReg);
+            addu.addChild(move.getChildren().get(2));
+            instruction.addChild(addu);
+        }
+    }
+
+    private void transformLi(Node instruction) {
+
     }
 }

@@ -57,7 +57,7 @@ public final class RecursiveDescentParser {
         this.lexer = lexer;
         this.semanticAnalyzer = semanticAnalyzer;
         visitors.add(visitor);
-        visitors.add(new LWVisitor());
+        visitors.add(new PseudoTransformer());
     }
 
     @NonNull

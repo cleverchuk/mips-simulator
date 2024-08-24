@@ -52,8 +52,9 @@ public class Node {
         this.line = line;
     }
 
-    public void addChild(Node node) {
+    public Node addChild(Node node) {
         children.add(node);
+        return this;
     }
 
     public void removeChild(Node node) {
