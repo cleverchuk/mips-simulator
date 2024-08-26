@@ -68,8 +68,8 @@ public final class MipsLexer {
     public static final Map<String, TokenType> RESERVED = new HashMap<String, TokenType>() {{
         put("data", TokenType.DATA);
         put("text", TokenType.TEXT);
-        put("ascii", TokenType.ASCII);
         put("asciiz", TokenType.ASCIIZ);
+        put("ascii", TokenType.ASCII);
         put("space", TokenType.SPACE_STORAGE);
         put("byte", TokenType.BYTE_STORAGE);
         put("half", TokenType.HALF_STORAGE);
