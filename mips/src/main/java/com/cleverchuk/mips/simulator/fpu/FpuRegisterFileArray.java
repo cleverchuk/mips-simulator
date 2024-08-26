@@ -32,7 +32,7 @@ public class FpuRegisterFileArray {
     private final Map<String, RegisterFile> registerFile = new HashMap<>();
 
     public FpuRegisterFileArray() {
-        MipsLexer.DECI_TO_FPU_REG.forEach((key, value) -> registerFile.put("$" + value, new DefaultRegisterFile(Integer.parseInt(key))));
+        MipsLexer.DECI_TO_FPU_REG.forEach((key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
     }
 
     public RegisterFile getFile(String reg) {
@@ -49,6 +49,14 @@ public class FpuRegisterFileArray {
         }
 
         return content.toString();
+    }
+
+    private RegisterFile createReg(String name, int id) {
+        if (name.equals("f0")) {
+            return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
+        }
+
+        return new DefaultRegisterFile(id);
     }
 
     public static class DefaultRegisterFile implements RegisterFile {
