@@ -185,7 +185,7 @@ jr $ra                       # Return
 
 ### Sample 2
 
-*This code computes the hypothenus given x and y *
+*This code computes the hypothenus given x and y*
 
 ```asm
 .text
