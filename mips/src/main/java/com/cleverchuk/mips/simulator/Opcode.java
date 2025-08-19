@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator;
 
-public interface Opcode {
-}
+public interface Opcode {}

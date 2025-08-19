@@ -36,58 +36,57 @@ import java.util.Objects;
 import javax.inject.Inject;
 
 public final class MipsCompiler {
-    private final RecursiveDescentParser parser;
+  private final RecursiveDescentParser parser;
 
-    private final CodeGenerator codeGenerator;
+  private final CodeGenerator codeGenerator;
 
-    private int sourceHash = -1;
+  private int sourceHash = -1;
 
-    @Inject
-    public MipsCompiler(RecursiveDescentParser parser, CodeGenerator codeGenerator) {
-        this.parser = parser;
-        this.codeGenerator = codeGenerator;
+  @Inject
+  public MipsCompiler(RecursiveDescentParser parser, CodeGenerator codeGenerator) {
+    this.parser = parser;
+    this.codeGenerator = codeGenerator;
+  }
+
+  public void compile(String source) {
+    if (sourceHash == source.hashCode() && !codeGenerator.getInstructions().isEmpty()) {
+      if (ErrorRecorder.hasErrors()) {
+        throw new SyntaxError(ErrorRecorder.printErrors());
+      }
+      return;
     }
 
-    public void compile(String source) {
-        if (sourceHash == source.hashCode() && !codeGenerator.getInstructions().isEmpty()) {
-            if (ErrorRecorder.hasErrors()) {
-                throw new SyntaxError(ErrorRecorder.printErrors());
-            }
-            return;
-        }
+    sourceHash = source.hashCode();
+    codeGenerator.flush();
+    Node program = parser.parse(source);
 
-        sourceHash = source.hashCode();
-        codeGenerator.flush();
-        Node program = parser.parse(source);
-
-        if (ErrorRecorder.hasErrors()) {
-            throw new SyntaxError(ErrorRecorder.printErrors());
-        }
-
-        codeGenerator.generate(Objects.requireNonNull(program, "incorrect program"));
-        if (ErrorRecorder.hasErrors()) {
-            throw new SyntaxError(ErrorRecorder.printErrors());
-        }
-
+    if (ErrorRecorder.hasErrors()) {
+      throw new SyntaxError(ErrorRecorder.printErrors());
     }
 
-    public Memory getDataSegment() {
-        return codeGenerator.getMemory();
+    codeGenerator.generate(Objects.requireNonNull(program, "incorrect program"));
+    if (ErrorRecorder.hasErrors()) {
+      throw new SyntaxError(ErrorRecorder.printErrors());
     }
+  }
 
-    public List<VirtualInstruction> getTextSegment() {
-        return codeGenerator.getInstructions();
-    }
+  public Memory getDataSegment() {
+    return codeGenerator.getMemory();
+  }
 
-    public int dataSegmentOffset() {
-        return codeGenerator.getDataSegmentOffset();
-    }
+  public List<VirtualInstruction> getTextSegment() {
+    return codeGenerator.getInstructions();
+  }
 
-    public int textSegmentOffset() {
-        return codeGenerator.getTextSegmentOffset();
-    }
+  public int dataSegmentOffset() {
+    return codeGenerator.getDataSegmentOffset();
+  }
 
-    public int memBoundary() {
-        return codeGenerator.getMemOffset();
-    }
+  public int textSegmentOffset() {
+    return codeGenerator.getTextSegmentOffset();
+  }
+
+  public int memBoundary() {
+    return codeGenerator.getMemOffset();
+  }
 }

@@ -33,19 +33,19 @@ import javax.inject.Inject;
 
 public class FourOpAnalyzer implements Analyzer {
 
-    @Inject
-    public FourOpAnalyzer() {
-    }
+  @Inject
+  public FourOpAnalyzer() {}
 
-    @Override
-    public boolean analyze(Node opcodeKind) {
-        List<Node> children = opcodeKind.getChildren();
-        Node opcode = children.get(0);
-        return children.size() == 5 &&
-                (CpuOpcode.EXT.same((String)opcode.getValue()) || CpuOpcode.INS.same((String)opcode.getValue())) &&
-                Construct.REGISTER == children.get(1).getConstruct() &&
-                Construct.REGISTER == children.get(2).getConstruct() &&
-                Construct.CONSTANT == children.get(3).getConstruct()&&
-                Construct.CONSTANT == children.get(4).getConstruct();
-    }
+  @Override
+  public boolean analyze(Node opcodeKind) {
+    List<Node> children = opcodeKind.getChildren();
+    Node opcode = children.get(0);
+    return children.size() == 5
+        && (CpuOpcode.EXT.same((String) opcode.getValue())
+            || CpuOpcode.INS.same((String) opcode.getValue()))
+        && Construct.REGISTER == children.get(1).getConstruct()
+        && Construct.REGISTER == children.get(2).getConstruct()
+        && Construct.CONSTANT == children.get(3).getConstruct()
+        && Construct.CONSTANT == children.get(4).getConstruct();
+  }
 }
