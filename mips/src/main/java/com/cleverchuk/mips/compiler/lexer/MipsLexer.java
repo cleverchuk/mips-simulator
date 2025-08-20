@@ -61,7 +61,8 @@ public final class MipsLexer {
   private static final Pattern COMMENT = Pattern.compile("#.*");
 
   @Inject
-  public MipsLexer() {}
+  public MipsLexer() {
+  }
 
   public static final Map<String, TokenType> RESERVED =
       new HashMap<String, TokenType>() {
@@ -265,11 +266,9 @@ public final class MipsLexer {
     return c == ' ';
   }
 
-  @Nullable private Token buildToken(String value) {
+  @Nullable
+  private Token buildToken(String value) {
     switch (state) {
-      default:
-      case LEX_START:
-        return null; // This must not happen
       case LEX_FLOATING_POINT:
         state = LEX_START;
         return Token.builder()
@@ -356,6 +355,10 @@ public final class MipsLexer {
             .line(lineNumber)
             .pos(sourcePos - value.length())
             .build();
+
+      case LEX_START:
+      default:
+        return null; // This must not happen
     }
   }
 

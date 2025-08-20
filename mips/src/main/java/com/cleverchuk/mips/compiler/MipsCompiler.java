@@ -68,6 +68,7 @@ public final class MipsCompiler {
     if (ErrorRecorder.hasErrors()) {
       throw new SyntaxError(ErrorRecorder.printErrors());
     }
+    codeGenerator.loadInstructions();
   }
 
   public Memory getDataSegment() {

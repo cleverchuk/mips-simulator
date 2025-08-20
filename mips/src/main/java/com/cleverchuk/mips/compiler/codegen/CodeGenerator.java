@@ -378,6 +378,7 @@ public final class CodeGenerator {
       }
 
     } else { // Four operand opcode
+      //FIXME: align takes 3 registers
       builder
           .rd("$" + operand0)
           .rs("$" + operand1)
@@ -546,5 +547,26 @@ public final class CodeGenerator {
 
   public boolean hasFpuInstruction() {
     return fpuInstruction;
+  }
+
+  public void loadInstructions() {
+    textSegmentOffset = memOffset + 8;
+    long offset = textSegmentOffset;
+
+    for (VirtualInstruction instruction : instructions) {
+      if (instruction instanceof CpuInstruction) {
+        loadCpu((CpuInstruction) instruction, offset);
+      } else {
+        loadFpu((FpuInstruction) instruction, offset);
+      }
+    }
+  }
+
+  private void loadFpu(FpuInstruction instruction, long offset) {
+
+  }
+
+  private void loadCpu(CpuInstruction instruction, long offset) {
+
   }
 }
