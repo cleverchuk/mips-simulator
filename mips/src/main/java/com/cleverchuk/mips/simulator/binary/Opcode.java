@@ -28,77 +28,97 @@ public enum Opcode {
   // ARITHMETIC OPERATIONS
   ADD("add", 0x0000_0020),
   ADDI("addi", 0x2000_0000),
-  ADDIU("addiu",0x2400_0000),
-  ADDIUPC("addiupc",0xec00_0000),
-  ADDU("addu",0x0000_0021),
-  ALIGN("align",0x7c00_0220),
-  ALUIPC("align",0x7c00_0220),
-  CLO("clo",0x0),
-  CLZ("clz",0x0),
-  LA("la",0x0),
-  LI("li",0x0),
-  LUI("lui",0x0),
-  MOVE("move",0x0),
-  NEGU("negu",0x0),
-  SUB("sub",0x0),
-  SUBU("subu",0x0),
-  SEB("seb",0x0),
-  SEH("seh",0x0),
+  ADDIU("addiu", 0x2400_0000),
+  ADDIUPC("addiupc", 0xec00_0000),//FIXME: new
+  ADDU("addu", 0x0000_0021),
+  ALIGN("align", 0x7c00_0220),//FIXME: new
+  ALUIPC("align", 0x7c00_0220),//FIXME: new
+  CLO("clo", 0x0),
+  CLZ("clz", 0x0),
+  LA("la", 0x0),
+  LI("li", 0x0),
+  LUI("lui", 0x0),
+  MOVE("move", 0x0),
+  NEGU("negu", 0x0),
+  SUB("sub", 0x0),
+  SUBU("subu", 0x0),
+  SEB("seb", 0x0),
+  SEH("seh", 0x0),
   // SHIFT AND ROTATE OPERATIONS
-  SLL("sll",0x0),
-  SLLV("sllv",0x0),
-  SRL("srl",0x0),
-  ROTR("rotr",0x0),
-  ROTRV("rotrv",0x0),
-  SRA("sra",0x0),
-  SRAV("srav",0x0),
-  SRLV("srlv",0x0),
+  SLL("sll", 0x0),
+  SLLV("sllv", 0x0),
+  SRL("srl", 0x0),
+  ROTR("rotr", 0x0),
+  ROTRV("rotrv", 0x0),
+  SRA("sra", 0x0),
+  SRAV("srav", 0x0),
+  SRLV("srlv", 0x0),
   // LOGICAL AND BIT-FIELD OPERATIONS
-  AND("and",0x0000_0024),
-  ANDI("andi",0x3000_0000),
-  AUI("andi",0x3c00_0000),
-  AUIPC("andi",0xec1e_0000),
-  EXT("ext",0x0),
-  INS("ins",0x0),
-  NOP("nop",0x0),
-  NOR("nor",0x0),
-  NOT("not",0x0),
-  OR("or",0x0),
-  ORI("ori",0x0),
-  XOR("xor",0x0),
-  XORI("xori",0x0),
-  WSBH("wsbh",0x0),
+  AND("and", 0x0000_0024),
+  ANDI("andi", 0x3000_0000),
+  AUI("andi", 0x3c00_0000),//FIXME: new
+  AUIPC("andi", 0xec1e_0000),//FIXME: new
+  EXT("ext", 0x0),
+  INS("ins", 0x0),
+  NOP("nop", 0x0),
+  NOR("nor", 0x0),
+  NOT("not", 0x0),
+  OR("or", 0x0),
+  ORI("ori", 0x0),
+  XOR("xor", 0x0),
+  XORI("xori", 0x0),
+  WSBH("wsbh", 0x0),
   // CONDITION TESTING AND CONDITIONAL MOVE OPERATIONS
-  MOVN("movn",0x0),
-  MOVZ("movz",0x0),
-  SLT("slt",0x0),
-  SLTI("slti",0x0),
-  SLTIU("sltiu",0x0),
-  SLTU("sltu",0x0),
+  MOVN("movn", 0x0),
+  MOVZ("movz", 0x0),
+  SLT("slt", 0x0),
+  SLTI("slti", 0x0),
+  SLTIU("sltiu", 0x0),
+  SLTU("sltu", 0x0),
 
   // MULTIPLY AND DIVIDE OPERATIONS
-  DIV("div",0x0),
-  MUL("mul",0x0),
-  DIVU("divu",0x0),
-  MADD("madd",0x0),
-  MADDU("maddu",0x0),
-  MSUB("msub",0x0),
-  MSUBU("msubu",0x0),
-  MULT("mult",0x0),
-  MULTU("multu",0x0),
+  DIV("div", 0x0),
+  MUL("mul", 0x0),
+  DIVU("divu", 0x0),
+  MADD("madd", 0x0),
+  MADDU("maddu", 0x0),
+  MSUB("msub", 0x0),
+  MSUBU("msubu", 0x0),
+  MULT("mult", 0x0),
+  MULTU("multu", 0x0),
 
   // JUMPS AND BRANCHES
-  BEQ("beq",0x0),
-  BNE("bne",0x0),
-  JAL("jal",0x0),
-  J("j",0x0),
-  JR("jr",0x0),
-  B("b",0x0),
-  BAL("bal",0x0),
-  BEQZ("beqz",0x0),
-  BGEZ("bgez", 0x0),
+  BEQ("beq", 0x1000_0000),
+  BNE("bne", 0x0),
+  JAL("jal", 0x0),
+  J("j", 0x0),
+  JR("jr", 0x0),
+  B("b", 0x1000_0000),// assembly idiom actual instruction is BEQ r0, r0, offset
+  BAL("bal", 0x0412_0000),// assembly idiom actual instruction is BGEZAL r0, offset
+  BALC("balc", 0xe800_0000),//FIXME: new
+  BC("bc", 0xc800_0000),//FIXME: new
+  BEQZ("beqz", 0x0),
+  BGEZ("bgez", 0x0401_0000),
   BGTZ("bgtz", 0x0),
-  BGEZAL("bgezal", 0x0),
+  BGEZAL("bgezal", 0x0411_0000),//FIXME: removed in R6
+  BLEZALC("blezalc", 0x1800_0000),//FIXME: new
+  BGEZALC("bgezalc", 0x1800_0000),//FIXME: new
+  BGTZALC("bgtzalc", 0x1c00_0000),//FIXME: new
+  BLTZALC("bltzalc", 0x1c00_0000),//FIXME: new
+  BEQZALC("beqzalc", 0x2000_0000),//FIXME: new
+  BNEZALC("bnezalc", 0x6000_0000),//FIXME: new
+  BLEZC("blezc", 0x5800_0000),//FIXME: new
+  BGEZC("bgezc", 0x5800_0000),//FIXME: new
+  BGEC("bgec", 0x5800_0000),//FIXME: new
+  BGTZC("bgtzc", 0x5800_0000),//FIXME: new
+  BLTZC("bltzc", 0x5800_0000),//FIXME: new
+  BLTC("bltc", 0x5800_0000),//FIXME: new
+  BGEUC("bgeuc", 0x5800_0000),//FIXME: new
+  BLTUC("bltuc", 0x5800_0000),//FIXME: new
+  BEQC("beqc", 0x5800_0000),//FIXME: new
+  BNEC("bnec", 0x5800_0000),//FIXME: new
+  BEQZC("beqzc", 0x5800_0000),//FIXME: new
+  BNEZC("bnezc", 0x5800_0000),//FIXME: new
   BLEZ("blez", 0x0),
   BLTZ("bltz", 0x0),
   BNEZ("bnez", 0x0),
@@ -293,8 +313,12 @@ public enum Opcode {
   SELNEZ_D("selnez.d", 0x0),
 
   // FPU Conditional Branch Instructions
-  BC1EQZ("bc1eqz", 0x0),
-  BC1NEZ("bc1nez", 0x0);
+  BC1EQZ("bc1eqz", 0x4520_0000),
+  BC1NEZ("bc1nez", 0x45a0_0000),
+  BC2EQZ("bc2eqz", 0x4920_0000),
+  BC2NEZ("bc2nez", 0x49a0_0000),
+
+  ;
 
   private final String name;
 
