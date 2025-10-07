@@ -33,119 +33,112 @@ import javax.inject.Inject;
 
 public class OneOpAnalyzer implements Analyzer {
 
-    @Inject
-    public OneOpAnalyzer() {
-    }
+  @Inject
+  public OneOpAnalyzer() {}
 
-    @Override
-    public boolean analyze(Node opcodeKind) {
-        /* listing of one operand opcode mnemonics
-         * b
-         * bal
-         * j
-         * jal
-         * jr
-         * MFHI
-         * MFLO
-         * MTHI
-         * MTLO
-         * */
-        List<Node> children = opcodeKind.getChildren();
-        Node opcode = children.get(0);
-        return children.size() == 2 && (
-                isBvalid(opcode, children) || isBalValid(opcode, children) ||
-                        isJvalid(opcode, children)|| isJalValid(opcode, children) || isJrValid(opcode, children) ||
-                        isMfhiValid(opcode, children) || isMfloValid(opcode, children) ||
-                        isMthiValid(opcode, children) || isMtloValid(opcode, children)
-        );
-    }
+  @Override
+  public boolean analyze(Node opcodeKind) {
+    /* listing of one operand opcode mnemonics
+     * b
+     * bal
+     * j
+     * jal
+     * jr
+     * MFHI
+     * MFLO
+     * MTHI
+     * MTLO
+     * */
+    List<Node> children = opcodeKind.getChildren();
+    Node opcode = children.get(0);
+    return children.size() == 2
+        && (isBvalid(opcode, children)
+            || isBalValid(opcode, children)
+            || isJvalid(opcode, children)
+            || isJalValid(opcode, children)
+            || isJrValid(opcode, children)
+            || isMfhiValid(opcode, children)
+            || isMfloValid(opcode, children)
+            || isMthiValid(opcode, children)
+            || isMtloValid(opcode, children));
+  }
 
-    private boolean isMthiValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.REGISTER)
-                .orElse(node)
-                .getConstruct();
+  private boolean isMthiValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-        return CpuOpcode.MTHI.same((String)opcode.getValue()) && Construct.REGISTER == construct;
-    }
+    return CpuOpcode.MTHI.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+  }
 
-    private boolean isMtloValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.REGISTER)
-                .orElse(node)
-                .getConstruct();
+  private boolean isMtloValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-        return CpuOpcode.MTLO.same((String)opcode.getValue()) && Construct.REGISTER == construct;
-    }
+    return CpuOpcode.MTLO.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+  }
 
-    private boolean isMfloValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.REGISTER)
-                .orElse(node)
-                .getConstruct();
+  private boolean isMfloValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-        return CpuOpcode.MFLO.same((String)opcode.getValue()) && Construct.REGISTER == construct;
-    }
+    return CpuOpcode.MFLO.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+  }
 
-    private boolean isMfhiValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.REGISTER)
-                .orElse(node)
-                .getConstruct();
+  private boolean isMfhiValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-        return CpuOpcode.MFHI.same((String)opcode.getValue()) && Construct.REGISTER == construct;
-    }
+    return CpuOpcode.MFHI.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+  }
 
-    private boolean isJrValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.REGISTER)
-                .orElse(node)
-                .getConstruct();
+  private boolean isJrValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-        return CpuOpcode.JR.same((String)opcode.getValue()) &&
-                Construct.REGISTER == construct;
-    }
+    return CpuOpcode.JR.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+  }
 
-    private boolean isJvalid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.LABEL)
-                .orElse(node)
-                .getConstruct();
+  private boolean isJvalid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.LABEL).orElse(node).getConstruct();
 
-        return CpuOpcode.J.same((String)opcode.getValue()) && Construct.LABEL == construct;
-    }
+    return CpuOpcode.J.same((String) opcode.getValue()) && Construct.LABEL == construct;
+  }
 
-    private boolean isJalValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.LABEL)
-                .orElse(node)
-                .getConstruct();
+  private boolean isJalValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct = findNode(node, Construct.LABEL).orElse(node).getConstruct();
 
-        return CpuOpcode.JAL.same((String)opcode.getValue()) && Construct.LABEL == construct;
-    }
+    return CpuOpcode.JAL.same((String) opcode.getValue()) && Construct.LABEL == construct;
+  }
 
+  private boolean isBalValid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct =
+        findNode(node, Construct.CONSTANT)
+            .orElse(
+                findNode(node, Construct.NEGCONSTANT)
+                    .orElse(findNode(node, Construct.LABEL).orElse(node)))
+            .getConstruct();
 
-    private boolean isBalValid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.CONSTANT)
-                .orElse(findNode(node, Construct.NEGCONSTANT)
-                        .orElse(findNode(node, Construct.LABEL)
-                                .orElse(node)))
-                .getConstruct();
+    return CpuOpcode.BAL.same((String) opcode.getValue())
+        && (Construct.CONSTANT == construct
+            || Construct.NEGCONSTANT == construct
+            || Construct.LABEL == construct);
+  }
 
-        return CpuOpcode.BAL.same((String)opcode.getValue()) &&
-                (Construct.CONSTANT == construct || Construct.NEGCONSTANT == construct || Construct.LABEL == construct);
-    }
+  private boolean isBvalid(Node opcode, List<Node> children) {
+    Node node = children.get(1);
+    Construct construct =
+        findNode(node, Construct.CONSTANT)
+            .orElse(
+                findNode(node, Construct.NEGCONSTANT)
+                    .orElse(findNode(node, Construct.LABEL).orElse(node)))
+            .getConstruct();
 
-    private boolean isBvalid(Node opcode, List<Node> children) {
-        Node node = children.get(1);
-        Construct construct = findNode(node, Construct.CONSTANT)
-                .orElse(findNode(node, Construct.NEGCONSTANT)
-                        .orElse(findNode(node, Construct.LABEL)
-                                .orElse(node)))
-                .getConstruct();
-
-        return CpuOpcode.B.same((String)opcode.getValue()) &&
-                (Construct.CONSTANT == construct || Construct.NEGCONSTANT == construct || Construct.LABEL == construct);
-    }
+    return CpuOpcode.B.same((String) opcode.getValue())
+        && (Construct.CONSTANT == construct
+            || Construct.NEGCONSTANT == construct
+            || Construct.LABEL == construct);
+  }
 }

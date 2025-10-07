@@ -34,39 +34,39 @@ import java.util.Deque;
 import java.util.Optional;
 
 public interface Analyzer {
-    boolean analyze(Node node);
+  boolean analyze(Node node);
 
-    default Optional<Node> findNode(Node node, Construct construct) {
-        Deque<Node> nodeDeque = new ArrayDeque<>();
-        nodeDeque.push(node);
+  default Optional<Node> findNode(Node node, Construct construct) {
+    Deque<Node> nodeDeque = new ArrayDeque<>();
+    nodeDeque.push(node);
 
-        do {
-            int size = nodeDeque.size();
-            for (int i = 0; i < size; i++) {
-                Node root = nodeDeque.remove();
-                if (root.getConstruct() == construct) {
-                    return Optional.of(root);
-                }
-
-                for (Node child : root.getChildren()) {
-                    nodeDeque.addLast(child);
-                }
-            }
-
-        } while (!nodeDeque.isEmpty());
-
-        return Optional.empty();
-    }
-
-    default Opcode parse(String value) {
-        if (CpuOpcode.CPU_OPCODES.contains(value)) {
-            return CpuOpcode.parse(value);
+    do {
+      int size = nodeDeque.size();
+      for (int i = 0; i < size; i++) {
+        Node root = nodeDeque.remove();
+        if (root.getConstruct() == construct) {
+          return Optional.of(root);
         }
 
-        if (FpuOpcode.FPU_OPCODES.contains(value)) {
-            return FpuOpcode.parse(value);
+        for (Node child : root.getChildren()) {
+          nodeDeque.addLast(child);
         }
+      }
 
-        return null;
+    } while (!nodeDeque.isEmpty());
+
+    return Optional.empty();
+  }
+
+  default Opcode parse(String value) {
+    if (CpuOpcode.CPU_OPCODES.contains(value)) {
+      return CpuOpcode.parse(value);
     }
+
+    if (FpuOpcode.FPU_OPCODES.contains(value)) {
+      return FpuOpcode.parse(value);
+    }
+
+    return null;
+  }
 }

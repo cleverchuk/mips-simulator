@@ -24,181 +24,160 @@
 
 package com.cleverchuk.mips.compiler.parser;
 
+import static com.cleverchuk.mips.compiler.parser.NodeType.NONTERMINAL;
+import static com.cleverchuk.mips.compiler.parser.NodeType.TERMINAL;
+
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
-import static com.cleverchuk.mips.compiler.parser.NodeType.NONTERMINAL;
-import static com.cleverchuk.mips.compiler.parser.NodeType.TERMINAL;
-
 public final class PseudoTransformer implements NodeVisitor {
-    @Override
-    public void visit(Node node) {
-        if (node.getConstruct() == Construct.INSTRUCTION) {
-            transformLw(node);
-            transformMove(node);
-            transformLi(node);
-        }
+  @Override
+  public void visit(Node node) {
+    if (node.getConstruct() == Construct.INSTRUCTION) {
+      transformLw(node);
+      transformMove(node);
+      transformLi(node);
+    }
+  }
+
+  public Node getLeaf(Node root) {
+    Deque<Node> nodes = new ArrayDeque<>();
+    nodes.add(root);
+    Node leaf = null;
+    while (!nodes.isEmpty()) {
+      root = nodes.removeFirst();
+      if (root.getNodeType() == NodeType.TERMINAL) {
+        leaf = root;
+        break;
+      }
+      nodes.addAll(root.getChildren());
     }
 
+    return leaf;
+  }
 
-    public Node getLeaf(Node root) {
-        Deque<Node> nodes = new ArrayDeque<>();
-        nodes.add(root);
-        Node leaf = null;
-        while (!nodes.isEmpty()) {
-            root = nodes.removeFirst();
-            if (root.getNodeType() == NodeType.TERMINAL) {
-                leaf = root;
-                break;
-            }
-            nodes.addAll(root.getChildren());
-        }
+  private void transformLw(Node instruction) {
+    Node twoOp = instruction.getChildren().get(0);
+    if (twoOp.getConstruct() == Construct.TWOOP) {
+      List<Node> children = twoOp.getChildren();
+      String opcode = (String) children.get(0).getValue();
+      Node label = children.get(2).getChildren().get(0);
 
-        return leaf;
+      if ("lw".equals(opcode) && label.getNodeType() == TERMINAL) {
+        instruction.removeChild(twoOp);
+
+        // create la node
+        Node la = Node.builder().construct(Construct.TWOOP).nodeType(NONTERMINAL).build();
+
+        la.addChild(
+            Node.builder()
+                .construct(Construct.OPCODE)
+                .nodeType(TERMINAL)
+                .value(CpuOpcode.LA.getName())
+                .build());
+
+        la.addChild(children.get(1));
+        la.addChild(children.get(2));
+
+        // create lw node
+        Node lw = Node.builder().construct(Construct.TWOOP).nodeType(NONTERMINAL).build();
+
+        lw.addChild(
+            Node.builder()
+                .construct(Construct.OPCODE)
+                .nodeType(TERMINAL)
+                .value(CpuOpcode.LW.getName())
+                .line(instruction.getLine())
+                .build());
+
+        lw.addChild(
+            Node.builder().nodeType(TERMINAL).value(getLeaf(children.get(1)).getValue()).build());
+
+        Node operand = Node.builder().construct(Construct.OPERAND).nodeType(NONTERMINAL).build();
+
+        operand.addChild(Node.builder().nodeType(TERMINAL).value(0).line(twoOp.getLine()).build());
+
+        operand.addChild(
+            Node.builder().nodeType(TERMINAL).value(getLeaf(children.get(1)).getValue()).build());
+        lw.addChild(operand);
+
+        instruction.addChild(la);
+        instruction.addChild(lw);
+      }
     }
+  }
 
-    private void transformLw(Node instruction) {
-        Node twoOp = instruction.getChildren().get(0);
-        if (twoOp.getConstruct() == Construct.TWOOP) {
-            List<Node> children = twoOp.getChildren();
-            String opcode = (String) children.get(0).getValue();
-            Node label = children.get(2).getChildren().get(0);
+  private void transformMove(Node instruction) {
+    Node leaf = getLeaf(instruction);
+    if (CpuOpcode.MOVE.same(leaf.getValue().toString())) {
+      Node move = instruction.getChildren().get(0);
+      instruction.removeChild(move);
 
+      Node addu =
+          Node.builder()
+              .construct(Construct.THREEOP)
+              .nodeType(NONTERMINAL)
+              .line(move.getLine())
+              .build();
 
-            if ("lw".equals(opcode) && label.getNodeType() == TERMINAL) {
-                instruction.removeChild(twoOp);
+      Node opcode =
+          Node.builder()
+              .nodeType(TERMINAL)
+              .value(CpuOpcode.ADDU.getName())
+              .line(move.getLine())
+              .build();
 
-                // create la node
-                Node la = Node.builder()
-                        .construct(Construct.TWOOP)
-                        .nodeType(NONTERMINAL)
-                        .build();
+      Node zeroReg =
+          Node.builder()
+              .nodeType(NONTERMINAL)
+              .construct(Construct.REGISTER)
+              .build()
+              .addChild(Node.builder().nodeType(TERMINAL).value("zero").build());
 
-                la.addChild(Node.builder()
-                        .construct(Construct.OPCODE)
-                        .nodeType(TERMINAL)
-                        .value(CpuOpcode.LA.getName())
-                        .build());
+      addu.addChild(opcode);
+      addu.addChild(move.getChildren().get(1));
 
-                la.addChild(children.get(1));
-                la.addChild(children.get(2));
-
-                // create lw node
-                Node lw = Node.builder()
-                        .construct(Construct.TWOOP)
-                        .nodeType(NONTERMINAL)
-                        .build();
-
-                lw.addChild(Node.builder()
-                        .construct(Construct.OPCODE)
-                        .nodeType(TERMINAL)
-                        .value(CpuOpcode.LW.getName())
-                        .line(instruction.getLine())
-                        .build());
-
-                lw.addChild(Node.builder()
-                        .nodeType(TERMINAL)
-                        .value(getLeaf(children.get(1)).getValue())
-                        .build());
-
-                Node operand = Node.builder()
-                        .construct(Construct.OPERAND)
-                        .nodeType(NONTERMINAL)
-                        .build();
-
-                operand.addChild(Node.builder()
-                        .nodeType(TERMINAL)
-                        .value(0)
-                        .line(twoOp.getLine())
-                        .build());
-
-                operand.addChild(Node.builder()
-                        .nodeType(TERMINAL)
-                        .value(getLeaf(children.get(1)).getValue())
-                        .build());
-                lw.addChild(operand);
-
-                instruction.addChild(la);
-                instruction.addChild(lw);
-            }
-        }
+      addu.addChild(zeroReg);
+      addu.addChild(move.getChildren().get(2));
+      instruction.addChild(addu);
     }
+  }
 
-    private void transformMove(Node instruction) {
-        Node leaf = getLeaf(instruction);
-        if (CpuOpcode.MOVE.same(leaf.getValue().toString())) {
-            Node move = instruction.getChildren().get(0);
-            instruction.removeChild(move);
+  private void transformLi(Node instruction) {
+    Node leaf = getLeaf(instruction);
+    if (CpuOpcode.LI.same(leaf.getValue().toString())) {
+      Node li = instruction.getChildren().get(0);
+      instruction.removeChild(li);
 
-            Node addu = Node.builder()
-                    .construct(Construct.THREEOP)
-                    .nodeType(NONTERMINAL)
-                    .line(move.getLine())
-                    .build();
+      Node ori =
+          Node.builder()
+              .construct(Construct.THREEOP)
+              .nodeType(NONTERMINAL)
+              .line(li.getLine())
+              .build();
 
-            Node opcode = Node.builder()
-                    .nodeType(TERMINAL)
-                    .value(CpuOpcode.ADDU.getName())
-                    .line(move.getLine())
-                    .build();
+      Node opcode =
+          Node.builder()
+              .nodeType(TERMINAL)
+              .value(CpuOpcode.ORI.getName())
+              .line(li.getLine())
+              .build();
 
-            Node zeroReg = Node.builder()
-                    .nodeType(NONTERMINAL)
-                    .construct(Construct.REGISTER)
-                    .build()
-                    .addChild(
-                            Node.builder()
-                                    .nodeType(TERMINAL)
-                                    .value("zero")
-                                    .build()
-                    );
+      Node zeroReg =
+          Node.builder()
+              .nodeType(NONTERMINAL)
+              .construct(Construct.REGISTER)
+              .build()
+              .addChild(Node.builder().nodeType(TERMINAL).value("zero").build());
 
-            addu.addChild(opcode);
-            addu.addChild(move.getChildren().get(1));
+      ori.addChild(opcode);
+      ori.addChild(li.getChildren().get(1));
 
-            addu.addChild(zeroReg);
-            addu.addChild(move.getChildren().get(2));
-            instruction.addChild(addu);
-        }
+      ori.addChild(zeroReg);
+      ori.addChild(li.getChildren().get(2));
+      instruction.addChild(ori);
     }
-
-    private void transformLi(Node instruction) {
-        Node leaf = getLeaf(instruction);
-        if (CpuOpcode.LI.same(leaf.getValue().toString())) {
-            Node li = instruction.getChildren().get(0);
-            instruction.removeChild(li);
-
-            Node ori = Node.builder()
-                    .construct(Construct.THREEOP)
-                    .nodeType(NONTERMINAL)
-                    .line(li.getLine())
-                    .build();
-
-            Node opcode = Node.builder()
-                    .nodeType(TERMINAL)
-                    .value(CpuOpcode.ORI.getName())
-                    .line(li.getLine())
-                    .build();
-
-            Node zeroReg = Node.builder()
-                    .nodeType(NONTERMINAL)
-                    .construct(Construct.REGISTER)
-                    .build()
-                    .addChild(
-                            Node.builder()
-                                    .nodeType(TERMINAL)
-                                    .value("zero")
-                                    .build()
-                    );
-
-            ori.addChild(opcode);
-            ori.addChild(li.getChildren().get(1));
-
-            ori.addChild(zeroReg);
-            ori.addChild(li.getChildren().get(2));
-            instruction.addChild(ori);
-        }
-    }
+  }
 }
