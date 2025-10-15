@@ -35,6 +35,12 @@ android {
 			withSourcesJar()
 		}
 	}
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/kotlinx_coroutines_core.version']
+        }
+    }
 }
 
 
@@ -79,7 +85,7 @@ spotless {
 		target 'src/*/java/**/*.java'
 		importOrder()
 		removeUnusedImports()
-		removeWildcardImports()
+        forbidWildcardImports()
 
 		googleJavaFormat()
 		formatAnnotations()
@@ -88,6 +94,10 @@ spotless {
 	groovyGradle {
 		greclipse()
 	}
+}
+
+configurations.implementation {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
 
 dependencies {
