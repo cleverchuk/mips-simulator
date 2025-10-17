@@ -225,7 +225,6 @@ public final class CodeGenerator {
         int l = stack.pop();
         int r;
         if (tokens[i + 1].charAt(0) == '-' && i + 2 <= len) {
-          i++;
           r = -1 * Integer.parseInt(tokens[i + 1]);
         } else {
           r = Integer.parseInt(tokens[i + 1]);
@@ -239,6 +238,7 @@ public final class CodeGenerator {
         } else {
           stack.push(l / r);
         }
+        i++;
       } else {
         if (negate) {
           negate = false;
