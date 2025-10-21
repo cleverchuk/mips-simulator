@@ -22,44 +22,12 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.parser;
+package com.cleverchuk.mips.simulator.binary;
 
-public interface NodeVisitor {
-  void visit(Node node);
-
-  default void visitTextSegment(Node text) {
-
-  }
-
-  default void visitLabel(Node label) {
-
-  }
-
-  default void visitOpcode(Node opcode) {
-
-  }
-
-  default void visitReg(Node register) {
-
-  }
-
-  default void visitBaseRegister(Node register) {
-
-  }
-
-  default void visitExpression(Node expr) {
-
-  }
-
-  default void visitConstant(Node number) {
-
-  }
-
-  default void visitDataSegment(Node data) {
-
-  }
-
-  default void visitDataMode(Node data) {
-
-  }
+public enum InstructionFormat {
+  I_TYPE,
+  R_TYPE,
+  J_TYPE,
+  IDIOM,
+  ;
 }

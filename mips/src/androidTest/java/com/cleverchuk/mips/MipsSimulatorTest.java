@@ -199,9 +199,9 @@ public class MipsSimulatorTest {
       ".text",
       "li $t0, 300",
       "la $t1, label",
-      "lw $t2, 4($t1)",
+      "lw $t2, 2+2*4-6($t1)",
       "add $t0, $t0, $t2",
-      "sw $t0, 4($t1)"
+      "sw $t0, 2*4+2-6($t1)"
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
