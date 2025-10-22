@@ -74,7 +74,7 @@ public class Assembler implements NodeVisitor {
 
   private int currentOffset = 0;
 
-  private int currentOShiftAmt = 0;
+  private int currentShiftAmt = 0;
 
   @Override
   public void visit(Node node) {
@@ -160,7 +160,7 @@ public class Assembler implements NodeVisitor {
 
   private void flushEncoding(Opcode opcode) {
     int encoding =
-        opcode.partialEncoding | currentOpcode << 26 | currentRs << 21 | currentBase << 21 | currentRt << 16 | currentRd << 11 | currentOShiftAmt << 6
+        opcode.partialEncoding | currentOpcode << 26 | currentRs << 21 | currentBase << 21 | currentRt << 16 | currentRd << 11 | currentShiftAmt << 6
         | currentImme & 0xffff0000 | currentOffset & 0xfc000000;
 
     layout.storeWord(encoding, index);
