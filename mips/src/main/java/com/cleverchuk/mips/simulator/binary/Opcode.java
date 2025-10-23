@@ -94,7 +94,7 @@ public enum Opcode {
   MULU("mulu", 0x00, 0x00000099, R_TYPE, true, true, true),
   MUHU("muhu", 0x00, 0x000000d9, R_TYPE, true, true, true),
   DIVU("divu", 0x00, 0x0000009b, R_TYPE, true, true, true),
-  MODU("modu", 0x00, 0x000000db, R_TYPE, true, true,  true),
+  MODU("modu", 0x00, 0x000000db, R_TYPE, true, true, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MADD("madd", 0x70, 0x0, R_TYPE, true, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
@@ -165,42 +165,40 @@ public enum Opcode {
   TNE("tne", 0x00, 0x00000036, R_TYPE, true, true, false),
 
   // LOAD AND STORE OPERATIONS
-  LW("lw", 0x8c, 0x0, R_TYPE, false, true, false),
-  LWE("lwe", 0x7c, 0x0000002f, R_TYPE, false, true, false),
-  SW("sw", 0xac, 0x0, R_TYPE, false, true, false),
-  SWE("swe", 0x48, 0x0000001f, R_TYPE, false, true, false),
-  SWC1("swc1", 0xe4, 0x0, R_TYPE, false, true, false),
-  SWC2("swc2", 0x48, 0x01600000, R_TYPE, false, true, false),
-  LB("lb", 0x80, 0x0, R_TYPE, false, true, false),
-  LBE("lbe", 0x7c, 0x0000002c, R_TYPE, false, true, false),
-  LBU("lbu", 0x90, 0x0, R_TYPE, false, true, false),
-  LBUE("lbue", 0x7c, 0x00000028, R_TYPE, false, true, false),
-  LH("lh", 0x84, 0x0, R_TYPE, false, true, false),
-  LHE("lhe", 0x7c, 0x0000002d, R_TYPE, false, true, false),
-  LHU("lhu", 0x94, 0x0, R_TYPE, false, true, false),
-  LHUE("lhue", 0x7c, 0x00000029, R_TYPE, false, true, false),
-  LSA("lsa", 0x0, 0x00000005, R_TYPE, false, true, false),
+  LW("lw", 0x8c, 0x0, I_TYPE, true, true, false),
+  LWE("lwe", 0x7c, 0x0000002f, I_TYPE, true, true, false),
+  SW("sw", 0xac, 0x0, I_TYPE, true, true, false),
+  SWE("swe", 0x48, 0x0000001f, I_TYPE, true, true, false),
+  SWC1("swc1", 0xe4, 0x0, I_TYPE, true, true, false),
+  SWC2("swc2", 0x48, 0x01600000, I_TYPE, true, true, false),
+  LB("lb", 0x80, 0x0, I_TYPE, true, true, false),
+  LBE("lbe", 0x7c, 0x0000002c, I_TYPE, true, true, false),
+  LBU("lbu", 0x90, 0x0, I_TYPE, true, true, false),
+  LBUE("lbue", 0x7c, 0x00000028, I_TYPE, true, true, false),
+  LH("lh", 0x84, 0x0, I_TYPE, true, true, false),
+  LHE("lhe", 0x7c, 0x0000002d, I_TYPE, true, true, false),
+  LHU("lhu", 0x94, 0x0,  I_TYPE, true, true, false),
+  LHUE("lhue", 0x7c, 0x00000029,  I_TYPE, true,  true, false),
+  LSA("lsa", 0x0, 0x00000005, R_TYPE, true, true, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  LWL("lwl", 0x88, 0x0, R_TYPE, false, true, false),
-  LWPC("lwpc", 0xec, 0x00080000, R_TYPE, false, true, false),
+  LWL("lwl", 0x88, 0x0,  I_TYPE, true,  true, false),
+  LWPC("lwpc", 0xec, 0x00080000, I_TYPE, false, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  LWR("lwr", 0x98, 0x0, R_TYPE, false, true, false),
-  SB("sb", 0xa0, 0x0, R_TYPE, false, true, false),
-  SBE("sbe", 0x7c, 0x0000001c, R_TYPE, false, true, false),
-  SH("sh", 0xa4, 0x0, R_TYPE, false, true, false),
-  SHE("she", 0x7c, 0x0000001d, R_TYPE, false, true, false),
-  SWL("swl", 0x0, 0x0, R_TYPE, false, true, false),
-  SWR("swr", 0x0, 0x0, R_TYPE, false, true, false),
-  ULW("ulw", 0x0, 0x0, R_TYPE, false, true, false),
-  USW("usw", 0x0, 0x0, R_TYPE, false, true, false),
-  CACHE("cache", 0x7c, 0x0000025, R_TYPE, false, true, false),
-  CACHEE("cachee", 0x7c, 0x000001b, R_TYPE, false, true, false),
+  LWR("lwr", 0x98, 0x0, I_TYPE, true, true, false),
+  SB("sb", 0xa0, 0x0,  I_TYPE, true,  true, false),
+  SBE("sbe", 0x7c, 0x0000001c, I_TYPE, true,  true, false),
+  SH("sh", 0xa4, 0x0,  I_TYPE, true, true, false),
+  SHE("she", 0x7c, 0x0000001d,  I_TYPE, true,  true, false),
+  SWL("swl", 0x0, 0x0,  I_TYPE, true,  true, false),
+  SWR("swr", 0x0, 0x0,  I_TYPE, true,  true, false),
+  CACHE("cache", 0x7c, 0x0000025, I_TYPE, false, true, false),
+  CACHEE("cachee", 0x7c, 0x000001b, I_TYPE, false, true, false),
 
   // ACCUMULATOR ACCESS OPERATIONS
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  MFHI("mfhi", 0x00, 0x00000010, R_TYPE, false, true, false),
+  MFHI("mfhi", 0x00, 0x00000010, R_TYPE, false, false, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  MFLO("mflo", 0x00, 0x00000012, R_TYPE, false, true, false),
+  MFLO("mflo", 0x00, 0x00000012, R_TYPE, false, false, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MTHI("mthi", 0x00, 0x00000011, R_TYPE, false, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
@@ -387,8 +385,8 @@ public enum Opcode {
   TRUNC_W_D("trunc.w.d", 0x44, 0x0220000d, R_TYPE, false, true, false),
 
   // FPU Formatted Unconditional Operand Move Instructions
-  MOV_S("mov.s", 0x44, 0x02000006, R_TYPE, false, true, false),
-  MOV_D("mov.d", 0x44, 0x02200006, R_TYPE, false, true, false),
+  MOV_S("mov.s", 0x44, 0x02000006, R_TYPE, false, true, true),
+  MOV_D("mov.d", 0x44, 0x02200006, R_TYPE, false, true, true),
 
   // FPU Conditional Select Instructions
   SEL_S("sel.s", 0x44, 0x02000010, R_TYPE, false, true, false),
