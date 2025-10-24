@@ -356,9 +356,9 @@ public final class RecursiveDescentParser {
   private Node dataList() {
     Node dataList = Node.builder().construct(Construct.DATALIST).nodeType(NONTERMINAL).build();
 
-    Node dataExpr = dataExpr();
-    if (dataExpr != null) {
-      dataList.addChild(dataExpr);
+    Node expr = expr();
+    if (expr != null) {
+      dataList.addChild(expr);
       Node greedyDataList = greedyDataList();
       dataList.addChild(greedyDataList);
 
@@ -389,30 +389,6 @@ public final class RecursiveDescentParser {
     }
     lexer.reset(resetPos);
     return greedyRoot;
-  }
-
-  private Node dataExpr() {
-    Node dataExpr = Node.builder().construct(Construct.DATAEXPR).nodeType(NONTERMINAL).build();
-
-    int resetPos = lexer.getTokenPos();
-    ll1 = lexer.getNextToken();
-    if (ll1.getTokenType() == TokenType.FLOATING_POINT) {
-      Node node =
-          Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
-
-      dataExpr.addChild(node);
-      visit(dataExpr);
-      return dataExpr;
-    }
-
-    lexer.reset(resetPos);
-    Node expr = expr();
-    if (expr != null) {
-      dataExpr.addChild(expr);
-      visit(dataExpr);
-      return dataExpr;
-    }
-    return null;
   }
 
   private Node expr() {
@@ -489,6 +465,7 @@ public final class RecursiveDescentParser {
     constant.addChild(node);
     switch (ll1.getTokenType()) {
       case DECI:
+      case FLOATING_POINT:
         visit(constant, NodeVisitor::visitConstant);
         visit(constant);
         return constant;
@@ -1008,14 +985,7 @@ public final class RecursiveDescentParser {
         visit(operand);
         return operand;
       }
-      lexer.reset(resetPos); // backoff because matched a constant
-    }
-
-    Node constant = constant();
-    if (constant != null) {
-      operand.addChild(constant);
-      visit(operand);
-      return operand;
+      return expr; // returning expression here instead of backing of because a constant is a valid expression
     }
 
     Node register = register();
