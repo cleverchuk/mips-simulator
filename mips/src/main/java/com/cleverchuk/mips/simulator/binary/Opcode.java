@@ -40,11 +40,19 @@ public enum Opcode {
   ALUIPC("aluic", 0xec, 0x001f000, R_TYPE, false, true, false), // FIXME: new
   CLO("clo", 0x00, 0x00000051, R_TYPE, false, true, true),
   CLZ("clz", 0x00, 0x00000010, R_TYPE, false, true, true),
-  LA("la", 0x0, 0x0, IDIOM, false, true, false), // assembler idiom, needs translation to actual instruction
-  LI("li", 0x0, 0x0, IDIOM, false, true, false), // assembler idiom, needs translation to actual instruction
+  LA(
+      "la", 0x0, 0x0, IDIOM, false, true,
+      false), // assembler idiom, needs translation to actual instruction
+  LI(
+      "li", 0x0, 0x0, IDIOM, false, true,
+      false), // assembler idiom, needs translation to actual instruction
   LUI("lui", 0x3c, 0x0, I_TYPE, true, false, false), // replace by AUI in R6
-  MOVE("move", 0x0, 0x0, IDIOM, false, false, false),// assembler idiom, needs translation to actual instruction
-  NEGU("negu", 0x0, 0x0, IDIOM, false, false, false),// assembler idiom, needs translation to actual instruction
+  MOVE(
+      "move", 0x0, 0x0, IDIOM, false, false,
+      false), // assembler idiom, needs translation to actual instruction
+  NEGU(
+      "negu", 0x0, 0x0, IDIOM, false, false,
+      false), // assembler idiom, needs translation to actual instruction
   SUB("sub", 0x00, 0x00000022, R_TYPE, true, true, true),
   SUBU("subu", 0x00, 0x00000023, R_TYPE, true, true, true),
   SEB("seb", 0x7c, 0x00000420, R_TYPE, true, false, true),
@@ -122,8 +130,12 @@ public enum Opcode {
   JALR_HB("jalr.hb", 0x0, 0x00000409, R_TYPE, false, true, true),
   JR("jr", 0x0, 0x00000009, J_TYPE, false, true, false), // replace by JALR in R6
   JR_HB("jr.hb", 0x0, 0x00000409, J_TYPE, false, true, false), // replace by JALR_HB in R6
-  B("b", 0x10, 0x0, I_TYPE, false, false, false), // assembly idiom actual instruction is BEQ r0, r0, offset
-  BAL("bal", 0x04, 0x0011000, I_TYPE, false, false, false), // assembly idiom actual instruction is BGEZAL r0, offset
+  B(
+      "b", 0x10, 0x0, I_TYPE, false, false,
+      false), // assembly idiom actual instruction is BEQ r0, r0, offset
+  BAL(
+      "bal", 0x04, 0x0011000, I_TYPE, false, false,
+      false), // assembly idiom actual instruction is BGEZAL r0, offset
   BALC("balc", 0xe8, 0x0, I_TYPE, false, false, false), // FIXME: new
   BC("bc", 0xc8, 0x0, I_TYPE, false, false, false), // FIXME: new
   BGEZ("bgez", 0x04, 0x0001, I_TYPE, false, true, false),
@@ -179,20 +191,20 @@ public enum Opcode {
   LBUE("lbue", 0x7c, 0x00000028, I_TYPE, true, true, false),
   LH("lh", 0x84, 0x0, I_TYPE, true, true, false),
   LHE("lhe", 0x7c, 0x0000002d, I_TYPE, true, true, false),
-  LHU("lhu", 0x94, 0x0,  I_TYPE, true, true, false),
-  LHUE("lhue", 0x7c, 0x00000029,  I_TYPE, true,  true, false),
+  LHU("lhu", 0x94, 0x0, I_TYPE, true, true, false),
+  LHUE("lhue", 0x7c, 0x00000029, I_TYPE, true, true, false),
   LSA("lsa", 0x0, 0x00000005, R_TYPE, true, true, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  LWL("lwl", 0x88, 0x0,  I_TYPE, true,  true, false),
+  LWL("lwl", 0x88, 0x0, I_TYPE, true, true, false),
   LWPC("lwpc", 0xec, 0x00080000, I_TYPE, false, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   LWR("lwr", 0x98, 0x0, I_TYPE, true, true, false),
-  SB("sb", 0xa0, 0x0,  I_TYPE, true,  true, false),
-  SBE("sbe", 0x7c, 0x0000001c, I_TYPE, true,  true, false),
-  SH("sh", 0xa4, 0x0,  I_TYPE, true, true, false),
-  SHE("she", 0x7c, 0x0000001d,  I_TYPE, true,  true, false),
-  SWL("swl", 0x0, 0x0,  I_TYPE, true,  true, false),
-  SWR("swr", 0x0, 0x0,  I_TYPE, true,  true, false),
+  SB("sb", 0xa0, 0x0, I_TYPE, true, true, false),
+  SBE("sbe", 0x7c, 0x0000001c, I_TYPE, true, true, false),
+  SH("sh", 0xa4, 0x0, I_TYPE, true, true, false),
+  SHE("she", 0x7c, 0x0000001d, I_TYPE, true, true, false),
+  SWL("swl", 0x0, 0x0, I_TYPE, true, true, false),
+  SWR("swr", 0x0, 0x0, I_TYPE, true, true, false),
   CACHE("cache", 0x7c, 0x0000025, I_TYPE, false, true, false),
   CACHEE("cachee", 0x7c, 0x000001b, I_TYPE, false, true, false),
 
@@ -235,7 +247,7 @@ public enum Opcode {
   MFHC2("mfhc2", 0x48, 0x00600000, R_TYPE, true, false, true),
   MTC0("mtc0", 0x40, 0x00800000, R_TYPE, true, false, true),
   MTC1("mtc1", 0x44, 0x00800000, R_TYPE, true, true, false),
-  MTC2("mtc2", 0x48, 0x00800000, R_TYPE, true,false, false),
+  MTC2("mtc2", 0x48, 0x00800000, R_TYPE, true, false, false),
   MTHC0("mthc0", 0x40, 0x00c00000, R_TYPE, true, false, true),
   MTHC1("mthc1", 0x44, 0x00e00000, R_TYPE, true, true, false),
   MTHC2("mthc2", 0x48, 0x00e00000, R_TYPE, true, false, false),
@@ -252,9 +264,9 @@ public enum Opcode {
   CMP_AF_S("cmp.af.s", 0x44, 0x02800000, R_TYPE, true, true, true),
   CMP_AF_D("cmp.af.d", 0x44, 0x02a00000, R_TYPE, true, true, true),
   CMP_UN_S("cmp.un.s", 0x44, 0x02800001, R_TYPE, true, true, true),
-  CMP_UN_D("cmp.un.d", 0x44, 0x02a00001, R_TYPE,true, true, true),
+  CMP_UN_D("cmp.un.d", 0x44, 0x02a00001, R_TYPE, true, true, true),
   CMP_EQ_S("cmp.eq.s", 0x44, 0x02800002, R_TYPE, true, true, true),
-  CMP_EQ_D("cmp.eq.d", 0x44, 0x02a00002, R_TYPE,true, true, true),
+  CMP_EQ_D("cmp.eq.d", 0x44, 0x02a00002, R_TYPE, true, true, true),
   CMP_UEQ_S("cmp.ueq.s", 0x44, 0x02800003, R_TYPE, true, true, true),
   CMP_UEQ_D("cmp.ueq.d", 0x44, 0x02a00003, R_TYPE, true, true, true),
   CMP_LT_S("cmp.lt.s", 0x44, 0x02800004, R_TYPE, true, true, true),
@@ -446,7 +458,14 @@ public enum Opcode {
 
   public final boolean rd;
 
-  Opcode(String name, int opcode, int partialEncoding, InstructionFormat format, boolean rt, boolean rs, boolean rd) {
+  Opcode(
+      String name,
+      int opcode,
+      int partialEncoding,
+      InstructionFormat format,
+      boolean rt,
+      boolean rs,
+      boolean rd) {
     this.name = name;
     this.opcode = opcode;
     this.partialEncoding = partialEncoding;

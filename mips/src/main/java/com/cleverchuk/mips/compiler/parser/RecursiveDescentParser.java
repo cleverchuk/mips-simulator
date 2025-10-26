@@ -47,8 +47,7 @@ public final class RecursiveDescentParser {
   private Token ll1;
 
   public RecursiveDescentParser(MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
-    this(lexer, semanticAnalyzer, (node) -> {
-    });
+    this(lexer, semanticAnalyzer, (node) -> {});
   }
 
   @Inject
@@ -60,8 +59,7 @@ public final class RecursiveDescentParser {
     visitors.add(new PseudoTransformer());
   }
 
-  @NonNull
-  public Node parse(String source) {
+  @NonNull public Node parse(String source) {
     SymbolTable.clear();
     ErrorRecorder.clear();
     lexer.tokenize(source.toCharArray());
@@ -69,13 +67,11 @@ public final class RecursiveDescentParser {
   }
 
   private void visit(Node node) {
-    visitors.forEach(
-        visitor -> visitor.visit(node));
+    visitors.forEach(visitor -> visitor.visit(node));
   }
 
   private void visit(Node node, BiConsumer<NodeVisitor, Node> invoked) {
-    visitors.forEach(
-        visitor -> invoked.accept(visitor, node));
+    visitors.forEach(visitor -> invoked.accept(visitor, node));
   }
 
   public void addVisitor(NodeVisitor visitor) {
@@ -334,9 +330,9 @@ public final class RecursiveDescentParser {
         case HALF_STORAGE:
         case FLOAT_STORAGE:
         case DOUBLE_STORAGE:
-          Node storage = Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
-          dataMode.addChild(
-              storage);
+          Node storage =
+              Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
+          dataMode.addChild(storage);
           visit(storage, NodeVisitor::visitDataMode);
           visit(dataMode);
           return dataMode;
@@ -457,15 +453,20 @@ public final class RecursiveDescentParser {
 
   private Node constant() {
     Node constant = Node.builder().construct(Construct.CONSTANT).nodeType(NONTERMINAL).build();
-
     int resetPos = lexer.getTokenPos();
     ll1 = lexer.getNextToken();
-    Node node = Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
 
+    Node node = Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
     constant.addChild(node);
+
     switch (ll1.getTokenType()) {
       case DECI:
+        node.setValue(Integer.parseInt(node.getValue().toString()));
+        visit(constant, NodeVisitor::visitConstant);
+        visit(constant);
+        return constant;
       case FLOATING_POINT:
+        node.setValue(Float.parseFloat(node.getValue().toString()));
         visit(constant, NodeVisitor::visitConstant);
         visit(constant);
         return constant;
@@ -642,9 +643,9 @@ public final class RecursiveDescentParser {
                   .msg(
                       "Invalid use of "
                           + semanticAnalyzer
-                          .findNode(instruction, Construct.OPCODE)
-                          .orElse(instruction)
-                          .getValue())
+                              .findNode(instruction, Construct.OPCODE)
+                              .orElse(instruction)
+                              .getValue())
                   .build());
         }
 
@@ -667,9 +668,9 @@ public final class RecursiveDescentParser {
                 .msg(
                     "Invalid use of "
                         + semanticAnalyzer
-                        .findNode(instruction, Construct.OPCODE)
-                        .orElse(instruction)
-                        .getValue())
+                            .findNode(instruction, Construct.OPCODE)
+                            .orElse(instruction)
+                            .getValue())
                 .build());
       }
 
@@ -769,16 +770,16 @@ public final class RecursiveDescentParser {
 
     int resetPos = lexer.getTokenPos();
     ll1 = lexer.getNextToken(); // Opcode
-    Node opcode = Node.builder()
-        .construct(Construct.OPCODE)
-        .nodeType(TERMINAL)
-        .line(ll1.getLine())
-        .value(ll1.getValue())
-        .build();
+    Node opcode =
+        Node.builder()
+            .construct(Construct.OPCODE)
+            .nodeType(TERMINAL)
+            .line(ll1.getLine())
+            .value(ll1.getValue())
+            .build();
 
     visit(opcode, NodeVisitor::visitOpcode);
-    fourOp.addChild(
-        opcode);
+    fourOp.addChild(opcode);
     Node operand = register();
 
     if (operand == null) {
@@ -836,16 +837,16 @@ public final class RecursiveDescentParser {
     int resetPos = lexer.getTokenPos();
     ll1 = lexer.getNextToken(); // Opcode
 
-    Node opcode = Node.builder()
-        .construct(Construct.OPCODE)
-        .nodeType(TERMINAL)
-        .line(ll1.getLine())
-        .value(ll1.getValue())
-        .build();
+    Node opcode =
+        Node.builder()
+            .construct(Construct.OPCODE)
+            .nodeType(TERMINAL)
+            .line(ll1.getLine())
+            .value(ll1.getValue())
+            .build();
 
     visit(opcode, NodeVisitor::visitOpcode);
-    threeOp.addChild(
-        opcode);
+    threeOp.addChild(opcode);
     Node operand = register();
 
     if (operand == null) {
@@ -889,16 +890,16 @@ public final class RecursiveDescentParser {
 
     int resetPos = lexer.getTokenPos();
     ll1 = lexer.getNextToken(); // Opcode
-    Node opcode = Node.builder()
-        .construct(Construct.OPCODE)
-        .nodeType(TERMINAL)
-        .line(ll1.getLine())
-        .value(ll1.getValue())
-        .build();
+    Node opcode =
+        Node.builder()
+            .construct(Construct.OPCODE)
+            .nodeType(TERMINAL)
+            .line(ll1.getLine())
+            .value(ll1.getValue())
+            .build();
 
     visit(opcode, NodeVisitor::visitOpcode);
-    twoOp.addChild(
-        opcode);
+    twoOp.addChild(opcode);
 
     Node operand = register();
     if (operand == null) {
@@ -929,12 +930,13 @@ public final class RecursiveDescentParser {
 
     int resetPos = lexer.getTokenPos();
     ll1 = lexer.getNextToken(); // Opcode
-    Node opcode = Node.builder()
-        .construct(Construct.OPCODE)
-        .nodeType(TERMINAL)
-        .line(ll1.getLine())
-        .value(ll1.getValue())
-        .build();
+    Node opcode =
+        Node.builder()
+            .construct(Construct.OPCODE)
+            .nodeType(TERMINAL)
+            .line(ll1.getLine())
+            .value(ll1.getValue())
+            .build();
 
     visit(opcode, NodeVisitor::visitOpcode);
     oneOp.addChild(opcode);
@@ -953,12 +955,13 @@ public final class RecursiveDescentParser {
   private Node zeroOp() {
     ll1 = lexer.getNextToken();
     Node zeroOp = Node.builder().construct(Construct.ZEROOP).nodeType(NONTERMINAL).build();
-    Node opcode = Node.builder()
-        .construct(Construct.OPCODE)
-        .nodeType(TERMINAL)
-        .line(ll1.getLine())
-        .value(ll1.getValue())
-        .build();
+    Node opcode =
+        Node.builder()
+            .construct(Construct.OPCODE)
+            .nodeType(TERMINAL)
+            .line(ll1.getLine())
+            .value(ll1.getValue())
+            .build();
 
     visit(opcode, NodeVisitor::visitOpcode);
     zeroOp.addChild(opcode);
@@ -985,7 +988,8 @@ public final class RecursiveDescentParser {
         visit(operand);
         return operand;
       }
-      return expr; // returning expression here instead of backing of because a constant is a valid expression
+      return expr; // returning expression here instead of backing off because a constant is a valid
+      // expression
     }
 
     Node register = register();
@@ -1032,9 +1036,9 @@ public final class RecursiveDescentParser {
     if (ll1.getTokenType() == TokenType.DOLLAR_SIGN) {
       ll1 = lexer.getNextToken();
       if (ll1.getTokenType() == TokenType.REG) {
-        Node reg = Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
-        register.addChild(
-            reg);
+        Node reg =
+            Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
+        register.addChild(reg);
 
         visit(reg, NodeVisitor::visitReg);
         visit(register);
@@ -1042,13 +1046,13 @@ public final class RecursiveDescentParser {
       }
 
       if (ll1.getTokenType() == TokenType.DECI) {
-        Node reg = Node.builder()
-            .nodeType(TERMINAL)
-            .line(ll1.getLine())
-            .value(MipsLexer.registerNumberToName(ll1.getValue().toString()))
-            .build();
-        register.addChild(
-            reg);
+        Node reg =
+            Node.builder()
+                .nodeType(TERMINAL)
+                .line(ll1.getLine())
+                .value(MipsLexer.registerNumberToName(ll1.getValue().toString()))
+                .build();
+        register.addChild(reg);
 
         visit(reg, NodeVisitor::visitReg);
         visit(register);

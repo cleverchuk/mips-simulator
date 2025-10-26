@@ -36,11 +36,13 @@ android {
 		}
 	}
 
-    packagingOptions {
-        resources {
-            excludes += ['META-INF/kotlinx_coroutines_core.version']
-        }
-    }
+	packagingOptions {
+		resources {
+			excludes += [
+				'META-INF/kotlinx_coroutines_core.version'
+			]
+		}
+	}
 }
 
 
@@ -85,7 +87,7 @@ spotless {
 		target 'src/*/java/**/*.java'
 		importOrder()
 		removeUnusedImports()
-        forbidWildcardImports()
+		forbidWildcardImports()
 
 		googleJavaFormat()
 		formatAnnotations()
@@ -97,7 +99,7 @@ spotless {
 }
 
 configurations.implementation {
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+	exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
 
 dependencies {

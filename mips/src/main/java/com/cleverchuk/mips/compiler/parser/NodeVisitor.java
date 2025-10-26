@@ -27,39 +27,21 @@ package com.cleverchuk.mips.compiler.parser;
 public interface NodeVisitor {
   void visit(Node node);
 
-  default void visitTextSegment(Node text) {
+  default void visitTextSegment(Node text) {}
 
-  }
+  default void visitLabel(Node label) {}
 
-  default void visitLabel(Node label) {
+  default void visitOpcode(Node opcode) {}
 
-  }
+  default void visitReg(Node register) {}
 
-  default void visitOpcode(Node opcode) {
+  default void visitBaseRegister(Node register) {}
 
-  }
+  default void visitExpression(Node expr) {}
 
-  default void visitReg(Node register) {
+  default void visitConstant(Node number) {}
 
-  }
+  default void visitDataSegment(Node data) {}
 
-  default void visitBaseRegister(Node register) {
-
-  }
-
-  default void visitExpression(Node expr) {
-
-  }
-
-  default void visitConstant(Node number) {
-
-  }
-
-  default void visitDataSegment(Node data) {
-
-  }
-
-  default void visitDataMode(Node data) {
-
-  }
+  default void visitDataMode(Node data) {}
 }
