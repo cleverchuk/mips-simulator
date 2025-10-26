@@ -85,7 +85,8 @@ public class Assembler implements NodeVisitor {
   private byte regBitfield = 0; // rt = 001, 1, rs = 010, 2, rd = 100, 4
 
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
@@ -111,13 +112,14 @@ public class Assembler implements NodeVisitor {
 
   @Override
   public void visitOpcode(Node node) {
-    if (currentOpcode >= 0) {
+    String opcodeName = node.getValue().toString();
+    Opcode newOpcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
+    if (opcode != null && newOpcode != opcode) {
       flushEncoding(opcode);
     }
 
     currentRd = currentImme = currentOffset = currentRs = currentRt = currentShiftAmt = 0;
-    String opcodeName = node.getValue().toString();
-    opcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
+    opcode = newOpcode;
     currentOpcode = opcode.opcode;
   }
 
@@ -150,11 +152,38 @@ public class Assembler implements NodeVisitor {
   @Override
   public void visitExpression(Node expr) {
     Stack<String> ops = new Stack<>();
-    Stack<Integer> operands = new Stack<>();
+    Stack<Number> operands = new Stack<>();
 
     exprEval(expr, ops, operands);
     if (currentDataMode.isEmpty()) {
-      currentImme = currentOffset = operands.pop();
+      currentImme = currentOffset = operands.pop().intValue();
+    } else {
+      switch (currentDataMode) {
+        case "byte":
+          layout.store(operands.pop().byteValue(), index);
+          index += 1;
+          break;
+        case "half":
+          layout.storeHalf(operands.pop().shortValue(), index);
+          index += 2;
+          break;
+        case "word":
+          layout.storeWord(operands.pop().intValue(), index);
+          index += 4;
+          break;
+        case "float":
+          layout.storeWord(Float.floatToRawIntBits(operands.pop().floatValue()), index);
+          index += 4;
+          break;
+        case "double":
+          layout.storeDword(Double.doubleToRawLongBits(operands.pop().doubleValue()), index);
+          index += 8;
+          break;
+        case "space":
+          index += operands.pop().intValue();
+          break;
+
+      }
     }
   }
 
@@ -165,7 +194,24 @@ public class Assembler implements NodeVisitor {
 
   @Override
   public void visitDataMode(Node data) {
-    currentDataMode = data.getValue().toString();
+    Node leftLeaf = getLeftLeaf(data);
+    currentDataMode = leftLeaf.getValue().toString();
+  }
+
+  @Override
+  public void visitData(Node data) {
+    Node rightLeaf = getRightLeaf(data);
+    switch (currentDataMode) {
+      case "ascii":
+        writeASCII(rightLeaf.getValue().toString());
+        break;
+
+      case "asciiz":
+        writeASCII(rightLeaf.getValue().toString());
+        layout.store((byte) 0, index);
+        index += 1;
+        break;
+    }
   }
 
   private void flushEncoding(Opcode opcode) {
@@ -216,7 +262,7 @@ public class Assembler implements NodeVisitor {
     return Collections.unmodifiableMap(symbolTable);
   }
 
-  private void exprEval(Node root, Stack<String> ops, Stack<Integer> operands) {
+  private void exprEval(Node root, Stack<String> ops, Stack<Number> operands) {
     for (Node child : root.getChildren()) {
       exprEval(child, ops, operands);
     }
@@ -226,7 +272,7 @@ public class Assembler implements NodeVisitor {
       if (isOp(value.toString())) {
         ops.push(value.toString());
       } else {
-        operands.push(((int) value));
+        operands.push((Number) value);
       }
     } else {
       switch (root.getConstruct()) {
@@ -238,11 +284,11 @@ public class Assembler implements NodeVisitor {
     }
   }
 
-  private void exprEval(Stack<String> ops, Stack<Integer> operands) {
+  private void exprEval(Stack<String> ops, Stack<Number> operands) {
     if (!ops.empty() && !operands.empty()) {
       String op = ops.pop();
-      int r = operands.pop();
-      int l = operands.pop();
+      int r = operands.pop().intValue();
+      int l = operands.pop().intValue();
 
       if (Objects.equals(op, "+")) {
         operands.push(l + r);
@@ -277,5 +323,32 @@ public class Assembler implements NodeVisitor {
     }
 
     return leaf;
+  }
+
+  private Node getRightLeaf(Node root) {
+    Deque<Node> nodes = new ArrayDeque<>();
+    nodes.add(root);
+    Node leaf = null;
+    while (!nodes.isEmpty()) {
+      root = nodes.removeLast();
+      if (root.getNodeType() == NodeType.TERMINAL) {
+        leaf = root;
+        break;
+      }
+      nodes.addAll(root.getChildren());
+    }
+
+    return leaf;
+  }
+
+  private void writeASCII(CharSequence tokens) {
+    for (int i = 1, end = tokens.length() - 1; i < end; i++, index++) {
+      if (tokens.charAt(i) == '\\' && i + 1 < end && tokens.charAt(i + 1) == 'n') {
+        layout.store((byte) 10, index);
+        i++;
+      } else {
+        layout.store((byte) tokens.charAt(i), index);
+      }
+    }
   }
 }

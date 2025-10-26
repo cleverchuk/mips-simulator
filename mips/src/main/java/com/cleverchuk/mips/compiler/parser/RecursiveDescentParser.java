@@ -247,6 +247,7 @@ public final class RecursiveDescentParser {
       Node curr =
           Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
 
+      visit(curr, NodeVisitor::visitDataMode);
       if (ll1.getTokenType() == TokenType.ASCII) {
         data.addChild(curr);
         ll1 = lexer.getNextToken();
@@ -255,6 +256,7 @@ public final class RecursiveDescentParser {
               Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
 
           data.addChild(node);
+          visit(data, NodeVisitor::visitData);
           visit(data);
           return data;
         }
@@ -274,6 +276,7 @@ public final class RecursiveDescentParser {
               Node.builder().nodeType(TERMINAL).line(ll1.getLine()).value(ll1.getValue()).build();
 
           data.addChild(node);
+          visit(data, NodeVisitor::visitData);
           visit(data);
           return data;
         }
@@ -298,6 +301,7 @@ public final class RecursiveDescentParser {
         }
 
         data.addChild(expr);
+        visit(data, NodeVisitor::visitData);
         visit(data);
         return data;
       }

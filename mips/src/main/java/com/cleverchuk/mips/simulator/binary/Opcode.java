@@ -76,7 +76,7 @@ public enum Opcode {
   AUIPC("auipc", 0xec, 0x001e000, I_TYPE, false, true, false), // FIXME: new
   EXT("ext", 0x7c, 0x0, R_TYPE, true, true, false),
   INS("ins", 0x7c, 0x00000004, R_TYPE, true, true, false),
-  NOP("nop", 0x00, 0x0, R_TYPE, false, false, false),
+  NOP("nop", 0x00, 0x0, IDIOM, false, false, false),
   NOR("nor", 0x00, 0x00000027, R_TYPE, true, true, true),
   NOT("not", 0x0, 0x0, IDIOM, false, false, false),
   OR("or", 0x00, 0x00000025, R_TYPE, true, true, true),
@@ -118,7 +118,9 @@ public enum Opcode {
 
   // JUMPS AND BRANCHES
   BEQ("beq", 0x10, 0x0, I_TYPE, true, true, false),
+  BEQZ("beqz", 0x0, 0x0, IDIOM, false, true, false),
   BNE("bne", 0x14, 0x0, I_TYPE, true, true, false),
+  BNEZ("bnez", 0x0, 0x0, IDIOM, false, true, false),
   BOVC("bovc", 0x20, 0x0, I_TYPE, true, true, false),
   BNVC("bnvc", 0x60, 0x0, I_TYPE, true, true, false),
   BREAK("break", 0x0, 0x000000d, J_TYPE, false, false, false),
@@ -205,6 +207,8 @@ public enum Opcode {
   SHE("she", 0x7c, 0x0000001d, I_TYPE, true, true, false),
   SWL("swl", 0x0, 0x0, I_TYPE, true, true, false),
   SWR("swr", 0x0, 0x0, I_TYPE, true, true, false),
+  ULW("ulw", 0x0, 0x0, IDIOM, false, true, true),
+  USW("usw", 0x0, 0x0, IDIOM, true, true, false),
   CACHE("cache", 0x7c, 0x0000025, I_TYPE, false, true, false),
   CACHEE("cachee", 0x7c, 0x000001b, I_TYPE, false, true, false),
 

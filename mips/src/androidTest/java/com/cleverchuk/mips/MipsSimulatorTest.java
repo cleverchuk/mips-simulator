@@ -24,10 +24,6 @@
 
 package com.cleverchuk.mips;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -53,9 +49,12 @@ import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("All")
 @RunWith(AndroidJUnit4.class)
@@ -721,6 +720,8 @@ public class MipsSimulatorTest {
     String[] instructions = {
       ".data",
       "bytes: .byte 1, 2, 3, 4, 5",
+      "string: .ascii \"hello word\"",
+      "space: .space 10",
       ".text",
       "la $t4, bytes",
       "lb $t0, 0($t4)",
@@ -903,7 +904,6 @@ public class MipsSimulatorTest {
   }
 
   @Test
-  @Ignore
   public void testulw() {
     String[] instructions = {
       ".data", "bytes: .byte 1, 0, 0, 0, 5", ".text", "la $t4, bytes", "ulw $t0, 1($t4)",
@@ -917,7 +917,6 @@ public class MipsSimulatorTest {
   }
 
   @Test
-  @Ignore
   public void testusw() {
     String[] instructions = {
       ".data",
@@ -963,7 +962,6 @@ public class MipsSimulatorTest {
   }
 
   @Test
-  @Ignore
   public void testbeqz() {
     String[] instructions = {".text", "li $t0, 0", "beqz $t0, 4"};
 
@@ -1088,7 +1086,6 @@ public class MipsSimulatorTest {
   }
 
   @Test
-  @Ignore
   public void testbnez() {
     String[] instructions = {
       ".text", "li $t0, -10", "bnez $t0, 10",

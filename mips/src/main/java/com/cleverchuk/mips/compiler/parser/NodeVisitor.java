@@ -41,7 +41,9 @@ public interface NodeVisitor {
 
   default void visitConstant(Node number) {}
 
-  default void visitDataSegment(Node data) {}
+  default void visitDataSegment(Node dataSeg) {}
 
-  default void visitDataMode(Node data) {}
+  default void visitDataMode(Node dataMode) {}
+
+  default void visitData(Node data) {}
 }
