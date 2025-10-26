@@ -24,20 +24,22 @@
 
 package com.cleverchuk.mips.compiler.parser;
 
+import static com.cleverchuk.mips.compiler.lexer.MipsLexer.CPU_REG_TO_DECI;
+import static com.cleverchuk.mips.compiler.lexer.MipsLexer.FPU_REG_TO_DECI;
+
 import com.cleverchuk.mips.simulator.binary.Opcode;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.cleverchuk.mips.compiler.lexer.MipsLexer.CPU_REG_TO_DECI;
-import static com.cleverchuk.mips.compiler.lexer.MipsLexer.FPU_REG_TO_DECI;
 
 public class Assembler implements NodeVisitor {
   private int dataOffset = -1;
@@ -46,23 +48,25 @@ public class Assembler implements NodeVisitor {
 
   private int index = 0;
 
-  private Memory layout = new BigEndianMainMemory(1024);
+  private final Memory layout = new BigEndianMainMemory(1024);
 
-  private Map<String, Integer> symbolTable = new HashMap<>();
+  private final Map<String, Integer> symbolTable = new HashMap<>();
 
   public static Map<String, Opcode> opcodesMap =
-      Arrays.stream(com.cleverchuk.mips.simulator.binary.Opcode.values()).collect(Collectors.toMap(opcode -> opcode.name, Function.identity()));
+      Arrays.stream(Opcode.values())
+          .collect(Collectors.toMap(opcode -> opcode.name, Function.identity()));
 
-  public static Map<String, Integer> registers = new HashMap<String, Integer>() {{
-    putAll(FPU_REG_TO_DECI);
-    putAll(CPU_REG_TO_DECI);
-  }};
+  public static Map<String, Integer> registers =
+      new HashMap<String, Integer>() {
+        {
+          putAll(FPU_REG_TO_DECI);
+          putAll(CPU_REG_TO_DECI);
+        }
+      };
 
-  private String opcodeName = "null";
+  private Opcode opcode;
 
-  private int currentOpcode = 0;
-
-  private int currentBase = 0;
+  private int currentOpcode = -1;
 
   private int currentRs = 0;
 
@@ -76,24 +80,29 @@ public class Assembler implements NodeVisitor {
 
   private int currentShiftAmt = 0;
 
-  @Override
-  public void visit(Node node) {
+  private String currentDataMode = "";
 
-  }
+  private byte regBitfield = 0; // rt = 001, 1, rs = 010, 2, rd = 100, 4
+
+  @Override
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {
     textOffset = index;
+    currentDataMode = "";
   }
 
   @Override
   public void visitLabel(Node node) {
-    String label = node.getValue().toString();
+    Node leftLeaf = getLeftLeaf(node);
+    String label = leftLeaf.getValue().toString();
     if (symbolTable.containsKey(label)) {
-      ErrorRecorder.recordError(ErrorRecorder.Error.builder()
-          .msg("Reused of label : " + label)
-          .line(node.getLine())
-          .build());
+      ErrorRecorder.recordError(
+          ErrorRecorder.Error.builder()
+              .msg("Reused of label : " + label)
+              .line(leftLeaf.getLine())
+              .build());
 
     } else {
       symbolTable.put(label, index);
@@ -102,49 +111,51 @@ public class Assembler implements NodeVisitor {
 
   @Override
   public void visitOpcode(Node node) {
-    if (currentOpcode != 0) {
-      Opcode opcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
+    if (currentOpcode >= 0) {
       flushEncoding(opcode);
     }
 
-    opcodeName = node.getValue().toString();
-    Opcode opcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
+    currentRd = currentImme = currentOffset = currentRs = currentRt = currentShiftAmt = 0;
+    String opcodeName = node.getValue().toString();
+    opcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
     currentOpcode = opcode.opcode;
-    index++;
   }
 
   @Override
   public void visitReg(Node reg) {
     String registerName = reg.getValue().toString();
-
+    int regNum = Objects.requireNonNull(registers.get(registerName));
+    if (opcode.rd && (regBitfield & 4) == 0) {
+      currentRd = regNum;
+      regBitfield |= 4;
+    } else if (opcode.rs && (regBitfield & 2) == 0) {
+      currentRs = regNum;
+      regBitfield |= 2;
+    } else if (opcode.rt && (regBitfield & 1) == 0) {
+      currentRt = regNum;
+      regBitfield |= 1;
+    }
   }
 
   @Override
   public void visitBaseRegister(Node register) {
-    Deque<Node> deque = new ArrayDeque<>();
-    deque.add(register);
-    Node root = register;
-    while (!deque.isEmpty()) {
-      root = deque.getFirst();
-      for (Node child : root.children) {
-        if (child != null) {
-          deque.add(child);
-        }
-      }
+    String registerName = getLeftLeaf(register).getValue().toString();
+    if (opcode.rs) {
+      currentRs = Objects.requireNonNull(registers.get(registerName));
+    } else if (opcode.rd) {
+      currentRd = Objects.requireNonNull(registers.get(registerName));
     }
-
-
-    String registerName = root.getValue().toString();
-    currentBase = registers.get(registerName);
   }
 
   @Override
   public void visitExpression(Node expr) {
+    Stack<String> ops = new Stack<>();
+    Stack<Integer> operands = new Stack<>();
 
-  }
-
-  @Override
-  public void visitConstant(Node number) {
+    exprEval(expr, ops, operands);
+    if (currentDataMode.isEmpty()) {
+      currentImme = currentOffset = operands.pop();
+    }
   }
 
   @Override
@@ -154,19 +165,117 @@ public class Assembler implements NodeVisitor {
 
   @Override
   public void visitDataMode(Node data) {
-    // code
-    index++;
+    currentDataMode = data.getValue().toString();
   }
 
   private void flushEncoding(Opcode opcode) {
-    int encoding =
-        opcode.partialEncoding | currentOpcode << 26 | currentRs << 21 | currentBase << 21 | currentRt << 16 | currentRd << 11 | currentShiftAmt << 6
-        | currentImme & 0xffff0000 | currentOffset & 0xfc000000;
+    int encoding;
+    switch (opcode) {
+      case SDC1:
+      case SDC2:
+        encoding =
+            opcode.partialEncoding
+                | currentOpcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentShiftAmt << 6
+                | currentImme & 0xffff
+                | currentOffset & 0x7ff;
+        break;
+      default:
+        encoding =
+            opcode.partialEncoding
+                | currentOpcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentShiftAmt << 6
+                | currentImme & 0xffff
+                | currentOffset & 0xffff;
+    }
 
     layout.storeWord(encoding, index);
     index += 4;
     currentOpcode = 0;
   }
 
+  public int getDataOffset() {
+    return dataOffset;
+  }
 
+  public int getTextOffset() {
+    return textOffset;
+  }
+
+  public Memory getLayout() {
+    return layout;
+  }
+
+  public Map<String, Integer> getSymbolTable() {
+    return Collections.unmodifiableMap(symbolTable);
+  }
+
+  private void exprEval(Node root, Stack<String> ops, Stack<Integer> operands) {
+    for (Node child : root.getChildren()) {
+      exprEval(child, ops, operands);
+    }
+
+    if (root.getNodeType() == NodeType.TERMINAL) {
+      Object value = root.getValue();
+      if (isOp(value.toString())) {
+        ops.push(value.toString());
+      } else {
+        operands.push(((int) value));
+      }
+    } else {
+      switch (root.getConstruct()) {
+        case TERM:
+        case EXPR:
+          exprEval(ops, operands);
+          break;
+      }
+    }
+  }
+
+  private void exprEval(Stack<String> ops, Stack<Integer> operands) {
+    if (!ops.empty() && !operands.empty()) {
+      String op = ops.pop();
+      int r = operands.pop();
+      int l = operands.pop();
+
+      if (Objects.equals(op, "+")) {
+        operands.push(l + r);
+      } else if (Objects.equals(op, "-")) {
+        operands.push(l - r);
+      } else if (Objects.equals(op, "*")) {
+        operands.push(l * r);
+      } else {
+        operands.push(l / r);
+      }
+    }
+  }
+
+  private boolean isOp(String value) {
+    return Objects.equals(value, "+")
+        || Objects.equals(value, "-")
+        || Objects.equals(value, "*")
+        || Objects.equals(value, "/");
+  }
+
+  private Node getLeftLeaf(Node root) {
+    Deque<Node> nodes = new ArrayDeque<>();
+    nodes.add(root);
+    Node leaf = null;
+    while (!nodes.isEmpty()) {
+      root = nodes.removeFirst();
+      if (root.getNodeType() == NodeType.TERMINAL) {
+        leaf = root;
+        break;
+      }
+      nodes.addAll(root.getChildren());
+    }
+
+    return leaf;
+  }
 }
