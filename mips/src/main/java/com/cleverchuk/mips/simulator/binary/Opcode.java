@@ -133,11 +133,11 @@ public enum Opcode {
   JR("jr", 0x0, 0x00000009, J_TYPE, false, true, false), // replace by JALR in R6
   JR_HB("jr.hb", 0x0, 0x00000409, J_TYPE, false, true, false), // replace by JALR_HB in R6
   B(
-      "b", 0x10, 0x0, I_TYPE, false, false,
+      "b", 0x10, 0x0, IDIOM, false, false,
       false), // assembly idiom actual instruction is BEQ r0, r0, offset
   BAL(
       "bal", 0x04, 0x0011000, I_TYPE, false, false,
-      false), // assembly idiom actual instruction is BGEZAL r0, offset
+      false),
   BALC("balc", 0xe8, 0x0, I_TYPE, false, false, false), // FIXME: new
   BC("bc", 0xc8, 0x0, I_TYPE, false, false, false), // FIXME: new
   BGEZ("bgez", 0x04, 0x0001, I_TYPE, false, true, false),
@@ -205,9 +205,11 @@ public enum Opcode {
   SBE("sbe", 0x7c, 0x0000001c, I_TYPE, true, true, false),
   SH("sh", 0xa4, 0x0, I_TYPE, true, true, false),
   SHE("she", 0x7c, 0x0000001d, I_TYPE, true, true, false),
+  @Deprecated(forRemoval = true, since = "Removed in Release 6")
   SWL("swl", 0x0, 0x0, I_TYPE, true, true, false),
+  @Deprecated(forRemoval = true, since = "Removed in Release 6")
   SWR("swr", 0x0, 0x0, I_TYPE, true, true, false),
-  ULW("ulw", 0x0, 0x0, IDIOM, false, true, true),
+  ULW("ulw", 0x0, 0x0, IDIOM, true, true, false),
   USW("usw", 0x0, 0x0, IDIOM, true, true, false),
   CACHE("cache", 0x7c, 0x0000025, I_TYPE, false, true, false),
   CACHEE("cachee", 0x7c, 0x000001b, I_TYPE, false, true, false),

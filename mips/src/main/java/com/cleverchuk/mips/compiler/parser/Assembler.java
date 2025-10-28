@@ -87,7 +87,8 @@ public class Assembler implements NodeVisitor {
   private byte regBitfield = 0; // rt = 001, 1, rs = 010, 2, rd = 100, 4
 
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
@@ -218,7 +219,6 @@ public class Assembler implements NodeVisitor {
     int encoding, address;
     Opcode lookupOpcode;
     switch (opcode) {
-      case SDC1:
       case SDC2:
         encoding =
             opcode.partialEncoding
@@ -226,9 +226,139 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | currentShiftAmt << 6
-                | currentImme & 0xffff
                 | currentOffset & 0x7ff;
+        break;
+      case B:
+      case BEQZ:
+        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("beq"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | address & 0xffff;
+        break;
+      case LA:
+        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("lui"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRd << 11
+                | (address >> 16) & 0xffff;
+        layout.storeWord(encoding, index);
+        index += 4;
+
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRd << 11
+                | address & 0xffff;
+        break;
+      case LI:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentImme & 0xffff;
+        break;
+      case MOVE:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("or"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11;
+        break;
+      case NEGU:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("subu"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 16 // flip rs & rt mask so that it's subu $rd, $zero, $rs
+                | currentRt << 21
+                | currentRd << 11;
+        break;
+      case NOP:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("sll"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26;
+        break;
+      case NOT:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("nor"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11;
+        break;
+      case BNEZ:
+        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("bne"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | address & 0xffff;
+        break;
+      case BAL:
+        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("bal"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | address & 0xffff;
+        break;
+      case ULW:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentOffset & 0x7ff;
+        layout.storeWord(encoding, index);
+        index += 4;
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwr"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentOffset + 3 & 0x7ff;
+        break;
+      case USW:
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("swl"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentOffset & 0x7ff;
+        layout.storeWord(encoding, index);
+        index += 4;
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("swr"));
+        encoding =
+            lookupOpcode.partialEncoding
+                | lookupOpcode.opcode << 26
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentOffset + 3 & 0x7ff;
         break;
       case CFC1:
       case CFC2:
@@ -426,53 +556,7 @@ public class Assembler implements NodeVisitor {
       case ALUIPC:
       case CLO:
       case CLZ:
-      case LA:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("lui"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRd << 11
-                | (address >> 16) & 0xffff;
-        layout.storeWord(encoding, index);
-        index += 4;
-
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRd << 11
-                | address & 0xffff;
-        break;
-      case LI:
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 21
-                | currentRt << 16
-                | currentRd << 11
-                | currentImme & 0xffff;
-        break;
       case LUI:
-      case MOVE:
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("or"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 21
-                | currentRt << 16
-                | currentRd << 11;
-        break;
-      case NEGU:
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("subu"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 16 // flip rs & rt mask so that it's subu $rd, $zero, $rs
-                | currentRt << 21
-                | currentRd << 11;
-        break;
       case SUB:
       case SUBU:
       case SEB:
@@ -492,22 +576,7 @@ public class Assembler implements NodeVisitor {
       case AUIPC:
       case EXT:
       case INS:
-      case NOP:
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("sll"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26;
-        break;
       case NOR:
-      case NOT:
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("nor"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 21
-                | currentRt << 16
-                | currentRd << 11;
-        break;
       case OR:
       case ORI:
       case XOR:
@@ -534,19 +603,7 @@ public class Assembler implements NodeVisitor {
       case MULT:
       case MULTU:
       case BEQ:
-      case BEQZ:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("beq"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 21
-                | currentRt << 16
-                | currentRd << 11
-        | address;
-        break;
       case BNE:
-      case BNEZ:
       case BOVC:
       case BNVC:
       case BREAK:
@@ -556,8 +613,6 @@ public class Assembler implements NodeVisitor {
       case JALR_HB:
       case JR:
       case JR_HB:
-      case B:
-      case BAL:
       case BALC:
       case BC:
       case BGEZ:
@@ -620,8 +675,6 @@ public class Assembler implements NodeVisitor {
       case SHE:
       case SWL:
       case SWR:
-      case ULW:
-      case USW:
       case CACHE:
       case CACHEE:
       case MFHI:
@@ -640,6 +693,7 @@ public class Assembler implements NodeVisitor {
       case LDC2:
       case LWC1:
       case LWC2:
+      case SDC1:
       default:
         encoding =
             opcode.partialEncoding
@@ -654,7 +708,6 @@ public class Assembler implements NodeVisitor {
 
     layout.storeWord(encoding, index);
     index += 4;
-    currentOpcode = 0;
   }
 
   public int getDataOffset() {
