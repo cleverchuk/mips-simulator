@@ -55,8 +55,8 @@ public final class RecursiveDescentParser {
       MipsLexer lexer, SemanticAnalyzer semanticAnalyzer, NodeVisitor visitor) {
     this.lexer = lexer;
     this.semanticAnalyzer = semanticAnalyzer;
-    visitors.add(visitor);
     visitors.add(new PseudoTransformer());
+    visitors.add(visitor);
   }
 
   @NonNull public Node parse(String source) {

@@ -93,14 +93,20 @@ public final class PseudoTransformer implements NodeVisitor {
                 .build());
 
         lw.addChild(
-            Node.builder().nodeType(TERMINAL).value(getLeftLeaf(children.get(1)).getValue()).build());
+            Node.builder()
+                .nodeType(TERMINAL)
+                .value(getLeftLeaf(children.get(1)).getValue())
+                .build());
 
         Node operand = Node.builder().construct(Construct.OPERAND).nodeType(NONTERMINAL).build();
 
         operand.addChild(Node.builder().nodeType(TERMINAL).value(0).line(twoOp.getLine()).build());
 
         operand.addChild(
-            Node.builder().nodeType(TERMINAL).value(getLeftLeaf(children.get(1)).getValue()).build());
+            Node.builder()
+                .nodeType(TERMINAL)
+                .value(getLeftLeaf(children.get(1)).getValue())
+                .build());
         lw.addChild(operand);
 
         instruction.addChild(la);

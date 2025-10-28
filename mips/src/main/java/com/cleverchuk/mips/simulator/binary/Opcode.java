@@ -48,11 +48,11 @@ public enum Opcode {
       false), // assembler idiom, needs translation to actual instruction
   LUI("lui", 0x3c, 0x0, I_TYPE, true, false, false), // replace by AUI in R6
   MOVE(
-      "move", 0x0, 0x0, IDIOM, false, false,
-      false), // assembler idiom, needs translation to actual instruction
+      "move", 0x0, 0x0, IDIOM, false, true,
+      true), // assembler idiom, needs translation to actual instruction
   NEGU(
-      "negu", 0x0, 0x0, IDIOM, false, false,
-      false), // assembler idiom, needs translation to actual instruction
+      "negu", 0x0, 0x0, IDIOM, false, true,
+      true), // assembler idiom, needs translation to actual instruction
   SUB("sub", 0x00, 0x00000022, R_TYPE, true, true, true),
   SUBU("subu", 0x00, 0x00000023, R_TYPE, true, true, true),
   SEB("seb", 0x7c, 0x00000420, R_TYPE, true, false, true),
@@ -78,7 +78,7 @@ public enum Opcode {
   INS("ins", 0x7c, 0x00000004, R_TYPE, true, true, false),
   NOP("nop", 0x00, 0x0, IDIOM, false, false, false),
   NOR("nor", 0x00, 0x00000027, R_TYPE, true, true, true),
-  NOT("not", 0x0, 0x0, IDIOM, false, false, false),
+  NOT("not", 0x0, 0x0, IDIOM, false, true, true),
   OR("or", 0x00, 0x00000025, R_TYPE, true, true, true),
   ORI("ori", 0x34, 0x0, I_TYPE, true, true, false),
   XOR("xor", 0x00, 0x00000026, R_TYPE, true, true, true),
