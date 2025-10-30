@@ -34,10 +34,10 @@ public enum Opcode {
   ADD("add", 0x00, 0x0000020, R_TYPE, true, true, true),
   ADDI("addi", 0x20, 0x0, I_TYPE, true, true, false),
   ADDIU("addiu", 0x24, 0x0, I_TYPE, true, true, false),
-  ADDIUPC("addiupc", 0xec, 0x0, I_TYPE, false, true, false), // FIXME: new
+  ADDIUPC("addiupc", 0xec, 0x0, I_TYPE, false, true, false), 
   ADDU("addu", 0x00, 0x0000021, R_TYPE, true, true, true),
-  ALIGN("align", 0x7c, 0x0000220, R_TYPE, true, true, true), // FIXME: new
-  ALUIPC("aluic", 0xec, 0x001f000, R_TYPE, false, true, false), // FIXME: new
+  ALIGN("align", 0x7c, 0x0000220, R_TYPE, true, true, true), 
+  ALUIPC("aluic", 0xec, 0x001f000, R_TYPE, false, true, false), 
   CLO("clo", 0x00, 0x00000051, R_TYPE, false, true, true),
   CLZ("clz", 0x00, 0x00000010, R_TYPE, false, true, true),
   LA(
@@ -72,8 +72,8 @@ public enum Opcode {
   // LOGICAL AND BIT-FIELD OPERATIONS
   AND("and", 0x00, 0x0000024, R_TYPE, true, true, true),
   ANDI("andi", 0x30, 0x0, I_TYPE, true, true, false),
-  AUI("aui", 0x3c, 0x0, I_TYPE, true, true, false), // FIXME: new
-  AUIPC("auipc", 0xec, 0x001e000, I_TYPE, false, true, false), // FIXME: new
+  AUI("aui", 0x3c, 0x0, I_TYPE, true, true, false), 
+  AUIPC("auipc", 0xec, 0x001e000, I_TYPE, false, true, false), 
   EXT("ext", 0x7c, 0x0, R_TYPE, true, true, false),
   INS("ins", 0x7c, 0x00000004, R_TYPE, true, true, false),
   NOP("nop", 0x00, 0x0, IDIOM, false, false, false),
@@ -138,31 +138,31 @@ public enum Opcode {
   BAL(
       "bal", 0x04, 0x0011000, I_TYPE, false, false,
       false),
-  BALC("balc", 0xe8, 0x0, I_TYPE, false, false, false), // FIXME: new
-  BC("bc", 0xc8, 0x0, I_TYPE, false, false, false), // FIXME: new
+  BALC("balc", 0xe8, 0x0, I_TYPE, false, false, false), 
+  BC("bc", 0xc8, 0x0, I_TYPE, false, false, false), 
   BGEZ("bgez", 0x04, 0x0001, I_TYPE, false, true, false),
   BGTZ("bgtz", 0x1c, 0x0, I_TYPE, false, true, false),
-  BITSWAP("bitswap", 0x7c, 0x0000020, R_TYPE, true, false, true), // FIXME: new
+  BITSWAP("bitswap", 0x7c, 0x0000020, R_TYPE, true, false, true), 
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   BGEZAL("bgezal", 0x0411000, 0x0000020, I_TYPE, false, true, false),
-  BLEZALC("blezalc", 0x18, 0x0, I_TYPE, true, false, false), // FIXME: new
-  BGEZALC("bgezalc", 0x18, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BGTZALC("bgtzalc", 0x1c, 0x0, I_TYPE, true, false, false), // FIXME: new
-  BLTZALC("bltzalc", 0x1c, 0x0, I_TYPE, false, true, false), // FIXME: new
-  BEQZALC("beqzalc", 0x20, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BNEZALC("bnezalc", 0x60, 0x0, I_TYPE, true, false, false), // FIXME: new
-  BLEZC("blezc", 0x58, 0x0, I_TYPE, true, false, false), // FIXME: new
-  BGEZC("bgezc", 0x58, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BGEC("bgec", 0x58, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BGTZC("bgtzc", 0x5c, 0x0, I_TYPE, true, false, false), // FIXME: new
-  BLTZC("bltzc", 0x5c, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BLTC("bltc", 0x5c, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BGEUC("bgeuc", 0x18, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BLTUC("bltuc", 0x1c, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BEQC("beqc", 0x20, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BNEC("bnec", 0x60, 0x0, I_TYPE, true, true, false), // FIXME: new
-  BEQZC("beqzc", 0xd8, 0x0, I_TYPE, false, true, false), // FIXME: new
-  BNEZC("bnezc", 0xf8, 0x0, I_TYPE, false, true, false), // FIXME: new
+  BLEZALC("blezalc", 0x18, 0x0, I_TYPE, true, false, false), 
+  BGEZALC("bgezalc", 0x18, 0x0, I_TYPE, true, true, false), 
+  BGTZALC("bgtzalc", 0x1c, 0x0, I_TYPE, true, false, false), 
+  BLTZALC("bltzalc", 0x1c, 0x0, I_TYPE, false, true, false), 
+  BEQZALC("beqzalc", 0x20, 0x0, I_TYPE, true, true, false), 
+  BNEZALC("bnezalc", 0x60, 0x0, I_TYPE, true, false, false), 
+  BLEZC("blezc", 0x58, 0x0, I_TYPE, true, false, false), 
+  BGEZC("bgezc", 0x58, 0x0, I_TYPE, true, true, false), 
+  BGEC("bgec", 0x58, 0x0, I_TYPE, true, true, false), 
+  BGTZC("bgtzc", 0x5c, 0x0, I_TYPE, true, false, false), 
+  BLTZC("bltzc", 0x5c, 0x0, I_TYPE, true, true, false), 
+  BLTC("bltc", 0x5c, 0x0, I_TYPE, true, true, false), 
+  BGEUC("bgeuc", 0x18, 0x0, I_TYPE, true, true, false), 
+  BLTUC("bltuc", 0x1c, 0x0, I_TYPE, true, true, false), 
+  BEQC("beqc", 0x20, 0x0, I_TYPE, true, true, false), 
+  BNEC("bnec", 0x60, 0x0, I_TYPE, true, true, false), 
+  BEQZC("beqzc", 0xd8, 0x0, I_TYPE, false, true, false), 
+  BNEZC("bnezc", 0xf8, 0x0, I_TYPE, false, true, false), 
   BLEZ("blez", 0x18, 0x0, I_TYPE, false, true, false),
   BLTZ("bltz", 0x04, 0x0, I_TYPE, false, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
