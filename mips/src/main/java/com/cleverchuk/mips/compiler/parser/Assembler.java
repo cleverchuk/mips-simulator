@@ -122,7 +122,7 @@ public class Assembler implements NodeVisitor {
 
     opcode = newOpcode;
     currentOpcode = opcode.opcode;
-    currentRd = currentImme = currentOffset = currentRs = currentRt = currentShiftAmt = 0;
+    currentRd = currentImme = currentOffset = currentRs = currentRt = currentShiftAmt = regBitfield = 0;
   }
 
   @Override
@@ -222,7 +222,7 @@ public class Assembler implements NodeVisitor {
       case SDC2:
         encoding =
             opcode.partialEncoding
-                | currentOpcode << 26
+                | currentOpcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -234,7 +234,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("beq"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -245,7 +245,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lui"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRd << 11
                 | (address >> 16) & 0xffff;
         layout.storeWord(encoding, index);
@@ -254,7 +254,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRd << 11
                 | address & 0xffff;
         break;
@@ -262,9 +262,9 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
-                | currentRs << 21
-                | currentRt << 16
+                | lookupOpcode.opcode
+                | currentRs << 16 // swap rs and rt because rt is captured in rs in visitReg
+                | currentRt << 21
                 | currentRd << 11
                 | currentImme & 0xffff;
         break;
@@ -272,7 +272,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("or"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11;
@@ -281,7 +281,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("subu"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 16 // flip rs & rt mask so that it's subu $rd, $zero, $rs
                 | currentRt << 21
                 | currentRd << 11;
@@ -290,13 +290,13 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("sll"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26;
+                | lookupOpcode.opcode;
         break;
       case NOT:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("nor"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11;
@@ -306,7 +306,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("bne"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -317,14 +317,14 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("bal"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | address & 0xffff;
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -334,7 +334,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwr"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -344,7 +344,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("swl"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -354,7 +354,7 @@ public class Assembler implements NodeVisitor {
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("swr"));
         encoding =
             lookupOpcode.partialEncoding
-                | lookupOpcode.opcode << 26
+                | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -697,7 +697,7 @@ public class Assembler implements NodeVisitor {
       default:
         encoding =
             opcode.partialEncoding
-                | currentOpcode << 26
+                | currentOpcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
@@ -814,5 +814,9 @@ public class Assembler implements NodeVisitor {
         layout.store((byte) tokens.charAt(i), index);
       }
     }
+  }
+
+  void forceFlush() {
+    flushEncoding(opcode);
   }
 }
