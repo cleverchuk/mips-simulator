@@ -31,6 +31,7 @@ public enum TokenType {
   TEXT,
   CPU_OPCODE,
   FPU_OPCODE,
+  OPCODE,
   REG,
   ASCII,
   ASCIIZ,

@@ -24,7 +24,8 @@
 
 package com.cleverchuk.mips.compiler.parser;
 
-import android.util.SparseIntArray;
+import static org.junit.Assert.assertEquals;
+
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.FourOpAnalyzer;
@@ -37,8 +38,6 @@ import com.cleverchuk.mips.simulator.mem.Memory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class AssemblerTest {
   RecursiveDescentParser parser =
@@ -61,27 +60,65 @@ public class AssemblerTest {
   private Assembler tested;
 
   @Before
-  public void setup(){
+  public void setup() {
     tested = new Assembler();
     parser.addVisitor(tested);
   }
 
-  @After public void teardown(){
+  @After
+  public void teardown() {
     parser.removeVisitor(tested);
   }
 
   @Test
   public void testLi() {
-    String[] instructions = {
-        ".text", "li $t0, 300"
-    };
+    String[] instructions = {".text", "li $t0, 300"};
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.forceFlush();
+    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x3408012c;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void tesSdc2() {
+    String[] instructions = {".text", "sdc2 $t0, 3($t1)"};
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x49e84803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void tesB() {
+    String[] instructions = {".text", "b 1", "label: la $t4, bytes"};
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x49e84803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void tesBeq() {
+    String[] instructions = {".text", "sdc2 $t0, 3($t1)"};
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x49e84803;
     assertEquals(expectedEncoding, actualEncoding);
   }
 

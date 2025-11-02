@@ -126,7 +126,10 @@ public class TwoOpAnalyzer implements Analyzer {
     public boolean analyze(Node opcodeKind) {
       List<Node> children = opcodeKind.getChildren();
       Node opcode = children.get(0);
-      switch (CpuOpcode.parse((String) opcode.getValue())) {
+      CpuOpcode cpuOpcode = CpuOpcode.parse((String) opcode.getValue());
+
+      if ((cpuOpcode == null)) return true; // fixme
+      switch (cpuOpcode) {
         default:
           return false;
         case LB:

@@ -46,4 +46,6 @@ public interface NodeVisitor {
   default void visitDataMode(Node dataMode) {}
 
   default void visitData(Node data) {}
+
+  default void visitSegment(Node segment) {}
 }

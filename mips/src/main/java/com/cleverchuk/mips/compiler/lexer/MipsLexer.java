@@ -32,6 +32,7 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_IDENTIFIER;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_OCTAL;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_START;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
+import static com.cleverchuk.mips.simulator.binary.Opcode.OPCODES;
 
 import androidx.annotation.Nullable;
 import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
@@ -342,6 +343,14 @@ public final class MipsLexer {
         if (FPU_OPCODES.contains(value)) {
           return Token.builder()
               .tokenType(TokenType.FPU_OPCODE)
+              .value(value)
+              .line(lineNumber)
+              .pos(sourcePos - value.length())
+              .build();
+        }
+        if (OPCODES.contains(value)) {
+          return Token.builder()
+              .tokenType(TokenType.OPCODE)
               .value(value)
               .line(lineNumber)
               .pos(sourcePos - value.length())

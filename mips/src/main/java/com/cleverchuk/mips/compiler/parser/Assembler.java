@@ -27,14 +27,17 @@ package com.cleverchuk.mips.compiler.parser;
 import static com.cleverchuk.mips.compiler.lexer.MipsLexer.CPU_REG_TO_DECI;
 import static com.cleverchuk.mips.compiler.lexer.MipsLexer.FPU_REG_TO_DECI;
 
+import com.cleverchuk.mips.simulator.binary.InstructionIR;
 import com.cleverchuk.mips.simulator.binary.Opcode;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
@@ -52,6 +55,8 @@ public class Assembler implements NodeVisitor {
 
   private final Map<String, Integer> symbolTable = new HashMap<>();
 
+  private final List<InstructionIR> irs = new ArrayList<>();
+
   public static Map<String, Opcode> opcodesMap =
       Arrays.stream(Opcode.values())
           .collect(Collectors.toMap(opcode -> opcode.name, Function.identity()));
@@ -66,29 +71,14 @@ public class Assembler implements NodeVisitor {
 
   private Opcode opcode;
 
-  private int currentOpcode = -1;
-
-  private int currentRs = 0;
-
-  private int currentRt = 0;
-
-  private int currentRd = 0;
-
-  private int currentImme = 0;
-
-  private int currentOffset = 0;
-
-  private int currentShiftAmt = 0;
-
   private String currentDataMode = "";
-
-  private String currentLabel = "";
 
   private byte regBitfield = 0; // rt = 001, 1, rs = 010, 2, rd = 100, 4
 
+  private InstructionIR.Builder irBuilder = null;
+
   @Override
-  public void visit(Node node) {
-  }
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {
@@ -110,6 +100,7 @@ public class Assembler implements NodeVisitor {
     } else {
       symbolTable.put(label, index);
     }
+    irBuilder.withLabel(label);
   }
 
   @Override
@@ -117,12 +108,12 @@ public class Assembler implements NodeVisitor {
     String opcodeName = node.getValue().toString();
     Opcode newOpcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
     if (opcode != null && newOpcode != opcode) {
-      flushEncoding(opcode);
+      irs.add(irBuilder.build());
     }
 
     opcode = newOpcode;
-    currentOpcode = opcode.opcode;
-    currentRd = currentImme = currentOffset = currentRs = currentRt = currentShiftAmt = regBitfield = 0;
+    regBitfield = 0;
+    irBuilder = InstructionIR.builder().withOpcode(newOpcode);
   }
 
   @Override
@@ -130,25 +121,25 @@ public class Assembler implements NodeVisitor {
     String registerName = reg.getValue().toString();
     int regNum = Objects.requireNonNull(registers.get(registerName));
     if (opcode.rd && (regBitfield & 4) == 0) {
-      currentRd = regNum;
       regBitfield |= 4;
+      irBuilder.withRd(regNum);
     } else if (opcode.rs && (regBitfield & 2) == 0) {
-      currentRs = regNum;
       regBitfield |= 2;
+      irBuilder.withRs(regNum);
     } else if (opcode.rt && (regBitfield & 1) == 0) {
-      currentRt = regNum;
       regBitfield |= 1;
+      irBuilder.withRt(regNum);
     }
   }
 
   @Override
   public void visitBaseRegister(Node register) {
     String registerName = getLeftLeaf(register).getValue().toString();
-    if (opcode.rs) {
-      currentRs = Objects.requireNonNull(registers.get(registerName));
-    } else if (opcode.rd) {
-      currentRd = Objects.requireNonNull(registers.get(registerName));
-    }
+    irBuilder.withRt(
+        irBuilder
+            .build()
+            .getRs()); // reassign here because based is currently stored in rt from visitReg
+    irBuilder.withRs(Objects.requireNonNull(registers.get(registerName)));
   }
 
   @Override
@@ -157,8 +148,9 @@ public class Assembler implements NodeVisitor {
     Stack<Number> operands = new Stack<>();
 
     exprEval(expr, ops, operands);
+    int constant = operands.pop().intValue();
     if (currentDataMode.isEmpty()) {
-      currentImme = currentOffset = operands.pop().intValue();
+      irBuilder.withImmediate(constant).withOffset(constant);
     } else {
       switch (currentDataMode) {
         case "byte":
@@ -170,7 +162,7 @@ public class Assembler implements NodeVisitor {
           index += 2;
           break;
         case "word":
-          layout.storeWord(operands.pop().intValue(), index);
+          layout.storeWord(constant, index);
           index += 4;
           break;
         case "float":
@@ -182,7 +174,7 @@ public class Assembler implements NodeVisitor {
           index += 8;
           break;
         case "space":
-          index += operands.pop().intValue();
+          index += constant;
           break;
       }
     }
@@ -215,22 +207,43 @@ public class Assembler implements NodeVisitor {
     }
   }
 
-  private void flushEncoding(Opcode opcode) {
-    int encoding, address;
+  @Override
+  public void visitSegment(Node segment) {
+    if (irBuilder != null) {
+      irs.add(irBuilder.build()); // add the last instruction
+    }
+  }
+
+  private void flushEncoding(InstructionIR instructionIR) {
+    int encoding;
+    Integer address;
     Opcode lookupOpcode;
+
+    int currentOpcode = instructionIR.getOpcode().opcode;
+    int currentRs = instructionIR.getRs();
+    int currentRt = instructionIR.getRt();
+
+    int currentRd = instructionIR.getRd();
+    int currentOffset = instructionIR.getOffset();
+    int currentImme = instructionIR.getImmediate();
+
+    int currentShiftAmt = instructionIR.getSa();
+    String currentLabel = instructionIR.getLabel();
+    Opcode opcode = instructionIR.getOpcode();
+
     switch (opcode) {
       case SDC2:
         encoding =
             opcode.partialEncoding
                 | currentOpcode
-                | currentRs << 21
+                | currentRs << 11 // swapped with rd, special R6 encoding
                 | currentRt << 16
-                | currentRd << 11
+                | currentRd << 21
                 | currentOffset & 0x7ff;
         break;
       case B:
       case BEQZ:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        address = symbolTable.get(currentLabel);
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("beq"));
         encoding =
             lookupOpcode.partialEncoding
@@ -238,16 +251,16 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | address & 0xffff;
+                | (address != null ? address & 0xffff : currentImme);
         break;
       case LA:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        address = symbolTable.get(currentLabel);
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lui"));
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
                 | currentRd << 11
-                | (address >> 16) & 0xffff;
+                | (address != null ? (address >> 16) & 0xffff : currentImme);
         layout.storeWord(encoding, index);
         index += 4;
 
@@ -256,7 +269,7 @@ public class Assembler implements NodeVisitor {
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
                 | currentRd << 11
-                | address & 0xffff;
+                | (address != null ? address & 0xffff : currentImme);
         break;
       case LI:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
@@ -288,9 +301,7 @@ public class Assembler implements NodeVisitor {
         break;
       case NOP:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("sll"));
-        encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode;
+        encoding = lookupOpcode.partialEncoding | lookupOpcode.opcode;
         break;
       case NOT:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("nor"));
@@ -302,7 +313,7 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 11;
         break;
       case BNEZ:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        address = symbolTable.get(currentLabel);
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("bne"));
         encoding =
             lookupOpcode.partialEncoding
@@ -310,15 +321,15 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | address & 0xffff;
+                | (address != null ? address & 0xffff : currentImme);
         break;
       case BAL:
-        address = Objects.requireNonNull(symbolTable.get(currentLabel));
+        address = symbolTable.get(currentLabel);
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("bal"));
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
-                | address & 0xffff;
+                | (address != null ? address & 0xffff : currentImme);
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
@@ -816,7 +827,9 @@ public class Assembler implements NodeVisitor {
     }
   }
 
-  void forceFlush() {
-    flushEncoding(opcode);
+  void flush() {
+    for (InstructionIR ir : irs) {
+      flushEncoding(ir);
+    }
   }
 }

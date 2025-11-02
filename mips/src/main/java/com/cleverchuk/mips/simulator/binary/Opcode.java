@@ -29,15 +29,19 @@ import static com.cleverchuk.mips.simulator.binary.InstructionFormat.I_TYPE;
 import static com.cleverchuk.mips.simulator.binary.InstructionFormat.J_TYPE;
 import static com.cleverchuk.mips.simulator.binary.InstructionFormat.R_TYPE;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public enum Opcode {
   // ARITHMETIC OPERATIONS
   ADD("add", 0x0, 0x0000020, R_TYPE, true, true, true),
   ADDI("addi", 0x20000000, 0x0, I_TYPE, true, true, false),
   ADDIU("addiu", 0x24000000, 0x0, I_TYPE, true, true, false),
-  ADDIUPC("addiupc", 0xec000000, 0x0, I_TYPE, false, true, false), 
+  ADDIUPC("addiupc", 0xec000000, 0x0, I_TYPE, false, true, false),
   ADDU("addu", 0x0, 0x0000021, R_TYPE, true, true, true),
-  ALIGN("align", 0x7c000000, 0x0000220, R_TYPE, true, true, true), 
-  ALUIPC("aluic", 0xec000000, 0x001f000, R_TYPE, false, true, false), 
+  ALIGN("align", 0x7c000000, 0x0000220, R_TYPE, true, true, true),
+  ALUIPC("aluic", 0xec000000, 0x001f000, R_TYPE, false, true, false),
   CLO("clo", 0x0, 0x00000051, R_TYPE, false, true, true),
   CLZ("clz", 0x0, 0x00000010, R_TYPE, false, true, true),
   LA(
@@ -72,8 +76,8 @@ public enum Opcode {
   // LOGICAL AND BIT-FIELD OPERATIONS
   AND("and", 0x0, 0x0000024, R_TYPE, true, true, true),
   ANDI("andi", 0x30000000, 0x0, I_TYPE, true, true, false),
-  AUI("aui", 0x3c000000, 0x0, I_TYPE, true, true, false), 
-  AUIPC("auipc", 0xec000000, 0x001e000, I_TYPE, false, true, false), 
+  AUI("aui", 0x3c000000, 0x0, I_TYPE, true, true, false),
+  AUIPC("auipc", 0xec000000, 0x001e000, I_TYPE, false, true, false),
   EXT("ext", 0x7c000000, 0x0, R_TYPE, true, true, false),
   INS("ins", 0x7c000000, 0x00000004, R_TYPE, true, true, false),
   NOP("nop", 0x0, 0x0, IDIOM, false, false, false),
@@ -133,36 +137,39 @@ public enum Opcode {
   JR("jr", 0x0, 0x00000009, J_TYPE, false, true, false), // replace by JALR in R6
   JR_HB("jr.hb", 0x0, 0x00000409, J_TYPE, false, true, false), // replace by JALR_HB in R6
   B(
-      "b", 0x10000000, 0x0, IDIOM, false, false,
+      "b",
+      0x10000000,
+      0x0,
+      IDIOM,
+      false,
+      false,
       false), // assembly idiom actual instruction is BEQ r0, r0, offset
-  BAL(
-      "bal", 0x04000000, 0x0011000, I_TYPE, false, false,
-      false),
-  BALC("balc", 0xe8000000, 0x0, I_TYPE, false, false, false), 
-  BC("bc", 0xc8000000, 0x0, I_TYPE, false, false, false), 
+  BAL("bal", 0x04000000, 0x0011000, I_TYPE, false, false, false),
+  BALC("balc", 0xe8000000, 0x0, I_TYPE, false, false, false),
+  BC("bc", 0xc8000000, 0x0, I_TYPE, false, false, false),
   BGEZ("bgez", 0x04000000, 0x0001, I_TYPE, false, true, false),
   BGTZ("bgtz", 0x1c000000, 0x0, I_TYPE, false, true, false),
-  BITSWAP("bitswap", 0x7c000000, 0x0000020, R_TYPE, true, false, true), 
+  BITSWAP("bitswap", 0x7c000000, 0x0000020, R_TYPE, true, false, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   BGEZAL("bgezal", 0x0411000, 0x0000020, I_TYPE, false, true, false),
-  BLEZALC("blezalc", 0x18000000, 0x0, I_TYPE, true, false, false), 
-  BGEZALC("bgezalc", 0x18000000, 0x0, I_TYPE, true, true, false), 
-  BGTZALC("bgtzalc", 0x1c000000, 0x0, I_TYPE, true, false, false), 
-  BLTZALC("bltzalc", 0x1c000000, 0x0, I_TYPE, false, true, false), 
-  BEQZALC("beqzalc", 0x20000000, 0x0, I_TYPE, true, true, false), 
-  BNEZALC("bnezalc", 0x60000000, 0x0, I_TYPE, true, false, false), 
-  BLEZC("blezc", 0x58000000, 0x0, I_TYPE, true, false, false), 
-  BGEZC("bgezc", 0x58000000, 0x0, I_TYPE, true, true, false), 
-  BGEC("bgec", 0x58000000, 0x0, I_TYPE, true, true, false), 
-  BGTZC("bgtzc", 0x5c000000, 0x0, I_TYPE, true, false, false), 
-  BLTZC("bltzc", 0x5c000000, 0x0, I_TYPE, true, true, false), 
-  BLTC("bltc", 0x5c000000, 0x0, I_TYPE, true, true, false), 
-  BGEUC("bgeuc", 0x18000000, 0x0, I_TYPE, true, true, false), 
-  BLTUC("bltuc", 0x1c000000, 0x0, I_TYPE, true, true, false), 
-  BEQC("beqc", 0x20000000, 0x0, I_TYPE, true, true, false), 
-  BNEC("bnec", 0x60000000, 0x0, I_TYPE, true, true, false), 
-  BEQZC("beqzc", 0xd8000000, 0x0, I_TYPE, false, true, false), 
-  BNEZC("bnezc", 0xf8000000, 0x0, I_TYPE, false, true, false), 
+  BLEZALC("blezalc", 0x18000000, 0x0, I_TYPE, true, false, false),
+  BGEZALC("bgezalc", 0x18000000, 0x0, I_TYPE, true, true, false),
+  BGTZALC("bgtzalc", 0x1c000000, 0x0, I_TYPE, true, false, false),
+  BLTZALC("bltzalc", 0x1c000000, 0x0, I_TYPE, false, true, false),
+  BEQZALC("beqzalc", 0x20000000, 0x0, I_TYPE, true, true, false),
+  BNEZALC("bnezalc", 0x60000000, 0x0, I_TYPE, true, false, false),
+  BLEZC("blezc", 0x58000000, 0x0, I_TYPE, true, false, false),
+  BGEZC("bgezc", 0x58000000, 0x0, I_TYPE, true, true, false),
+  BGEC("bgec", 0x58000000, 0x0, I_TYPE, true, true, false),
+  BGTZC("bgtzc", 0x5c000000, 0x0, I_TYPE, true, false, false),
+  BLTZC("bltzc", 0x5c000000, 0x0, I_TYPE, true, true, false),
+  BLTC("bltc", 0x5c000000, 0x0, I_TYPE, true, true, false),
+  BGEUC("bgeuc", 0x18000000, 0x0, I_TYPE, true, true, false),
+  BLTUC("bltuc", 0x1c000000, 0x0, I_TYPE, true, true, false),
+  BEQC("beqc", 0x20000000, 0x0, I_TYPE, true, true, false),
+  BNEC("bnec", 0x60000000, 0x0, I_TYPE, true, true, false),
+  BEQZC("beqzc", 0xd8000000, 0x0, I_TYPE, false, true, false),
+  BNEZC("bnezc", 0xf8000000, 0x0, I_TYPE, false, true, false),
   BLEZ("blez", 0x18000000, 0x0, I_TYPE, false, true, false),
   BLTZ("bltz", 0x04000000, 0x0, I_TYPE, false, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
@@ -240,9 +247,9 @@ public enum Opcode {
   LWC1("lwc1", 0xc4000000, 0x0, I_TYPE, true, true, false),
   LWC2("lwc2", 0x48000000, 0x01400000, I_TYPE, true, false, true),
   SDC1("sdc1", 0xf4000000, 0x0, I_TYPE, true, true, false),
-  SDC2("sdc2", 0x48000000, 0x0000001e, I_TYPE, true, false, true),
-  CFC1("cfc1", 0x44000000, 0x0040000, R_TYPE, true, true, false),
-  CFC2("cfc2", 0x48000000, 0x0040000, R_TYPE, true, false, false),
+  SDC2("sdc2", 0x48000000, 0x01e00000, I_TYPE, true, true, false),
+  CFC1("cfc1", 0x44000000, 0x00400000, R_TYPE, true, true, false),
+  CFC2("cfc2", 0x48000000, 0x00400000, R_TYPE, true, false, false),
   CTC1("ctc1", 0x44000000, 0x00c00000, R_TYPE, true, true, false),
   CTC2("ctc2", 0x48000000, 0x00c00000, R_TYPE, true, false, false),
   MFC0("mfc0", 0x40000000, 0x0, R_TYPE, true, false, true),
@@ -450,6 +457,9 @@ public enum Opcode {
   COP2("cop2", 0x48000000, 0x02000000, R_TYPE, false, false, false),
   ;
 
+  public static final Set<String> OPCODES =
+      Arrays.stream(Opcode.values()).map(op -> op.name).collect(Collectors.toSet());
+
   public final String name;
 
   public final int opcode;
@@ -479,5 +489,17 @@ public enum Opcode {
     this.rt = rt;
     this.rs = rs;
     this.rd = rd;
+  }
+
+  public boolean same(String opcode) {
+    return name.equals(opcode);
+  }
+
+  public static Opcode parse(String opcode) {
+    try {
+      return valueOf(opcode.toUpperCase().replaceAll("\\.", "_"));
+    } catch (Throwable ignore) {
+    }
+    return null;
   }
 }
