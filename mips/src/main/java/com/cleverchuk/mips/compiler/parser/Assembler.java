@@ -98,9 +98,9 @@ public class Assembler implements NodeVisitor {
               .build());
 
     } else {
-      symbolTable.put(label, index);
+      symbolTable.put(
+          label, leftLeaf.getLine() - 2 /*adjusts for 0-indexed layout and .text/.data in source*/);
     }
-    irBuilder.withLabel(label);
   }
 
   @Override
@@ -148,8 +148,8 @@ public class Assembler implements NodeVisitor {
     Stack<Number> operands = new Stack<>();
 
     exprEval(expr, ops, operands);
-    int constant = operands.pop().intValue();
     if (currentDataMode.isEmpty()) {
+      int constant = operands.pop().intValue();
       irBuilder.withImmediate(constant).withOffset(constant);
     } else {
       switch (currentDataMode) {
@@ -162,7 +162,7 @@ public class Assembler implements NodeVisitor {
           index += 2;
           break;
         case "word":
-          layout.storeWord(constant, index);
+          layout.storeWord(operands.pop().intValue(), index);
           index += 4;
           break;
         case "float":
@@ -174,7 +174,7 @@ public class Assembler implements NodeVisitor {
           index += 8;
           break;
         case "space":
-          index += constant;
+          index += operands.pop().intValue();
           break;
       }
     }
@@ -211,6 +211,14 @@ public class Assembler implements NodeVisitor {
   public void visitSegment(Node segment) {
     if (irBuilder != null) {
       irs.add(irBuilder.build()); // add the last instruction
+    }
+  }
+
+  @Override
+  public void visitOperand(Node operand) {
+    Node leftLeaf = getLeftLeaf(operand);
+    if (leftLeaf.getConstruct() == Construct.LABEL) {
+      irBuilder.withLabel(leftLeaf.getValue().toString());
     }
   }
 
@@ -255,11 +263,11 @@ public class Assembler implements NodeVisitor {
         break;
       case LA:
         address = symbolTable.get(currentLabel);
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("lui"));
+        lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
-                | currentRd << 11
+                | currentRt << 16
                 | (address != null ? (address >> 16) & 0xffff : currentImme);
         layout.storeWord(encoding, index);
         index += 4;
@@ -268,7 +276,8 @@ public class Assembler implements NodeVisitor {
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
-                | currentRd << 11
+                | currentRt << 21
+                | currentRt << 16
                 | (address != null ? address & 0xffff : currentImme);
         break;
       case LI:

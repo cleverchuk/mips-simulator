@@ -45,7 +45,7 @@ public enum Opcode {
   CLO("clo", 0x0, 0x00000051, R_TYPE, false, true, true),
   CLZ("clz", 0x0, 0x00000010, R_TYPE, false, true, true),
   LA(
-      "la", 0x0, 0x0, IDIOM, false, true,
+      "la", 0x0, 0x0, IDIOM, true, false,
       false), // assembler idiom, needs translation to actual instruction
   LI(
       "li", 0x0, 0x0, IDIOM, false, true,

@@ -84,7 +84,7 @@ public class AssemblerTest {
   }
 
   @Test
-  public void tesSdc2() {
+  public void testSdc2() {
     String[] instructions = {".text", "sdc2 $t0, 3($t1)"};
 
     parser.parse(toLineDelimited(instructions));
@@ -97,28 +97,47 @@ public class AssemblerTest {
   }
 
   @Test
-  public void tesB() {
-    String[] instructions = {".text", "b 1", "label: la $t4, bytes"};
+  public void testB() {
+    String[] instructions = {".text", "b label", "label: la $t4, bytes"};
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
     tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x49e84803;
+    int expectedEncoding = 0x10000001;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
   @Test
-  public void tesBeq() {
-    String[] instructions = {".text", "sdc2 $t0, 3($t1)"};
+  public void testBeqz() {
+    String[] instructions = {".text", "beqz $t0, label", "label: la $t4, bytes"};
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
     tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x49e84803;
+    int expectedEncoding = 0x11000001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testLa() {
+    String[] instructions = {
+      ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "la $t0, bytes"
+    };
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x3c080000;
+    assertEquals(expectedEncoding, actualEncoding);
+
+    actualEncoding = layout.readWord(tested.getTextOffset() + 4);
+    expectedEncoding = 0x35080001;
     assertEquals(expectedEncoding, actualEncoding);
   }
 

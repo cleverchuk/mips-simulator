@@ -48,4 +48,6 @@ public interface NodeVisitor {
   default void visitData(Node data) {}
 
   default void visitSegment(Node segment) {}
+
+  default void visitOperand(Node operand) {}
 }

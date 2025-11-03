@@ -999,6 +999,7 @@ public final class RecursiveDescentParser {
         operand.addChild(parenRegister);
 
         visit(operand);
+        visit(operand, NodeVisitor::visitOperand);
         return operand;
       }
       return expr; // returning expression here instead of backing off because a constant is a valid
@@ -1009,6 +1010,7 @@ public final class RecursiveDescentParser {
     if (register != null) {
       operand.addChild(register);
       visit(operand);
+      visit(operand, NodeVisitor::visitOperand);
       return operand;
     }
 
@@ -1016,6 +1018,7 @@ public final class RecursiveDescentParser {
     if (parenRegister != null) {
       operand.addChild(parenRegister);
       visit(operand);
+      visit(operand, NodeVisitor::visitOperand);
       return operand;
     }
 
@@ -1034,6 +1037,7 @@ public final class RecursiveDescentParser {
                 .build());
 
         visit(operand);
+        visit(operand, NodeVisitor::visitOperand);
         return operand;
       }
     }
