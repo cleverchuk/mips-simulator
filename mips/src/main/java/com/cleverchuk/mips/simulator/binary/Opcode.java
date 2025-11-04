@@ -48,14 +48,14 @@ public enum Opcode {
       "la", 0x0, 0x0, IDIOM, true, false,
       false), // assembler idiom, needs translation to actual instruction
   LI(
-      "li", 0x0, 0x0, IDIOM, false, true,
+      "li", 0x0, 0x0, IDIOM, true, false,
       false), // assembler idiom, needs translation to actual instruction
   LUI("lui", 0x3c000000, 0x0, I_TYPE, true, false, false), // replace by AUI in R6
   MOVE(
       "move", 0x0, 0x0, IDIOM, false, true,
       true), // assembler idiom, needs translation to actual instruction
   NEGU(
-      "negu", 0x0, 0x0, IDIOM, false, true,
+      "negu", 0x0, 0x0, IDIOM, true, false,
       true), // assembler idiom, needs translation to actual instruction
   SUB("sub", 0x0, 0x00000022, R_TYPE, true, true, true),
   SUBU("subu", 0x0, 0x00000023, R_TYPE, true, true, true),

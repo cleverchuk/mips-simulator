@@ -285,8 +285,8 @@ public class Assembler implements NodeVisitor {
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
-                | currentRs << 16 // swap rs and rt because rt is captured in rs in visitReg
-                | currentRt << 21
+                | currentRs << 21
+                | currentRt << 16
                 | currentRd << 11
                 | currentImme & 0xffff;
         break;
@@ -304,8 +304,8 @@ public class Assembler implements NodeVisitor {
         encoding =
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
-                | currentRs << 16 // flip rs & rt mask so that it's subu $rd, $zero, $rs
-                | currentRt << 21
+                | currentRs << 21
+                | currentRt << 16
                 | currentRd << 11;
         break;
       case NOP:

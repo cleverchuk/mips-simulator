@@ -141,6 +141,36 @@ public class AssemblerTest {
     assertEquals(expectedEncoding, actualEncoding);
   }
 
+  @Test
+  public void testMove() {
+    String[] instructions = {
+      ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "move $t0, $t1"
+    };
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x01204025;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testNegu() {
+    String[] instructions = {
+      ".text", "negu $t0, $t1"
+    };
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x00094023;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
   public String toLineDelimited(String[] array) {
 
     StringBuilder builder = new StringBuilder();
