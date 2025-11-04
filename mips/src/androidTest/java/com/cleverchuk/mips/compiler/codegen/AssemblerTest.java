@@ -22,11 +22,12 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.parser;
+package com.cleverchuk.mips.compiler.codegen;
 
 import static org.junit.Assert.assertEquals;
 
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
+import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.FourOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.InstructionAnalyzer;
@@ -168,6 +169,21 @@ public class AssemblerTest {
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x00094023;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testNop() {
+    String[] instructions = {
+      ".text", "nop"
+    };
+
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+    tested.flush();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x0;
     assertEquals(expectedEncoding, actualEncoding);
   }
 

@@ -37,7 +37,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.cleverchuk.mips.compiler.MipsCompiler;
 import com.cleverchuk.mips.compiler.codegen.CodeGenerator;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import com.cleverchuk.mips.compiler.parser.Assembler;
+import com.cleverchuk.mips.compiler.codegen.Assembler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;

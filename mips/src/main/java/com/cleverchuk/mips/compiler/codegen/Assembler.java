@@ -22,11 +22,16 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.parser;
+package com.cleverchuk.mips.compiler.codegen;
 
 import static com.cleverchuk.mips.compiler.lexer.MipsLexer.CPU_REG_TO_DECI;
 import static com.cleverchuk.mips.compiler.lexer.MipsLexer.FPU_REG_TO_DECI;
 
+import com.cleverchuk.mips.compiler.parser.Construct;
+import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
+import com.cleverchuk.mips.compiler.parser.Node;
+import com.cleverchuk.mips.compiler.parser.NodeType;
+import com.cleverchuk.mips.compiler.parser.NodeVisitor;
 import com.cleverchuk.mips.simulator.binary.InstructionIR;
 import com.cleverchuk.mips.simulator.binary.Opcode;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
