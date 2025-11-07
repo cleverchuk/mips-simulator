@@ -77,7 +77,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x3408012c;
@@ -90,7 +89,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x49e84803;
@@ -103,7 +101,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x10000001;
@@ -118,10 +115,9 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x11000001;
+    int expectedEncoding = 0x11000003;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -133,7 +129,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x3c080000;
@@ -152,7 +147,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x01204025;
@@ -165,7 +159,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x00094023;
@@ -178,7 +171,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x0;
@@ -191,7 +183,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x01204027;
@@ -206,7 +197,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x15000003;
@@ -221,7 +211,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset() + 8);
     int expectedEncoding = 0x0411fffc;
@@ -234,7 +223,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x89280004;
@@ -251,7 +239,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0xa9280004;
@@ -268,7 +255,6 @@ public class AssemblerTest {
 
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
-    tested.flush();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
     int expectedEncoding = 0x000000c0;

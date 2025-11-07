@@ -217,6 +217,7 @@ public class Assembler implements NodeVisitor {
     if (irBuilder != null) {
       irs.add(irBuilder.build()); // add the last instruction
     }
+    flush();
   }
 
   @Override
@@ -842,7 +843,7 @@ public class Assembler implements NodeVisitor {
     }
   }
 
-  void flush() {
+  private void flush() {
     for (InstructionIR ir : irs) {
       flushEncoding(ir);
     }
