@@ -144,7 +144,7 @@ public enum Opcode {
       false,
       false,
       false), // assembly idiom actual instruction is BEQ r0, r0, offset
-  BAL("bal", 0x04000000, 0x0011000, I_TYPE, false, false, false),
+  BAL("bal", 0x04000000, 0x00110000, I_TYPE, false, false, false),
   BALC("balc", 0xe8000000, 0x0, I_TYPE, false, false, false),
   BC("bc", 0xc8000000, 0x0, I_TYPE, false, false, false),
   BGEZ("bgez", 0x04000000, 0x0001, I_TYPE, false, true, false),
@@ -213,9 +213,9 @@ public enum Opcode {
   SH("sh", 0xa4000000, 0x0, I_TYPE, true, true, false),
   SHE("she", 0x7c000000, 0x0000001d, I_TYPE, true, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  SWL("swl", 0x0, 0x0, I_TYPE, true, true, false),
+  SWL("swl", 0xa8000000, 0x0, I_TYPE, true, true, false),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  SWR("swr", 0x0, 0x0, I_TYPE, true, true, false),
+  SWR("swr", 0xb8000000, 0x0, I_TYPE, true, true, false),
   ULW("ulw", 0x0, 0x0, IDIOM, true, true, false),
   USW("usw", 0x0, 0x0, IDIOM, true, true, false),
   CACHE("cache", 0x7c000000, 0x0000025, I_TYPE, false, true, false),

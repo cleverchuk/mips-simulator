@@ -339,11 +339,10 @@ public class Assembler implements NodeVisitor {
         break;
       case BAL:
         address = symbolTable.get(currentLabel);
-        lookupOpcode = Objects.requireNonNull(opcodesMap.get("bal"));
         encoding =
-            lookupOpcode.partialEncoding
-                | lookupOpcode.opcode
-                | (address != null ? address & 0xffff : currentImme);
+            opcode.partialEncoding
+                | opcode.opcode
+                | (address != null ? computePcRelativeOffset(address) & 0xffff : currentImme);
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
@@ -363,7 +362,7 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | currentOffset + 3 & 0x7ff;
+                | (currentOffset + 3) & 0x7ff;
         break;
       case USW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("swl"));
@@ -384,6 +383,9 @@ public class Assembler implements NodeVisitor {
                 | currentRt << 16
                 | currentRd << 11
                 | currentOffset + 3 & 0x7ff;
+        break;
+      case EHB:
+        encoding = opcode.partialEncoding | opcode.opcode;
         break;
       case CFC1:
       case CFC2:
@@ -551,7 +553,6 @@ public class Assembler implements NodeVisitor {
       case DI:
       case DVP:
       case EVP:
-      case EHB:
       case EI:
       case ERET:
       case ERETNC:
@@ -845,5 +846,9 @@ public class Assembler implements NodeVisitor {
     for (InstructionIR ir : irs) {
       flushEncoding(ir);
     }
+  }
+
+  private int computePcRelativeOffset(int address) {
+    return address - index + 4;
   }
 }
