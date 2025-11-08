@@ -27,7 +27,7 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
+import com.cleverchuk.mips.simulator.binary.Opcode;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
@@ -126,10 +126,9 @@ public class TwoOpAnalyzer implements Analyzer {
     public boolean analyze(Node opcodeKind) {
       List<Node> children = opcodeKind.getChildren();
       Node opcode = children.get(0);
-      CpuOpcode cpuOpcode = CpuOpcode.parse((String) opcode.getValue());
+      Opcode op = Opcode.parse((String) opcode.getValue());
 
-      if ((cpuOpcode == null)) return true; // fixme
-      switch (cpuOpcode) {
+      switch (Objects.requireNonNull(op)) {
         default:
           return false;
         case LB:
@@ -173,7 +172,7 @@ public class TwoOpAnalyzer implements Analyzer {
       Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
       Node opcode = children.get(0);
-      switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case DIV:
@@ -215,7 +214,7 @@ public class TwoOpAnalyzer implements Analyzer {
               .getConstruct();
 
       Node opcode = children.get(0);
-      switch (CpuOpcode.parse((String) opcode.getValue())) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case BEQZ:
