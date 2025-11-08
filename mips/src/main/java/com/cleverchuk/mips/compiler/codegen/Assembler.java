@@ -80,6 +80,8 @@ public class Assembler implements NodeVisitor {
 
   private byte regBitfield = 0; // rt = 001, 1, rs = 010, 2, rd = 100, 4
 
+  private byte posBitfield = 0; // pos = 001, 1, size = 010, 2,
+
   private InstructionIR.Builder irBuilder = null;
 
   @Override
@@ -104,7 +106,7 @@ public class Assembler implements NodeVisitor {
 
     } else {
       symbolTable.put(
-          label, leftLeaf.getLine() - 2 /*adjusts for 0-indexed layout and .text/.data in source*/);
+          label, index);
     }
   }
 
@@ -155,7 +157,11 @@ public class Assembler implements NodeVisitor {
     exprEval(expr, ops, operands);
     if (currentDataMode.isEmpty()) {
       int constant = operands.pop().intValue();
-      irBuilder.withImmediate(constant).withOffset(constant);
+      if (opcode == Opcode.ALIGN) {
+        irBuilder.withSa(constant);
+      } else {
+        irBuilder.withImmediate(constant).withOffset(constant);
+      }
     } else {
       switch (currentDataMode) {
         case "byte":
@@ -233,7 +239,6 @@ public class Assembler implements NodeVisitor {
     Integer address;
     Opcode lookupOpcode;
 
-    int currentOpcode = instructionIR.getOpcode().opcode;
     int currentRs = instructionIR.getRs();
     int currentRt = instructionIR.getRt();
 
@@ -249,7 +254,7 @@ public class Assembler implements NodeVisitor {
       case SDC2:
         encoding =
             opcode.partialEncoding
-                | currentOpcode
+                | opcode.opcode
                 | currentRs << 11 // swapped with rd, special R6 encoding
                 | currentRt << 16
                 | currentRd << 21
@@ -265,7 +270,7 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | (address != null ? address & 0xffff : currentImme);
+                | (address != null ? computePcRelativeOffset(address) & 0xffff : currentImme);
         break;
       case LA:
         address = symbolTable.get(currentLabel);
@@ -336,14 +341,22 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | (address != null ? address & 0xffff : currentImme);
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff ;
         break;
       case BAL:
         address = symbolTable.get(currentLabel);
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | (address != null ? computePcRelativeOffset(address) & 0xffff : currentImme);
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
+        break;
+      case BALC:
+      case BC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0x3ffffff;
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
@@ -388,343 +401,362 @@ public class Assembler implements NodeVisitor {
       case EHB:
         encoding = opcode.partialEncoding | opcode.opcode;
         break;
+      case ABS_D:
+      case ABS_S:
+      case ADD_D:
+      case ADD_S:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | currentRs << 11
+                | currentRd << 6;
+        break;
+      case ANDI:
+      case AUI:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 16 // rs contains rt due to format ordering
+                | currentRt << 21
+                | currentImme & 0xffff;
+        break;
+      case BC1EQZ:
+      case BC1NEZ:
+      case BC2EQZ:
+      case BC2NEZ:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
+        break;
+      case ADD:
+      case ADDI:
+      case ADDIUPC:
+      case ADDIU:
+      case ADDU:
+      case ALIGN:
+      case ALUIPC:
+      case AND:
+      case AUIPC:
+      case BEQ:
+      case BEQC:
+      case BEQZALC:
+      case BEQZC:
+      case BGEC:
+      case BGEZALC:
+      case BGEZAL:
+      case BGEZC:
+      case BGEZ:
+      case BGEUC:
+      case BGTZALC:
+      case BGTZC:
+      case BGTZ:
+      case BITSWAP:
+      case BLEZALC:
+      case BLEZC:
+      case BLEZ:
+      case BLTC:
+      case BLTUC:
+      case BLTZALC:
+      case BLTZAL:
+      case BLTZC:
+      case BLTZ:
+      case BNE:
+      case BNEC:
+      case BNEZALC:
+      case BNEZC:
+      case BNVC:
+      case BOVC:
+      case BREAK:
+      case CACHE:
+      case CACHEE:
+      case CEIL_L_D:
+      case CEIL_L_S:
+      case CEIL_W_D:
+      case CEIL_W_S:
       case CFC1:
       case CFC2:
+      case CLASS_D:
+      case CLASS_S:
+      case CLO:
+      case CLZ:
+      case CMP_AF_D:
+      case CMP_AF_S:
+      case CMP_AT_D:
+      case CMP_AT_S:
+      case CMP_EQ_D:
+      case CMP_EQ_S:
+      case CMP_LE_D:
+      case CMP_LE_S:
+      case CMP_LT_D:
+      case CMP_LT_S:
+      case CMP_NE_D:
+      case CMP_NE_S:
+      case CMP_OGE_D:
+      case CMP_OGE_S:
+      case CMP_OGT_D:
+      case CMP_OGT_S:
+      case CMP_OR_D:
+      case CMP_OR_S:
+      case CMP_SAF_D:
+      case CMP_SAF_S:
+      case CMP_SAT_D:
+      case CMP_SAT_S:
+      case CMP_SEQ_D:
+      case CMP_SEQ_S:
+      case CMP_SLE_D:
+      case CMP_SLE_S:
+      case CMP_SLT_D:
+      case CMP_SLT_S:
+      case CMP_SNE_D:
+      case CMP_SNE_S:
+      case CMP_SOGE_D:
+      case CMP_SOGE_S:
+      case CMP_SOGT_D:
+      case CMP_SOGT_S:
+      case CMP_SOR_D:
+      case CMP_SOR_S:
+      case CMP_SUEQ_D:
+      case CMP_SUEQ_S:
+      case CMP_SUGE_D:
+      case CMP_SUGE_S:
+      case CMP_SUGT_D:
+      case CMP_SUGT_S:
+      case CMP_SULE_D:
+      case CMP_SULE_S:
+      case CMP_SULT_D:
+      case CMP_SULT_S:
+      case CMP_SUN_D:
+      case CMP_SUN_S:
+      case CMP_SUNE_D:
+      case CMP_SUNE_S:
+      case CMP_UEQ_D:
+      case CMP_UEQ_S:
+      case CMP_UGE_D:
+      case CMP_UGE_S:
+      case CMP_UGT_D:
+      case CMP_UGT_S:
+      case CMP_ULE_D:
+      case CMP_ULE_S:
+      case CMP_ULT_D:
+      case CMP_ULT_S:
+      case CMP_UN_D:
+      case CMP_UN_S:
+      case CMP_UNE_D:
+      case CMP_UNE_S:
+      case COP2:
+      case CRC32B:
+      case CRC32CB:
+      case CRC32CH:
+      case CRC32CW:
+      case CRC32H:
+      case CRC32W:
       case CTC1:
       case CTC2:
+      case CVT_D_L:
+      case CVT_D_S:
+      case CVT_D_W:
+      case CVT_L_D:
+      case CVT_L_S:
+      case CVT_S_D:
+      case CVT_S_L:
+      case CVT_S_W:
+      case CVT_W_D:
+      case CVT_W_S:
+      case DERET:
+      case DI:
+      case DIV:
+      case DIV_D:
+      case DIV_S:
+      case DIVU:
+      case DVP:
+      case EI:
+      case ERET:
+      case ERETNC:
+      case EVP:
+      case EXT:
+      case FLOOR_L_D:
+      case FLOOR_L_S:
+      case FLOOR_W_D:
+      case FLOOR_W_S:
+      case GINVI:
+      case GINVT:
+      case INS:
+      case J:
+      case JAL:
+      case JALR:
+      case JALR_HB:
+      case JIC:
+      case JIALC:
+      case JR:
+      case JR_HB:
+      case LB:
+      case LBE:
+      case LBU:
+      case LBUE:
+      case LDC1:
+      case LDC2:
+      case LH:
+      case LHE:
+      case LHU:
+      case LHUE:
+      case LL:
+      case LLE:
+      case LLWP:
+      case LLWPE:
+      case LSA:
+      case LUI:
+      case LW:
+      case LWC1:
+      case LWC2:
+      case LWE:
+      case LWL:
+      case LWPC:
+      case LWR:
+      case MADD:
+      case MADDF_D:
+      case MADDF_S:
+      case MADDU:
+      case MAX_D:
+      case MAXA_D:
+      case MAXA_S:
+      case MAX_S:
       case MFC0:
       case MFC1:
       case MFC2:
       case MFHC0:
       case MFHC1:
       case MFHC2:
+      case MFHI:
+      case MFLO:
+      case MIN_D:
+      case MINA_D:
+      case MINA_S:
+      case MIN_S:
+      case MOD:
+      case MODU:
+      case MOV_D:
+      case MOV_S:
+      case MOVN:
+      case MOVZ:
+      case MSUB:
+      case MSUBF_D:
+      case MSUBF_S:
+      case MSUBU:
       case MTC0:
       case MTC1:
       case MTC2:
       case MTHC0:
       case MTHC1:
       case MTHC2:
+      case MTHI:
+      case MTLO:
+      case MUH:
+      case MUHU:
+      case MUL:
+      case MUL_D:
+      case MUL_S:
+      case MULT:
+      case MULTU:
+      case MULU:
+      case NAL:
+      case NEG_D:
+      case NEG_S:
+      case NOR:
+      case OR:
+      case ORI:
+      case PAUSE:
       case PREF:
       case PREFE:
       case RDHWR:
       case RDPGPR:
-      case ABS_S:
-      case ABS_D:
-      case ADD_S:
-      case ADD_D:
-      case CMP_AF_S:
-      case CMP_AF_D:
-      case CMP_UN_S:
-      case CMP_UN_D:
-      case CMP_EQ_S:
-      case CMP_EQ_D:
-      case CMP_UEQ_S:
-      case CMP_UEQ_D:
-      case CMP_LT_S:
-      case CMP_LT_D:
-      case CMP_ULT_S:
-      case CMP_ULT_D:
-      case CMP_LE_S:
-      case CMP_LE_D:
-      case CMP_ULE_S:
-      case CMP_ULE_D:
-      case CMP_SAF_S:
-      case CMP_SAF_D:
-      case CMP_SUN_S:
-      case CMP_SUN_D:
-      case CMP_SEQ_S:
-      case CMP_SEQ_D:
-      case CMP_SUEQ_S:
-      case CMP_SUEQ_D:
-      case CMP_SLT_S:
-      case CMP_SLT_D:
-      case CMP_SULT_S:
-      case CMP_SULT_D:
-      case CMP_SLE_S:
-      case CMP_SLE_D:
-      case CMP_SULE_S:
-      case CMP_SULE_D:
-      case CMP_AT_S:
-      case CMP_AT_D:
-      case CMP_OR_S:
-      case CMP_OR_D:
-      case CMP_UNE_S:
-      case CMP_UNE_D:
-      case CMP_NE_S:
-      case CMP_NE_D:
-      case CMP_UGE_S:
-      case CMP_UGE_D:
-      case CMP_OGE_S:
-      case CMP_OGE_D:
-      case CMP_UGT_S:
-      case CMP_UGT_D:
-      case CMP_OGT_S:
-      case CMP_OGT_D:
-      case CMP_SAT_S:
-      case CMP_SAT_D:
-      case CMP_SOR_S:
-      case CMP_SOR_D:
-      case CMP_SUNE_S:
-      case CMP_SUNE_D:
-      case CMP_SNE_S:
-      case CMP_SNE_D:
-      case CMP_SUGE_S:
-      case CMP_SUGE_D:
-      case CMP_SOGE_S:
-      case CMP_SOGE_D:
-      case CMP_SUGT_S:
-      case CMP_SUGT_D:
-      case CMP_SOGT_S:
-      case CMP_SOGT_D:
-      case CRC32B:
-      case CRC32H:
-      case CRC32W:
-      case CRC32CB:
-      case CRC32CH:
-      case CRC32CW:
-      case DIV_S:
-      case DIV_D:
-      case MUL_S:
-      case MUL_D:
-      case NEG_S:
-      case NEG_D:
-      case SQRT_S:
-      case SQRT_D:
-      case SUB_S:
-      case SUB_D:
-      case RECIP_S:
       case RECIP_D:
-      case RSQRT_S:
-      case RSQRT_D:
-      case MADDF_S:
-      case MADDF_D:
-      case MSUBF_S:
-      case MSUBF_D:
-      case CLASS_S:
-      case CLASS_D:
-      case MAX_S:
-      case MAX_D:
-      case MAXA_S:
-      case MAXA_D:
-      case MIN_S:
-      case MIN_D:
-      case MINA_S:
-      case MINA_D:
-      case CVT_D_S:
-      case CVT_D_W:
-      case CVT_D_L:
-      case CVT_L_S:
-      case CVT_L_D:
-      case CVT_S_D:
-      case CVT_S_W:
-      case CVT_S_L:
-      case CVT_W_S:
-      case CVT_W_D:
-      case RINT_S:
+      case RECIP_S:
       case RINT_D:
-      case CEIL_L_S:
-      case CEIL_L_D:
-      case CEIL_W_S:
-      case CEIL_W_D:
-      case FLOOR_L_S:
-      case FLOOR_L_D:
-      case FLOOR_W_S:
-      case FLOOR_W_D:
-      case ROUND_L_S:
+      case RINT_S:
+      case ROTR:
+      case ROTRV:
       case ROUND_L_D:
-      case ROUND_W_S:
+      case ROUND_L_S:
       case ROUND_W_D:
-      case TRUNC_L_S:
-      case TRUNC_L_D:
-      case TRUNC_W_S:
-      case TRUNC_W_D:
-      case MOV_S:
-      case MOV_D:
-      case SEL_S:
-      case SEL_D:
-      case SELEQZ_S:
-      case SELEQZ_D:
-      case SELNEZ_S:
-      case SELNEZ_D:
-      case BC1EQZ:
-      case BC1NEZ:
-      case BC2EQZ:
-      case BC2NEZ:
-      case DERET:
-      case DI:
-      case DVP:
-      case EVP:
-      case EI:
-      case ERET:
-      case ERETNC:
-      case GINVI:
-      case GINVT:
-      case PAUSE:
+      case ROUND_W_S:
+      case RSQRT_D:
+      case RSQRT_S:
+      case SB:
+      case SBE:
+      case SC:
+      case SCE:
+      case SCWP:
+      case SCWPE:
+      case SDC1:
       case SDBBP:
+      case SEB:
+      case SEH:
+      case SEL_D:
+      case SEL_S:
+      case SELEQZ:
+      case SELEQZ_D:
+      case SELEQZ_S:
+      case SELNEZ:
+      case SELNEZ_D:
+      case SELNEZ_S:
+      case SH:
+      case SHE:
       case SIGRIE:
-      case SYSCALL:
+      case SLL:
+      case SLLV:
+      case SLT:
+      case SLTI:
+      case SLTIU:
+      case SLTU:
+      case SRA:
+      case SRAV:
+      case SRL:
+      case SRLV:
+      case SSNOP:
+      case SQRT_D:
+      case SQRT_S:
+      case SUB:
+      case SUB_D:
+      case SUB_S:
+      case SUBU:
+      case SW:
+      case SWC1:
+      case SWC2:
+      case SWE:
+      case SWL:
+      case SWR:
       case SYNC:
       case SYNCI:
+      case SYSCALL:
+      case TEQ:
+      case TGE:
+      case TGEU:
       case TLBINV:
       case TLBINVF:
       case TLBP:
       case TLBR:
       case TLBWI:
       case TLBWR:
-      case WAIT:
-      case WRPGPR:
-      case COP2:
-      case ADD:
-      case ADDI:
-      case ADDIU:
-      case ADDIUPC:
-      case ADDU:
-      case ALIGN:
-      case ALUIPC:
-      case CLO:
-      case CLZ:
-      case LUI:
-      case SUB:
-      case SUBU:
-      case SEB:
-      case SEH:
-      case SLL:
-      case SLLV:
-      case ROTR:
-      case ROTRV:
-      case SRA:
-      case SRAV:
-      case SRL:
-      case SRLV:
-      case SSNOP:
-      case AND:
-      case ANDI:
-      case AUI:
-      case AUIPC:
-      case EXT:
-      case INS:
-      case NOR:
-      case OR:
-      case ORI:
-      case XOR:
-      case XORI:
-      case WSBH:
-      case MOVN:
-      case MOVZ:
-      case SLT:
-      case SLTI:
-      case SLTIU:
-      case SLTU:
-      case DIV:
-      case MOD:
-      case MUL:
-      case MUH:
-      case MULU:
-      case MUHU:
-      case DIVU:
-      case MODU:
-      case MADD:
-      case MADDU:
-      case MSUB:
-      case MSUBU:
-      case MULT:
-      case MULTU:
-      case BEQ:
-      case BNE:
-      case BOVC:
-      case BNVC:
-      case BREAK:
-      case J:
-      case JAL:
-      case JALR:
-      case JALR_HB:
-      case JR:
-      case JR_HB:
-      case BALC:
-      case BC:
-      case BGEZ:
-      case BGTZ:
-      case BITSWAP:
-      case BGEZAL:
-      case BLEZALC:
-      case BGEZALC:
-      case BGTZALC:
-      case BLTZALC:
-      case BEQZALC:
-      case BNEZALC:
-      case BLEZC:
-      case BGEZC:
-      case BGEC:
-      case BGTZC:
-      case BLTZC:
-      case BLTC:
-      case BGEUC:
-      case BLTUC:
-      case BEQC:
-      case BNEC:
-      case BEQZC:
-      case BNEZC:
-      case BLEZ:
-      case BLTZ:
-      case BLTZAL:
-      case JIALC:
-      case JIC:
-      case NAL:
-      case SELEQZ:
-      case SELNEZ:
-      case TEQ:
-      case TGE:
-      case TGEU:
       case TLT:
       case TLTU:
       case TNE:
-      case LW:
-      case LWE:
-      case SW:
-      case SWE:
-      case SWC1:
-      case SWC2:
-      case LB:
-      case LBE:
-      case LBU:
-      case LBUE:
-      case LH:
-      case LHE:
-      case LHU:
-      case LHUE:
-      case LSA:
-      case LWL:
-      case LWPC:
-      case LWR:
-      case SB:
-      case SBE:
-      case SH:
-      case SHE:
-      case SWL:
-      case SWR:
-      case CACHE:
-      case CACHEE:
-      case MFHI:
-      case MFLO:
-      case MTHI:
-      case MTLO:
-      case LL:
-      case LLE:
-      case LLWP:
-      case LLWPE:
-      case SC:
-      case SCE:
-      case SCWP:
-      case SCWPE:
-      case LDC1:
-      case LDC2:
-      case LWC1:
-      case LWC2:
-      case SDC1:
+      case TRUNC_L_D:
+      case TRUNC_L_S:
+      case TRUNC_W_D:
+      case TRUNC_W_S:
+      case WAIT:
+      case WRPGPR:
+      case WSBH:
+      case XOR:
+      case XORI:
       default:
         encoding =
             opcode.partialEncoding
-                | currentOpcode
+                | opcode.opcode
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11

@@ -41,7 +41,7 @@ public enum Opcode {
   ADDIUPC("addiupc", 0xec000000, 0x0, I_TYPE, false, true, false),
   ADDU("addu", 0x0, 0x0000021, R_TYPE, true, true, true),
   ALIGN("align", 0x7c000000, 0x0000220, R_TYPE, true, true, true),
-  ALUIPC("aluic", 0xec000000, 0x001f000, R_TYPE, false, true, false),
+  ALUIPC("aluipc", 0xec000000, 0x001f0000, R_TYPE, false, true, false),
   CLO("clo", 0x0, 0x00000051, R_TYPE, false, true, true),
   CLZ("clz", 0x0, 0x00000010, R_TYPE, false, true, true),
   LA(
@@ -77,7 +77,7 @@ public enum Opcode {
   AND("and", 0x0, 0x0000024, R_TYPE, true, true, true),
   ANDI("andi", 0x30000000, 0x0, I_TYPE, true, true, false),
   AUI("aui", 0x3c000000, 0x0, I_TYPE, true, true, false),
-  AUIPC("auipc", 0xec000000, 0x001e000, I_TYPE, false, true, false),
+  AUIPC("auipc", 0xec000000, 0x001e0000, I_TYPE, false, true, false),
   EXT("ext", 0x7c000000, 0x0, R_TYPE, true, true, false),
   INS("ins", 0x7c000000, 0x00000004, R_TYPE, true, true, false),
   NOP("nop", 0x0, 0x0, IDIOM, false, false, false),
@@ -270,10 +270,10 @@ public enum Opcode {
   RDPGPR("rdpgpr", 0x40000000, 0x01400000, R_TYPE, true, false, true),
 
   // FPU IEEE arithmetic operations
-  ABS_S("abs.s", 0x44000000, 0x0200005, R_TYPE, false, true, true),
-  ABS_D("abs.d", 0x44000000, 0x0220005, R_TYPE, false, true, true),
-  ADD_S("add.s", 0x44000000, 0x0200000, R_TYPE, true, true, true),
-  ADD_D("add.d", 0x44000000, 0x0220000, R_TYPE, true, true, true),
+  ABS_S("abs.s", 0x44000000, 0x02000005, R_TYPE, false, true, true),
+  ABS_D("abs.d", 0x44000000, 0x02200005, R_TYPE, false, true, true),
+  ADD_S("add.s", 0x44000000, 0x02000000, R_TYPE, true, true, true),
+  ADD_D("add.d", 0x44000000, 0x02200000, R_TYPE, true, true, true),
   CMP_AF_S("cmp.af.s", 0x44000000, 0x02800000, R_TYPE, true, true, true),
   CMP_AF_D("cmp.af.d", 0x44000000, 0x02a00000, R_TYPE, true, true, true),
   CMP_UN_S("cmp.un.s", 0x44000000, 0x02800001, R_TYPE, true, true, true),
@@ -424,10 +424,10 @@ public enum Opcode {
   SELNEZ_D("selnez.d", 0x0, 0x02200017, R_TYPE, true, true, true),
 
   // FPU Conditional Branch Instructions
-  BC1EQZ("bc1eqz", 0x44000000, 0x0120000, I_TYPE, true, false, false),
-  BC1NEZ("bc1nez", 0x44000000, 0x01a0000, I_TYPE, true, false, false),
-  BC2EQZ("bc2eqz", 0x48000000, 0x0120000, R_TYPE, true, false, false),
-  BC2NEZ("bc2nez", 0x48000000, 0x01a0000, R_TYPE, true, false, false),
+  BC1EQZ("bc1eqz", 0x44000000, 0x01200000, I_TYPE, true, false, false),
+  BC1NEZ("bc1nez", 0x44000000, 0x01a00000, I_TYPE, true, false, false),
+  BC2EQZ("bc2eqz", 0x48000000, 0x01200000, R_TYPE, true, false, false),
+  BC2NEZ("bc2nez", 0x48000000, 0x01a00000, R_TYPE, true, false, false),
 
   // System utilities
   DERET("deret", 0x40000000, 0x0200001f, R_TYPE, false, false, false),
