@@ -35,8 +35,6 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
 import static com.cleverchuk.mips.simulator.binary.Opcode.OPCODES;
 
 import androidx.annotation.Nullable;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
-import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -237,10 +235,6 @@ public final class MipsLexer {
 
   public static final Set<String> FPU_REG = new HashSet<>(DECI_TO_FPU_REG.values());
 
-  public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
-
-  public static final Set<String> FPU_OPCODES = FpuOpcode.FPU_OPCODES;
-
   private LexerState state = LEX_START;
 
   private char[] source;
@@ -331,22 +325,6 @@ public final class MipsLexer {
                 .pos(sourcePos - value.length() - 1)
                 .build();
           }
-        }
-        if (CPU_OPCODES.contains(value)) {
-          return Token.builder()
-              .tokenType(TokenType.CPU_OPCODE)
-              .value(value)
-              .line(lineNumber)
-              .pos(sourcePos - value.length())
-              .build();
-        }
-        if (FPU_OPCODES.contains(value)) {
-          return Token.builder()
-              .tokenType(TokenType.FPU_OPCODE)
-              .value(value)
-              .line(lineNumber)
-              .pos(sourcePos - value.length())
-              .build();
         }
         if (OPCODES.contains(value)) {
           return Token.builder()

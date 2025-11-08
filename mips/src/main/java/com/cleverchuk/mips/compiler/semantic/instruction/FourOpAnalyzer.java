@@ -40,13 +40,15 @@ public class FourOpAnalyzer implements Analyzer {
   public boolean analyze(Node opcodeKind) {
     List<Node> children = opcodeKind.getChildren();
     Node opcode = children.get(0);
-    return children.size() == 5
-        && (
-        Opcode.EXT.same((String) opcode.getValue())
-            || Opcode.INS.same((String) opcode.getValue()))
-        && Construct.REGISTER == children.get(1).getConstruct()
-        && Construct.REGISTER == children.get(2).getConstruct()
-        && Construct.CONSTANT == children.get(3).getConstruct()
-        && Construct.CONSTANT == children.get(4).getConstruct();
+    if (children.size() == 5) {
+      if (Opcode.EXT.same((String) opcode.getValue())
+          || Opcode.INS.same((String) opcode.getValue())) {
+        return Construct.REGISTER == children.get(1).getConstruct()
+            && Construct.REGISTER == children.get(2).getConstruct()
+            && Construct.EXPR == children.get(3).getConstruct()
+            && Construct.EXPR == children.get(4).getConstruct();
+      }
+    }
+    return false;
   }
 }

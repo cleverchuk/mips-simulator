@@ -29,8 +29,6 @@ public enum TokenType {
   DATA,
   GLOBL, // change this to grammar ie directive -> .ID
   TEXT,
-  CPU_OPCODE,
-  FPU_OPCODE,
   OPCODE,
   REG,
   ASCII,

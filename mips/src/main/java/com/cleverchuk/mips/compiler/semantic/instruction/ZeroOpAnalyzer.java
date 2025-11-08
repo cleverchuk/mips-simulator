@@ -33,8 +33,7 @@ import javax.inject.Inject;
 public class ZeroOpAnalyzer implements Analyzer {
 
   @Inject
-  public ZeroOpAnalyzer() {
-  }
+  public ZeroOpAnalyzer() {}
 
   @Override
   public boolean analyze(Node opcodeKind) {
@@ -45,9 +44,7 @@ public class ZeroOpAnalyzer implements Analyzer {
     List<Node> children = opcodeKind.getChildren();
     Node opcode = children.get(0);
     return children.size() == 1
-        && (
-        Opcode.NOP.same((String) opcode.getValue())
-            || Opcode.SYSCALL.same((String) opcode.getValue())
-    );
+        && (Opcode.NOP.same((String) opcode.getValue())
+            || Opcode.SYSCALL.same((String) opcode.getValue()));
   }
 }
