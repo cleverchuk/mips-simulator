@@ -36,28 +36,35 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.junit.Before;
 import org.junit.Test;
 
 public class InstructionVisitorTest {
-  InstructionVisitor visitor = new InstructionVisitor();
+  InstructionVisitor visitor;
 
-  RecursiveDescentParser parser =
-      new RecursiveDescentParser(
-          new MipsLexer(),
-          new SemanticAnalyzer(
-              new InstructionAnalyzer(
-                  new ZeroOpAnalyzer(),
-                  new OneOpAnalyzer(),
-                  new TwoOpAnalyzer(
-                      new TwoOpAnalyzer.LoadStoreAnalyzer(),
-                      new TwoOpAnalyzer.TwoRegOpcodeAnalyzer(),
-                      new TwoOpAnalyzer.BranchOpcodeAnalyzer()),
-                  new ThreeOpAnalyzer(
-                      new ThreeOpAnalyzer.ShiftRotateAnalyzer(),
-                      new ThreeOpAnalyzer.ConditionalTestingAndMoveAnalyzer(),
-                      new ThreeOpAnalyzer.ArithmeticAndLogicalOpcodeAnalyzer()),
-                  new FourOpAnalyzer())),
-          visitor);
+  RecursiveDescentParser parser;
+
+  @Before
+  public void setup() {
+    visitor = new InstructionVisitor();
+    parser =
+        new RecursiveDescentParser(
+            new MipsLexer(),
+            new SemanticAnalyzer(
+                new InstructionAnalyzer(
+                    new ZeroOpAnalyzer(),
+                    new OneOpAnalyzer(),
+                    new TwoOpAnalyzer(
+                        new TwoOpAnalyzer.LoadStoreAnalyzer(),
+                        new TwoOpAnalyzer.TwoRegOpcodeAnalyzer(),
+                        new TwoOpAnalyzer.BranchOpcodeAnalyzer()),
+                    new ThreeOpAnalyzer(
+                        new ThreeOpAnalyzer.ShiftRotateAnalyzer(),
+                        new ThreeOpAnalyzer.ConditionalTestingAndMoveAnalyzer(),
+                        new ThreeOpAnalyzer.ArithmeticAndLogicalOpcodeAnalyzer()),
+                    new FourOpAnalyzer())));
+    parser.addVisitor(visitor);
+  }
 
   @Test
   public void testVisit() {
@@ -90,7 +97,7 @@ public class InstructionVisitorTest {
     expected.add("lw $t0 , 2 ( $t1 )");
     expected.add("sw $t0 , 67 ( $sp )");
 
-    expected.add("li $t0 , 300");
+    expected.add("ori $t0 , $zero , 300");
     expected.add("la $t0 , label");
     expected.add("jal label");
 
@@ -98,7 +105,7 @@ public class InstructionVisitorTest {
     expected.add("addi $t0 , $zero , 300");
     expected.add("add $t0 , $t1 , $zero");
 
-    expected.add("li $v0 , 1");
+    expected.add("ori $v0 , $zero , 1");
     expected.add("syscall");
     expected.add("nop");
 

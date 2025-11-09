@@ -42,21 +42,17 @@ public final class RecursiveDescentParser {
 
   private final SemanticAnalyzer semanticAnalyzer;
 
-  private final List<NodeVisitor> visitors = new LinkedList<>();
+  private final List<NodeVisitor> nodeVisitors = new LinkedList<>();
 
   private Token ll1;
 
-  public RecursiveDescentParser(MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
-    this(lexer, semanticAnalyzer, (node) -> {});
-  }
 
   @Inject
   public RecursiveDescentParser(
-      MipsLexer lexer, SemanticAnalyzer semanticAnalyzer, NodeVisitor visitor) {
+      MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
     this.lexer = lexer;
     this.semanticAnalyzer = semanticAnalyzer;
-    visitors.add(new PseudoTransformer());
-    visitors.add(visitor);
+    nodeVisitors.add(new PseudoTransformer());
   }
 
   @NonNull public Node parse(String source) {
@@ -67,19 +63,19 @@ public final class RecursiveDescentParser {
   }
 
   private void visit(Node node) {
-    visitors.forEach(visitor -> visitor.visit(node));
+    nodeVisitors.forEach(visitor -> visitor.visit(node));
   }
 
   private void visit(Node node, BiConsumer<NodeVisitor, Node> invoked) {
-    visitors.forEach(visitor -> invoked.accept(visitor, node));
+    nodeVisitors.forEach(visitor -> invoked.accept(visitor, node));
   }
 
   public void addVisitor(NodeVisitor visitor) {
-    visitors.add(visitor);
+    nodeVisitors.add(visitor);
   }
 
   public boolean removeVisitor(NodeVisitor visitor) {
-    return visitors.remove(visitor);
+    return nodeVisitors.remove(visitor);
   }
 
   private Node program() {
