@@ -40,6 +40,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("all")
 public class AssemblerTest {
   RecursiveDescentParser parser =
       new RecursiveDescentParser(
@@ -492,8 +493,337 @@ public class AssemblerTest {
     assertEquals(expectedEncoding, actualEncoding);
   }
 
-  public String toLineDelimited(String[] array) {
+  @Test
+  public void testBeq() {
+    String[] instructions = {".text", "beq $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
 
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x11090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBeqc() {
+    String[] instructions = {".text", "beqc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x21090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBeqzalc() {
+    String[] instructions = {".text", "beqzalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x20080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBeqzc() {
+    String[] instructions = {".text", "beqzc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0xd9000004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgec() {
+    String[] instructions = {".text", "bgec $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x59090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgezalc() {
+    String[] instructions = {".text", "bgezalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x19080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgezal() {
+    String[] instructions = {".text", "bgezal $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x05110004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgezc() {
+    String[] instructions = {".text", "bgezc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x59080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgez() {
+    String[] instructions = {".text", "bgez $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x05010004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgeuc() {
+    String[] instructions = {".text", "bgeuc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x19090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgtzalc() {
+    String[] instructions = {".text", "bgtzalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x1c080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgtzc() {
+    String[] instructions = {".text", "bgtzc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x5c080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBgtz() {
+    String[] instructions = {".text", "bgtz $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x1d000004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBitswap() {
+    String[] instructions = {".text", "bitswap $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x7c094020;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBlezalc() {
+    String[] instructions = {".text", "blezalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x18080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBlezc() {
+    String[] instructions = {".text", "blezc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x58080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBlez() {
+    String[] instructions = {".text", "blez $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x19000004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltc() {
+    String[] instructions = {".text", "bltc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x5d090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltuc() {
+    String[] instructions = {".text", "bltuc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x1d090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltzalc() {
+    String[] instructions = {".text", "bltzalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x1d080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltzal() {
+    String[] instructions = {".text", "bltzal $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x05100004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltzc() {
+    String[] instructions = {".text", "bltzc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x5d080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBltz() {
+    String[] instructions = {".text", "bltz $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x05000004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBne() {
+    String[] instructions = {".text", "bne $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x15090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBnec() {
+    String[] instructions = {".text", "bnec $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x61090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBnezalc() {
+    String[] instructions = {".text", "bnezalc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x60080004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBnezc() {
+    String[] instructions = {".text", "bnezc $t0, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0xf9000004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBnvc() {
+    String[] instructions = {".text", "bnvc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x61090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBovc() {
+    String[] instructions = {".text", "bovc $t0, $t1, label", "label: la $t4, bytes"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x21090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testBreak() {
+    String[] instructions = {".text", "break"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x0000000d;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  public String toLineDelimited(String[] array) {
     StringBuilder builder = new StringBuilder();
     for (String ins : array) {
       builder.append(ins).append('\n');

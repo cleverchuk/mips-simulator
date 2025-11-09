@@ -262,6 +262,7 @@ public class Assembler implements NodeVisitor {
         break;
       case B:
       case BEQZ:
+      case BEQ:
         address = symbolTable.get(currentLabel);
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("beq"));
         encoding =
@@ -269,8 +270,7 @@ public class Assembler implements NodeVisitor {
                 | lookupOpcode.opcode
                 | currentRs << 21
                 | currentRt << 16
-                | currentRd << 11
-                | (address != null ? computePcRelativeOffset(address) & 0xffff : currentImme);
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
         break;
       case LA:
         address = symbolTable.get(currentLabel);
@@ -279,7 +279,7 @@ public class Assembler implements NodeVisitor {
             lookupOpcode.partialEncoding
                 | lookupOpcode.opcode
                 | currentRt << 16
-                | (address != null ? (address >> 16) & 0xffff : currentImme);
+                | (address != null ? (address >> 16) : currentImme) & 0xffff;
         layout.storeWord(encoding, index);
         index += 4;
 
@@ -289,7 +289,7 @@ public class Assembler implements NodeVisitor {
                 | lookupOpcode.opcode
                 | currentRt << 21
                 | currentRt << 16
-                | (address != null ? address & 0xffff : currentImme);
+                | (address != null ? address : currentImme) & 0xffff;
         break;
       case LI:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
@@ -425,10 +425,46 @@ public class Assembler implements NodeVisitor {
       case BC1NEZ:
       case BC2EQZ:
       case BC2NEZ:
+      case BEQC:
+      case BEQZALC:
+      case BEQZC:
+      case BGEC:
+      case BGEZAL:
+      case BGEZ:
+      case BGEUC:
+      case BGTZALC:
+      case BGTZC:
+      case BGTZ:
+      case BLEZALC:
+      case BLEZC:
+      case BLEZ:
+      case BLTC:
+      case BLTUC:
+      case BLTZAL:
+      case BLTZ:
+      case BNE:
+      case BNEC:
+      case BNEZALC:
+      case BNEZC:
+      case BNVC:
+      case BOVC:
         address = symbolTable.get(currentLabel);
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
+                | currentRs << 21
+                | currentRt << 16
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
+        break;
+      case BGEZC:
+      case BGEZALC:
+      case BLTZALC:
+      case BLTZC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 21
                 | currentRt << 16
                 | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
         break;
@@ -441,35 +477,7 @@ public class Assembler implements NodeVisitor {
       case ALUIPC:
       case AND:
       case AUIPC:
-      case BEQ:
-      case BEQC:
-      case BEQZALC:
-      case BEQZC:
-      case BGEC:
-      case BGEZALC:
-      case BGEZAL:
-      case BGEZC:
-      case BGEZ:
-      case BGEUC:
-      case BGTZALC:
-      case BGTZC:
-      case BGTZ:
       case BITSWAP:
-      case BLEZALC:
-      case BLEZC:
-      case BLEZ:
-      case BLTC:
-      case BLTUC:
-      case BLTZALC:
-      case BLTZAL:
-      case BLTZC:
-      case BLTZ:
-      case BNE:
-      case BNEC:
-      case BNEZALC:
-      case BNEZC:
-      case BNVC:
-      case BOVC:
       case BREAK:
       case CACHE:
       case CACHEE:
