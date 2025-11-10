@@ -902,7 +902,7 @@ public final class RecursiveDescentParser {
     visit(opcode, NodeVisitor::visitOpcode);
     twoOp.addChild(opcode);
 
-    Node operand = register();
+    Node operand = operand(); // cache 4, 0($t1)
     if (operand == null) {
       lexer.reset(resetPos);
       return null;

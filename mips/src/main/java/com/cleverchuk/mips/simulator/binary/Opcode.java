@@ -43,7 +43,7 @@ public enum Opcode {
   ALIGN("align", 0x7c000000, 0x0000220, R_TYPE, true, true, true),
   ALUIPC("aluipc", 0xec000000, 0x001f0000, R_TYPE, false, true, false),
   CLO("clo", 0x0, 0x00000051, R_TYPE, false, true, true),
-  CLZ("clz", 0x0, 0x00000010, R_TYPE, false, true, true),
+  CLZ("clz", 0x0, 0x00000050, R_TYPE, false, true, true),
   LA(
       "la", 0x0, 0x0, IDIOM, true, false,
       false), // assembler idiom, needs translation to actual instruction
@@ -218,8 +218,8 @@ public enum Opcode {
   SWR("swr", 0xb8000000, 0x0, I_TYPE, true, true, false),
   ULW("ulw", 0x0, 0x0, IDIOM, true, true, false),
   USW("usw", 0x0, 0x0, IDIOM, true, true, false),
-  CACHE("cache", 0x7c000000, 0x0000025, I_TYPE, false, true, false),
-  CACHEE("cachee", 0x7c000000, 0x000001b, I_TYPE, false, true, false),
+  CACHE("cache", 0x7c000000, 0x00000025, I_TYPE, false, true, false),
+  CACHEE("cachee", 0x7c000000, 0x0000001b, I_TYPE, false, true, false),
 
   // ACCUMULATOR ACCESS OPERATIONS
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
@@ -287,7 +287,7 @@ public enum Opcode {
   CMP_ULT_S("cmp.ult.s", 0x44000000, 0x02800005, R_TYPE, true, true, true),
   CMP_ULT_D("cmp.ult.d", 0x44000000, 0x02a00005, R_TYPE, true, true, true),
   CMP_LE_S("cmp.le.s", 0x44000000, 0x02800006, R_TYPE, true, true, true),
-  CMP_LE_D("cmp.le.d", 0x44000000, 0x02a000006, R_TYPE, true, true, true),
+  CMP_LE_D("cmp.le.d", 0x44000000, 0x02a00006, R_TYPE, true, true, true),
   CMP_ULE_S("cmp.ule.s", 0x44000000, 0x02800007, R_TYPE, true, true, true),
   CMP_ULE_D("cmp.ule.d", 0x44000000, 0x02a00007, R_TYPE, true, true, true),
   CMP_SAF_S("cmp.saf.s", 0x44000000, 0x02800008, R_TYPE, true, true, true),
@@ -394,10 +394,10 @@ public enum Opcode {
   RINT_D("rint.d", 0x44000000, 0x022001a, R_TYPE, false, true, true),
 
   // FPU Conversion Operations Using a Directed Rounding Mode
-  CEIL_L_S("ceil.l.s", 0x44000000, 0x020000a, R_TYPE, false, true, true),
-  CEIL_L_D("ceil.l.d", 0x44000000, 0x022000a, R_TYPE, false, true, true),
-  CEIL_W_S("ceil.w.s", 0x44000000, 0x020000e, R_TYPE, false, true, true),
-  CEIL_W_D("ceil.w.d", 0x44000000, 0x022000e, R_TYPE, false, true, true),
+  CEIL_L_S("ceil.l.s", 0x44000000, 0x0200000a, R_TYPE, false, true, true),
+  CEIL_L_D("ceil.l.d", 0x44000000, 0x0220000a, R_TYPE, false, true, true),
+  CEIL_W_S("ceil.w.s", 0x44000000, 0x0200000e, R_TYPE, false, true, true),
+  CEIL_W_D("ceil.w.d", 0x44000000, 0x0220000e, R_TYPE, false, true, true),
   FLOOR_L_S("floor.l.s", 0x44000000, 0x0200000b, R_TYPE, false, true, true),
   FLOOR_L_D("floor.l.d", 0x44000000, 0x0220000b, R_TYPE, false, true, true),
   FLOOR_W_S("floor.w.s", 0x44000000, 0x0200000f, R_TYPE, false, true, true),

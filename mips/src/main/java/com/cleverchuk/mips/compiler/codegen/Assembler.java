@@ -82,10 +82,13 @@ public class Assembler implements NodeVisitor {
 
   private byte posBitfield = 0; // pos = 001, 1, size = 010, 2,
 
+  private byte opBitfield = 0; // op = 001, 1
+
   private InstructionIR.Builder irBuilder = null;
 
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
@@ -119,7 +122,7 @@ public class Assembler implements NodeVisitor {
     }
 
     opcode = newOpcode;
-    regBitfield = 0;
+    regBitfield = opBitfield = posBitfield = 0;
     irBuilder = InstructionIR.builder().withOpcode(newOpcode);
   }
 
@@ -159,6 +162,13 @@ public class Assembler implements NodeVisitor {
       int constant = operands.pop().intValue();
       if (opcode == Opcode.ALIGN) {
         irBuilder.withSa(constant);
+      } else if (opcode == Opcode.CACHE || opcode == Opcode.CACHEE) {
+        if ((opBitfield & 1) == 0) {
+          irBuilder.withSa(constant);
+          opBitfield |= 1;
+        } else {
+          irBuilder.withImmediate(constant).withOffset(constant);
+        }
       } else {
         irBuilder.withImmediate(constant).withOffset(constant);
       }
@@ -341,7 +351,7 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | currentRt << 16
                 | currentRd << 11
-                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff ;
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
         break;
       case BAL:
         address = symbolTable.get(currentLabel);
@@ -405,92 +415,6 @@ public class Assembler implements NodeVisitor {
       case ABS_S:
       case ADD_D:
       case ADD_S:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRt << 16
-                | currentRs << 11
-                | currentRd << 6;
-        break;
-      case ANDI:
-      case AUI:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 16 // rs contains rt due to format ordering
-                | currentRt << 21
-                | currentImme & 0xffff;
-        break;
-      case BC1EQZ:
-      case BC1NEZ:
-      case BC2EQZ:
-      case BC2NEZ:
-      case BEQC:
-      case BEQZALC:
-      case BEQZC:
-      case BGEC:
-      case BGEZAL:
-      case BGEZ:
-      case BGEUC:
-      case BGTZALC:
-      case BGTZC:
-      case BGTZ:
-      case BLEZALC:
-      case BLEZC:
-      case BLEZ:
-      case BLTC:
-      case BLTUC:
-      case BLTZAL:
-      case BLTZ:
-      case BNE:
-      case BNEC:
-      case BNEZALC:
-      case BNEZC:
-      case BNVC:
-      case BOVC:
-        address = symbolTable.get(currentLabel);
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 21
-                | currentRt << 16
-                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
-        break;
-      case BGEZC:
-      case BGEZALC:
-      case BLTZALC:
-      case BLTZC:
-        address = symbolTable.get(currentLabel);
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRt << 21
-                | currentRt << 16
-                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
-        break;
-      case ADD:
-      case ADDI:
-      case ADDIUPC:
-      case ADDIU:
-      case ADDU:
-      case ALIGN:
-      case ALUIPC:
-      case AND:
-      case AUIPC:
-      case BITSWAP:
-      case BREAK:
-      case CACHE:
-      case CACHEE:
-      case CEIL_L_D:
-      case CEIL_L_S:
-      case CEIL_W_D:
-      case CEIL_W_S:
-      case CFC1:
-      case CFC2:
-      case CLASS_D:
-      case CLASS_S:
-      case CLO:
-      case CLZ:
       case CMP_AF_D:
       case CMP_AF_S:
       case CMP_AT_D:
@@ -555,6 +479,117 @@ public class Assembler implements NodeVisitor {
       case CMP_UN_S:
       case CMP_UNE_D:
       case CMP_UNE_S:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | currentRs << 11
+                | currentRd << 6;
+        break;
+      case ANDI:
+      case AUI:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 16 // rs contains rt due to format ordering
+                | currentRt << 21
+                | currentImme & 0xffff;
+        break;
+      case BC1EQZ:
+      case BC1NEZ:
+      case BC2EQZ:
+      case BC2NEZ:
+      case BEQC:
+      case BEQZALC:
+      case BEQZC:
+      case BGEC:
+      case BGEZAL:
+      case BGEZ:
+      case BGEUC:
+      case BGTZALC:
+      case BGTZC:
+      case BGTZ:
+      case BLEZALC:
+      case BLEZC:
+      case BLEZ:
+      case BLTC:
+      case BLTUC:
+      case BLTZAL:
+      case BLTZ:
+      case BNE:
+      case BNEC:
+      case BNEZALC:
+      case BNEZC:
+      case BNVC:
+      case BOVC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRt << 16
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
+        break;
+      case BGEZC:
+      case BGEZALC:
+      case BLTZALC:
+      case BLTZC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 21
+                | currentRt << 16
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0xffff;
+        break;
+      case CACHE:
+      case CACHEE:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentShiftAmt << 16
+                | (currentOffset << 7) & 0xffff;
+        break;
+      case CEIL_L_D:
+      case CEIL_L_S:
+      case CEIL_W_D:
+      case CEIL_W_S:
+      case CLASS_D:
+      case CLASS_S:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 11
+                | currentRd << 6;
+        break;
+      case CFC1:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 11 // fs
+                | currentRs << 16; // rt
+        break;
+      case CFC2:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | currentImme & 0xffff;
+        break;
+      case ADD:
+      case ADDI:
+      case ADDIUPC:
+      case ADDIU:
+      case ADDU:
+      case ALIGN:
+      case ALUIPC:
+      case AND:
+      case AUIPC:
+      case BITSWAP:
+      case BREAK:
+      case CLO:
+      case CLZ:
       case COP2:
       case CRC32B:
       case CRC32CB:
