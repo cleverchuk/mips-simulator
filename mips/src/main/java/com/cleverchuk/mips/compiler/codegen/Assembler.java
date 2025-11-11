@@ -557,6 +557,16 @@ public class Assembler implements NodeVisitor {
       case CEIL_W_S:
       case CLASS_D:
       case CLASS_S:
+      case CVT_D_L:
+      case CVT_D_S:
+      case CVT_D_W:
+      case CVT_L_D:
+      case CVT_L_S:
+      case CVT_S_D:
+      case CVT_S_L:
+      case CVT_S_W:
+      case CVT_W_D:
+      case CVT_W_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -564,6 +574,7 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 6;
         break;
       case CFC1:
+      case CTC1:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -571,11 +582,30 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 16; // rt
         break;
       case CFC2:
+      case CTC2:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
                 | currentRt << 16
                 | currentImme & 0xffff;
+        break;
+      case COP2:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentImme & 0x1ffffff;
+        break;
+      case CRC32B:
+      case CRC32CB:
+      case CRC32CH:
+      case CRC32CW:
+      case CRC32H:
+      case CRC32W:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 16 // rt is captured in rs
+                | currentRt << 21;
         break;
       case ADD:
       case ADDI:
@@ -590,25 +620,6 @@ public class Assembler implements NodeVisitor {
       case BREAK:
       case CLO:
       case CLZ:
-      case COP2:
-      case CRC32B:
-      case CRC32CB:
-      case CRC32CH:
-      case CRC32CW:
-      case CRC32H:
-      case CRC32W:
-      case CTC1:
-      case CTC2:
-      case CVT_D_L:
-      case CVT_D_S:
-      case CVT_D_W:
-      case CVT_L_D:
-      case CVT_L_S:
-      case CVT_S_D:
-      case CVT_S_L:
-      case CVT_S_W:
-      case CVT_W_D:
-      case CVT_W_S:
       case DERET:
       case DI:
       case DIV:

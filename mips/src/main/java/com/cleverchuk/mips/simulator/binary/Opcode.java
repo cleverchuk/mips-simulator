@@ -389,7 +389,7 @@ public enum Opcode {
   CVT_S_W("cvt.s.w", 0x44000000, 0x02800020, R_TYPE, false, true, true),
   CVT_S_L("cvt.s.l", 0x44000000, 0x02a00020, R_TYPE, false, true, true),
   CVT_W_S("cvt.w.s", 0x44000000, 0x02000024, R_TYPE, false, true, true),
-  CVT_W_D("cvt.w.d", 0x44000000, 0x0220002, R_TYPE, false, true, true),
+  CVT_W_D("cvt.w.d", 0x44000000, 0x02200024, R_TYPE, false, true, true),
   RINT_S("rint.s", 0x44000000, 0x0200001a, R_TYPE, false, true, true),
   RINT_D("rint.d", 0x44000000, 0x022001a, R_TYPE, false, true, true),
 
