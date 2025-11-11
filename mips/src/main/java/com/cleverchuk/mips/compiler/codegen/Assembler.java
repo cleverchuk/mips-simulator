@@ -169,6 +169,16 @@ public class Assembler implements NodeVisitor {
         } else {
           irBuilder.withImmediate(constant).withOffset(constant);
         }
+      } else if (opcode == Opcode.EXT || opcode == Opcode.INS) {
+        if ((posBitfield & 1) == 0) {
+          irBuilder.withPos(constant);
+          posBitfield |= 1;
+        } else if ((posBitfield & 2) == 0) {
+          irBuilder.withSize(constant);
+          posBitfield |= 2;
+        }
+      } else if (opcode == Opcode.GINVT || opcode == Opcode.LSA) {
+        irBuilder.withSa(constant);
       } else {
         irBuilder.withImmediate(constant).withOffset(constant);
       }
@@ -251,17 +261,20 @@ public class Assembler implements NodeVisitor {
 
     int currentRs = instructionIR.getRs();
     int currentRt = instructionIR.getRt();
+    int currentPos = instructionIR.getPos();
 
     int currentRd = instructionIR.getRd();
     int currentOffset = instructionIR.getOffset();
     int currentImme = instructionIR.getImmediate();
 
     int currentShiftAmt = instructionIR.getSa();
+    int currentSize = instructionIR.getSize();
     String currentLabel = instructionIR.getLabel();
     Opcode opcode = instructionIR.getOpcode();
 
     switch (opcode) {
       case SDC2:
+      case LDC2:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -362,6 +375,8 @@ public class Assembler implements NodeVisitor {
         break;
       case BALC:
       case BC:
+      case J:
+      case JAL:
         address = symbolTable.get(currentLabel);
         encoding =
             opcode.partialEncoding
@@ -408,7 +423,10 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 11
                 | currentOffset + 3 & 0x7ff;
         break;
+      case DERET:
       case EHB:
+      case ERET:
+      case ERETNC:
         encoding = opcode.partialEncoding | opcode.opcode;
         break;
       case ABS_D:
@@ -479,6 +497,8 @@ public class Assembler implements NodeVisitor {
       case CMP_UN_S:
       case CMP_UNE_D:
       case CMP_UNE_S:
+      case DIV_D:
+      case DIV_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -522,6 +542,8 @@ public class Assembler implements NodeVisitor {
       case BNEZC:
       case BNVC:
       case BOVC:
+      case JIC:
+      case JIALC:
         address = symbolTable.get(currentLabel);
         encoding =
             opcode.partialEncoding
@@ -549,7 +571,7 @@ public class Assembler implements NodeVisitor {
                 | opcode.opcode
                 | currentRs << 21
                 | currentShiftAmt << 16
-                | (currentOffset << 7) & 0xffff;
+                | (currentOffset & 0xffff) << 7;
         break;
       case CEIL_L_D:
       case CEIL_L_S:
@@ -567,6 +589,10 @@ public class Assembler implements NodeVisitor {
       case CVT_S_W:
       case CVT_W_D:
       case CVT_W_S:
+      case FLOOR_L_D:
+      case FLOOR_L_S:
+      case FLOOR_W_D:
+      case FLOOR_W_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -583,6 +609,9 @@ public class Assembler implements NodeVisitor {
         break;
       case CFC2:
       case CTC2:
+      case DVP:
+      case EI:
+      case EVP:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -607,6 +636,71 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 16 // rt is captured in rs
                 | currentRt << 21;
         break;
+      case EXT:
+      case INS:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 21 // rs captured in rt
+                | currentRs << 16
+                | currentSize << 11
+                | currentPos << 6;
+        break;
+      case GINVT:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentShiftAmt << 8;
+        break;
+      case LBE:
+      case LBUE:
+      case LHE:
+      case LHUE:
+      case LL:
+      case LLE:
+      case LWE:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRt << 16
+                | (currentOffset & 0x1ff) << 7;
+        break;
+      case LLWP:
+      case LLWPE:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRd << 16 // rt is captured in rd. format: llwp rt, rd, (base)
+                | currentRt << 11;
+        break;
+      case LWC2:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | currentRs << 11
+                | currentOffset & 0x7ff;
+        break;
+      case LWL:
+      case LWR:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRt << 16
+                | currentOffset & 0xffff;
+        break;
+      case LWPC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | (address != null ? address : currentImme) & 0x3ffff;
+        break;
       case ADD:
       case ADDI:
       case ADDIUPC:
@@ -620,56 +714,23 @@ public class Assembler implements NodeVisitor {
       case BREAK:
       case CLO:
       case CLZ:
-      case DERET:
       case DI:
       case DIV:
-      case DIV_D:
-      case DIV_S:
       case DIVU:
-      case DVP:
-      case EI:
-      case ERET:
-      case ERETNC:
-      case EVP:
-      case EXT:
-      case FLOOR_L_D:
-      case FLOOR_L_S:
-      case FLOOR_W_D:
-      case FLOOR_W_S:
       case GINVI:
-      case GINVT:
-      case INS:
-      case J:
-      case JAL:
       case JALR:
       case JALR_HB:
-      case JIC:
-      case JIALC:
       case JR:
       case JR_HB:
       case LB:
-      case LBE:
       case LBU:
-      case LBUE:
       case LDC1:
-      case LDC2:
       case LH:
-      case LHE:
       case LHU:
-      case LHUE:
-      case LL:
-      case LLE:
-      case LLWP:
-      case LLWPE:
       case LSA:
       case LUI:
       case LW:
       case LWC1:
-      case LWC2:
-      case LWE:
-      case LWL:
-      case LWPC:
-      case LWR:
       case MADD:
       case MADDF_D:
       case MADDF_S:
@@ -715,7 +776,7 @@ public class Assembler implements NodeVisitor {
       case MUL_S:
       case MULT:
       case MULTU:
-      case MULU:
+      case MULU: //stop for today
       case NAL:
       case NEG_D:
       case NEG_S:

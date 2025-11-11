@@ -99,13 +99,14 @@ public enum Opcode {
   SLTU("sltu", 0x0, 0x0000002b, R_TYPE, true, true, true),
 
   // MULTIPLY AND DIVIDE OPERATIONS
-  DIV("div", 0x0, 0x0000009a, R_TYPE, true, true, true),
+  @Deprecated(forRemoval = true, since = "Removed in Release 6")
+  DIV("div", 0x0, 0x0000001a, R_TYPE, true, true, false),
   MOD("mod", 0x0, 0x000000da, R_TYPE, true, true, true),
   MUL("mul", 0x0, 0x00000098, R_TYPE, true, true, true),
   MUH("muh", 0x0, 0x000000d8, R_TYPE, true, true, true),
   MULU("mulu", 0x0, 0x00000099, R_TYPE, true, true, true),
   MUHU("muhu", 0x0, 0x000000d9, R_TYPE, true, true, true),
-  DIVU("divu", 0x0, 0x0000009b, R_TYPE, true, true, true),
+  DIVU("divu", 0x0, 0x0000009a, R_TYPE, true, true, true),
   MODU("modu", 0x0, 0x000000db, R_TYPE, true, true, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MADD("madd", 0x70000000, 0x0, R_TYPE, true, true, false),
@@ -128,14 +129,12 @@ public enum Opcode {
   BOVC("bovc", 0x20000000, 0x0, I_TYPE, true, true, false),
   BNVC("bnvc", 0x60000000, 0x0, I_TYPE, true, true, false),
   BREAK("break", 0x0, 0x000000d, R_TYPE, false, false, false),
-  @Deprecated(forRemoval = true, since = "Release 6 use BC")
   J("j", 0x08000000, 0x0, J_TYPE, false, false, false),
-  @Deprecated(forRemoval = true, since = "Release 6, use BALC")
   JAL("jal", 0x0c000000, 0x0, J_TYPE, false, false, false),
   JALR("jalr", 0x0, 0x00000009, R_TYPE, false, true, true),
   JALR_HB("jalr.hb", 0x0, 0x00000409, R_TYPE, false, true, true),
-  JR("jr", 0x0, 0x00000009, J_TYPE, false, true, false), // replace by JALR in R6
-  JR_HB("jr.hb", 0x0, 0x00000409, J_TYPE, false, true, false), // replace by JALR_HB in R6
+  JR("jr", 0x0, 0x00000009, R_TYPE, false, true, false), // replace by JALR in R6
+  JR_HB("jr.hb", 0x0, 0x00000409, R_TYPE, false, true, false), // replace by JALR_HB in R6
   B(
       "b",
       0x10000000,
@@ -243,9 +242,9 @@ public enum Opcode {
 
   // Data transfer instructions
   LDC1("ldc1", 0xd4000000, 0x0, I_TYPE, true, true, false),
-  LDC2("ldc2", 0x48000000, 0x01c00000, I_TYPE, true, false, true),
+  LDC2("ldc2", 0x48000000, 0x01c00000, I_TYPE, true, true, false),
   LWC1("lwc1", 0xc4000000, 0x0, I_TYPE, true, true, false),
-  LWC2("lwc2", 0x48000000, 0x01400000, I_TYPE, true, false, true),
+  LWC2("lwc2", 0x48000000, 0x01400000, I_TYPE, true, true, false),
   SDC1("sdc1", 0xf4000000, 0x0, I_TYPE, true, true, false),
   SDC2("sdc2", 0x48000000, 0x01e00000, I_TYPE, true, true, false),
   CFC1("cfc1", 0x44000000, 0x00400000, R_TYPE, true, true, false),
