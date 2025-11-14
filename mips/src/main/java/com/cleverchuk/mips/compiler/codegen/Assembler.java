@@ -499,6 +499,22 @@ public class Assembler implements NodeVisitor {
       case CMP_UNE_S:
       case DIV_D:
       case DIV_S:
+      case MADDF_D:
+      case MADDF_S:
+      case MAX_D:
+      case MAXA_D:
+      case MAXA_S:
+      case MAX_S:
+      case MIN_D:
+      case MINA_D:
+      case MINA_S:
+      case MIN_S:
+      case MOV_D:
+      case MOV_S:
+      case MSUBF_D:
+      case MSUBF_S:
+      case MUL_D:
+      case MUL_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -601,6 +617,10 @@ public class Assembler implements NodeVisitor {
         break;
       case CFC1:
       case CTC1:
+      case MFC1:
+      case MFHC1:
+      case MTC1:
+      case MTHC1:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -612,6 +632,10 @@ public class Assembler implements NodeVisitor {
       case DVP:
       case EI:
       case EVP:
+      case MFC2:
+      case MFHC2:
+      case MTC2:
+      case MTHC2:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -701,6 +725,17 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 21
                 | (address != null ? address : currentImme) & 0x3ffff;
         break;
+      case MFC0:
+      case MFHC0:
+      case MTC0:
+      case MTHC0:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 11 // rd is captured in rt
+                | currentRd << 16
+                | currentImme & 0x7;
+        break;
       case ADD:
       case ADDI:
       case ADDIUPC:
@@ -732,48 +767,20 @@ public class Assembler implements NodeVisitor {
       case LW:
       case LWC1:
       case MADD:
-      case MADDF_D:
-      case MADDF_S:
       case MADDU:
-      case MAX_D:
-      case MAXA_D:
-      case MAXA_S:
-      case MAX_S:
-      case MFC0:
-      case MFC1:
-      case MFC2:
-      case MFHC0:
-      case MFHC1:
-      case MFHC2:
       case MFHI:
       case MFLO:
-      case MIN_D:
-      case MINA_D:
-      case MINA_S:
-      case MIN_S:
       case MOD:
       case MODU:
-      case MOV_D:
-      case MOV_S:
       case MOVN:
       case MOVZ:
       case MSUB:
-      case MSUBF_D:
-      case MSUBF_S:
       case MSUBU:
-      case MTC0:
-      case MTC1:
-      case MTC2:
-      case MTHC0:
-      case MTHC1:
-      case MTHC2:
       case MTHI:
       case MTLO:
       case MUH:
       case MUHU:
       case MUL:
-      case MUL_D:
-      case MUL_S:
       case MULT:
       case MULTU:
       case MULU: //stop for today

@@ -2419,6 +2419,512 @@ public class AssemblerTest {
     assertEquals(expectedEncoding, actualEncoding);
   }
 
+  @Test
+  public void testmadd() {
+    String[] instructions = {".text", "madd $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x71090000;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmaddf_d() {
+    String[] instructions = {".text", "maddf.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46231058;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmaddf_s() {
+    String[] instructions = {".text", "maddf.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46031058;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmaddu() {
+    String[] instructions = {".text", "maddu $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x71090001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmax_d() {
+    String[] instructions = {".text", "max.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4623105e;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmax_s() {
+    String[] instructions = {".text", "max.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4603105e;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmaxa_d() {
+    String[] instructions = {".text", "maxa.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4623105f;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmaxa_s() {
+    String[] instructions = {".text", "maxa.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4603105f;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfc0() {
+    String[] instructions = {".text", "mfc0 $t0, $t1, 3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x40084803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfc1() {
+    String[] instructions = {".text", "mfc1 $t0, $f1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x44080800;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfc2() {
+    String[] instructions = {".text", "mfc2 $t0, 1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x48080001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfhc0() {
+    String[] instructions = {".text", "mfhc0 $t0, $t1, 3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x40484803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfhc1() {
+    String[] instructions = {".text", "mfhc1 $t0, $f1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x44680800;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfhc2() {
+    String[] instructions = {".text", "mfhc2 $t0, 1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x48680001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmfhi() {
+    String[] instructions = {".text", "mfhi $t0"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x00004010;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmflo() {
+    String[] instructions = {".text", "mflo $t0"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x00004012;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmin_d() {
+    String[] instructions = {".text", "min.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4623105c;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmin_s() {
+    String[] instructions = {".text", "min.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4603105c;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmina_d() {
+    String[] instructions = {".text", "mina.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4623105d;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmina_s() {
+    String[] instructions = {".text", "mina.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x4603105d;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmod() {
+    String[] instructions = {".text", "mod $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a40da;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmodu() {
+    String[] instructions = {".text", "modu $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a40db;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmovd() {
+    String[] instructions = {".text", "mov.d $f1, $f2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46201046;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmovs() {
+    String[] instructions = {".text", "mov.s $f1, $f2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46001046;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmovn() {
+    String[] instructions = {".text", "movn $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a400b;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmovz() {
+    String[] instructions = {".text", "movz $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a400a;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmsubf_d() {
+    String[] instructions = {".text", "msubf.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46231059;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmsubf_s() {
+    String[] instructions = {".text", "msubf.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46031059;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmsub() {
+    String[] instructions = {".text", "msub $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x71090004;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmsubu() {
+    String[] instructions = {".text", "msubu $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x71090005;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmtc0() {
+    String[] instructions = {".text", "mtc0 $t0, $t1, 3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x40884803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmtc1() {
+    String[] instructions = {".text", "mtc1 $t0, $f1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x44880800;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmtc2() {
+    String[] instructions = {".text", "mtc2 $t0, 1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x48880001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmthc0() {
+    String[] instructions = {".text", "mthc0 $t0, $t1, 3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x40c84803;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmthc1() {
+    String[] instructions = {".text", "mthc1 $t0, $f1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x44e80800;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmthc2() {
+    String[] instructions = {".text", "mthc2 $t0, 1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x48e80001;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmthi() {
+    String[] instructions = {".text", "mthi $t0"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x01000011;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmtlo() {
+    String[] instructions = {".text", "mtlo $t0"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x01000013;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmuh() {
+    String[] instructions = {".text", "muh $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a40d8;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmuhu() {
+    String[] instructions = {".text", "muhu $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a40d9;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmul() {
+    String[] instructions = {".text", "mul $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a4098;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmulu() {
+    String[] instructions = {".text", "mulu $t0, $t1, $t2"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x012a4099;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmuld() {
+    String[] instructions = {".text", "mul.d $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46231042;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmuls() {
+    String[] instructions = {".text", "mul.s $f1, $f2, $f3"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x46031042;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmult() {
+    String[] instructions = {".text", "mult $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x01090018;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
+  @Test
+  public void testmultu() {
+    String[] instructions = {".text", "multu $t0, $t1"};
+    parser.parse(toLineDelimited(instructions));
+    Memory layout = tested.getLayout();
+
+    int actualEncoding = layout.readWord(tested.getTextOffset());
+    int expectedEncoding = 0x01090019;
+    assertEquals(expectedEncoding, actualEncoding);
+  }
+
   public String toLineDelimited(String[] array) {
     StringBuilder builder = new StringBuilder();
     for (String ins : array) {

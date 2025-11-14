@@ -92,6 +92,7 @@ public enum Opcode {
   // CONDITION TESTING AND CONDITIONAL MOVE OPERATIONS
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MOVN("movn", 0x0, 0x0000000b, R_TYPE, true, true, true),
+  @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MOVZ("movz", 0x0, 0x0000000a, R_TYPE, true, true, true),
   SLT("slt", 0x0, 0x0000002a, R_TYPE, true, true, true),
   SLTI("slti", 0x28000000, 0x0, I_TYPE, true, true, false),
@@ -256,7 +257,7 @@ public enum Opcode {
   MFC2("mfc2", 0x48000000, 0x0, R_TYPE, true, false, false),
   MFHC0("mfhc0", 0x40000000, 0x00400000, R_TYPE, true, false, true),
   MFHC1("mfhc1", 0x44000000, 0x00600000, R_TYPE, true, true, false),
-  MFHC2("mfhc2", 0x48000000, 0x00600000, R_TYPE, true, false, true),
+  MFHC2("mfhc2", 0x48000000, 0x00600000, R_TYPE, true, false, false),
   MTC0("mtc0", 0x40000000, 0x00800000, R_TYPE, true, false, true),
   MTC1("mtc1", 0x44000000, 0x00800000, R_TYPE, true, true, false),
   MTC2("mtc2", 0x48000000, 0x00800000, R_TYPE, true, false, false),
@@ -346,7 +347,7 @@ public enum Opcode {
   DIV_S("div.s", 0x44000000, 0x02000003, R_TYPE, true, true, true),
   DIV_D("div.d", 0x44000000, 0x02200003, R_TYPE, true, true, true),
   MUL_S("mul.s", 0x44000000, 0x02000002, R_TYPE, true, true, true),
-  MUL_D("mul.d", 0x44000000, 0x02200002, R_TYPE, false, true, false),
+  MUL_D("mul.d", 0x44000000, 0x02200002, R_TYPE, true, true, true),
   NEG_S("neg.s", 0x44000000, 0x02000007, R_TYPE, false, true, true),
   NEG_D("neg.d", 0x44000000, 0x02200007, R_TYPE, false, true, true),
   SQRT_S("sqrt.s", 0x44000000, 0x02000004, R_TYPE, false, true, true),
