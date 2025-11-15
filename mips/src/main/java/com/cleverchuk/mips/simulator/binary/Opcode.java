@@ -60,7 +60,7 @@ public enum Opcode {
   SUB("sub", 0x0, 0x00000022, R_TYPE, true, true, true),
   SUBU("subu", 0x0, 0x00000023, R_TYPE, true, true, true),
   SEB("seb", 0x7c000000, 0x00000420, R_TYPE, true, false, true),
-  SEH("seh", 0x7c000000, 0x00000620, R_TYPE, true, false, false),
+  SEH("seh", 0x7c000000, 0x00000620, R_TYPE, true, false, true),
 
   // SHIFT AND ROTATE OPERATIONS
   SLL("sll", 0x0, 0x0, R_TYPE, true, false, true),
@@ -391,7 +391,7 @@ public enum Opcode {
   CVT_W_S("cvt.w.s", 0x44000000, 0x02000024, R_TYPE, false, true, true),
   CVT_W_D("cvt.w.d", 0x44000000, 0x02200024, R_TYPE, false, true, true),
   RINT_S("rint.s", 0x44000000, 0x0200001a, R_TYPE, false, true, true),
-  RINT_D("rint.d", 0x44000000, 0x022001a, R_TYPE, false, true, true),
+  RINT_D("rint.d", 0x44000000, 0x0220001a, R_TYPE, false, true, true),
 
   // FPU Conversion Operations Using a Directed Rounding Mode
   CEIL_L_S("ceil.l.s", 0x44000000, 0x0200000a, R_TYPE, false, true, true),
@@ -418,10 +418,10 @@ public enum Opcode {
   // FPU Conditional Select Instructions
   SEL_S("sel.s", 0x44000000, 0x02000010, R_TYPE, true, true, true),
   SEL_D("sel.d", 0x44000000, 0x02200010, R_TYPE, true, true, true),
-  SELEQZ_S("seleqz.s", 0x0, 0x02000014, R_TYPE, true, true, true),
-  SELEQZ_D("seleqz.d", 0x0, 0x02200014, R_TYPE, true, true, true),
-  SELNEZ_S("selnez.s", 0x0, 0x02000017, R_TYPE, true, true, true),
-  SELNEZ_D("selnez.d", 0x0, 0x02200017, R_TYPE, true, true, true),
+  SELEQZ_S("seleqz.s", 0x44000000, 0x02000014, R_TYPE, true, true, true),
+  SELEQZ_D("seleqz.d", 0x44000000, 0x02200014, R_TYPE, true, true, true),
+  SELNEZ_S("selnez.s", 0x44000000, 0x02000017, R_TYPE, true, true, true),
+  SELNEZ_D("selnez.d", 0x44000000, 0x02200017, R_TYPE, true, true, true),
 
   // FPU Conditional Branch Instructions
   BC1EQZ("bc1eqz", 0x44000000, 0x01200000, I_TYPE, true, false, false),
@@ -440,7 +440,7 @@ public enum Opcode {
   ERETNC("eretnc", 0x40000000, 0x02000058, R_TYPE, false, false, false),
   GINVI("ginvi", 0x7c000000, 0x0000003d, R_TYPE, false, true, false),
   GINVT("ginvt", 0x7c000000, 0x000000bd, R_TYPE, false, true, false),
-  PAUSE("pause", 0x0, 0x0, R_TYPE, false, false, false),
+  PAUSE("pause", 0x0, 0x00000140, R_TYPE, false, false, false),
   SDBBP("sdbbp", 0x0, 0x0000000e, R_TYPE, false, false, false),
   SIGRIE("sigrie", 0x04000000, 0x00170000, R_TYPE, false, false, false),
   SYSCALL("syscall", 0x0, 0x0000000c, R_TYPE, false, false, false),

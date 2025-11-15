@@ -160,9 +160,10 @@ public class Assembler implements NodeVisitor {
     exprEval(expr, ops, operands);
     if (currentDataMode.isEmpty()) {
       int constant = operands.pop().intValue();
-      if (opcode == Opcode.ALIGN) {
+      if (opcode == Opcode.ALIGN || opcode == Opcode.ROTR || opcode == Opcode.SLL
+          || opcode == Opcode.SRA || opcode == Opcode.SRL) {
         irBuilder.withSa(constant);
-      } else if (opcode == Opcode.CACHE || opcode == Opcode.CACHEE) {
+      } else if (opcode == Opcode.CACHE || opcode == Opcode.CACHEE || opcode == Opcode.PREF || opcode == Opcode.PREFE) {
         if ((opBitfield & 1) == 0) {
           irBuilder.withSa(constant);
           opBitfield |= 1;
@@ -278,9 +279,9 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRs << 11 // swapped with rd, special R6 encoding
                 | currentRt << 16
                 | currentRd << 21
+                | currentRs << 11 // swapped with rd, special R6 encoding
                 | currentOffset & 0x7ff;
         break;
       case B:
@@ -423,12 +424,6 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 11
                 | currentOffset + 3 & 0x7ff;
         break;
-      case DERET:
-      case EHB:
-      case ERET:
-      case ERETNC:
-        encoding = opcode.partialEncoding | opcode.opcode;
-        break;
       case ABS_D:
       case ABS_S:
       case ADD_D:
@@ -515,6 +510,44 @@ public class Assembler implements NodeVisitor {
       case MSUBF_S:
       case MUL_D:
       case MUL_S:
+      case CEIL_L_D:
+      case CEIL_L_S:
+      case CEIL_W_D:
+      case CEIL_W_S:
+      case CLASS_D:
+      case CLASS_S:
+      case CVT_D_L:
+      case CVT_D_S:
+      case CVT_D_W:
+      case CVT_L_D:
+      case CVT_L_S:
+      case CVT_S_D:
+      case CVT_S_L:
+      case CVT_S_W:
+      case CVT_W_D:
+      case CVT_W_S:
+      case FLOOR_L_D:
+      case FLOOR_L_S:
+      case FLOOR_W_D:
+      case FLOOR_W_S:
+      case NEG_D:
+      case NEG_S:
+      case RECIP_D:
+      case RECIP_S:
+      case RINT_D:
+      case RINT_S:
+      case ROUND_L_D:
+      case ROUND_L_S:
+      case ROUND_W_D:
+      case ROUND_W_S:
+      case RSQRT_D:
+      case RSQRT_S:
+      case SEL_D:
+      case SEL_S:
+      case SELEQZ_D:
+      case SELEQZ_S:
+      case SELNEZ_D:
+      case SELNEZ_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -524,11 +557,14 @@ public class Assembler implements NodeVisitor {
         break;
       case ANDI:
       case AUI:
+      case ORI:
+      case SLTI:
+      case SLTIU:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRs << 16 // rs contains rt due to format ordering
                 | currentRt << 21
+                | currentRs << 16 // rs contains rt due to format ordering
                 | currentImme & 0xffff;
         break;
       case BC1EQZ:
@@ -582,38 +618,14 @@ public class Assembler implements NodeVisitor {
         break;
       case CACHE:
       case CACHEE:
+      case PREF:
+      case PREFE:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
                 | currentRs << 21
                 | currentShiftAmt << 16
                 | (currentOffset & 0xffff) << 7;
-        break;
-      case CEIL_L_D:
-      case CEIL_L_S:
-      case CEIL_W_D:
-      case CEIL_W_S:
-      case CLASS_D:
-      case CLASS_S:
-      case CVT_D_L:
-      case CVT_D_S:
-      case CVT_D_W:
-      case CVT_L_D:
-      case CVT_L_S:
-      case CVT_S_D:
-      case CVT_S_L:
-      case CVT_S_W:
-      case CVT_W_D:
-      case CVT_W_S:
-      case FLOOR_L_D:
-      case FLOOR_L_S:
-      case FLOOR_W_D:
-      case FLOOR_W_S:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 11
-                | currentRd << 6;
         break;
       case CFC1:
       case CTC1:
@@ -624,8 +636,8 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRt << 11 // fs
-                | currentRs << 16; // rt
+                | currentRs << 16 // rt
+                | currentRt << 11; // fs
         break;
       case CFC2:
       case CTC2:
@@ -657,8 +669,8 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRs << 16 // rt is captured in rs
-                | currentRt << 21;
+                | currentRt << 21
+                | currentRs << 16; // rt is captured in rs
         break;
       case EXT:
       case INS:
@@ -684,6 +696,10 @@ public class Assembler implements NodeVisitor {
       case LL:
       case LLE:
       case LWE:
+      case SBE:
+      case SC:
+      case SCE:
+      case SHE:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -693,6 +709,8 @@ public class Assembler implements NodeVisitor {
         break;
       case LLWP:
       case LLWPE:
+      case SCWP:
+      case SCWPE:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -704,12 +722,13 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRt << 16
                 | currentRs << 11
+                | currentRt << 16
                 | currentOffset & 0x7ff;
         break;
       case LWL:
       case LWR:
+      case SDC1:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -732,9 +751,41 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | currentRt << 11 // rd is captured in rt
                 | currentRd << 16
+                | currentRt << 11 // rd is captured in rt
                 | currentImme & 0x7;
+        break;
+      case RDHWR:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRd << 16
+                | currentRt << 11 // rd is captured in rt
+                | (currentImme & 0x7) << 6;
+        break;
+      case ROTRV:
+      case SLLV:
+      case SRAV:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 21 // rs
+                | currentRs << 16 // rt
+                | currentRd << 11;
+        break;
+      case SDBBP:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | (currentImme & 0xfffff) << 6;
+        break;
+      case SRA:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 16
+                | currentRd << 11
+                | (currentShiftAmt & 0x1f) << 6;
         break;
       case ADD:
       case ADDI:
@@ -752,6 +803,10 @@ public class Assembler implements NodeVisitor {
       case DI:
       case DIV:
       case DIVU:
+      case DERET:
+      case EHB:
+      case ERET:
+      case ERETNC:
       case GINVI:
       case JALR:
       case JALR_HB:
@@ -783,61 +838,25 @@ public class Assembler implements NodeVisitor {
       case MUL:
       case MULT:
       case MULTU:
-      case MULU: //stop for today
+      case MULU:
       case NAL:
-      case NEG_D:
-      case NEG_S:
       case NOR:
       case OR:
-      case ORI:
       case PAUSE:
-      case PREF:
-      case PREFE:
-      case RDHWR:
       case RDPGPR:
-      case RECIP_D:
-      case RECIP_S:
-      case RINT_D:
-      case RINT_S:
       case ROTR:
-      case ROTRV:
-      case ROUND_L_D:
-      case ROUND_L_S:
-      case ROUND_W_D:
-      case ROUND_W_S:
-      case RSQRT_D:
-      case RSQRT_S:
       case SB:
-      case SBE:
-      case SC:
-      case SCE:
-      case SCWP:
-      case SCWPE:
-      case SDC1:
-      case SDBBP:
       case SEB:
       case SEH:
-      case SEL_D:
-      case SEL_S:
       case SELEQZ:
-      case SELEQZ_D:
-      case SELEQZ_S:
       case SELNEZ:
-      case SELNEZ_D:
-      case SELNEZ_S:
       case SH:
-      case SHE:
       case SIGRIE:
       case SLL:
-      case SLLV:
       case SLT:
-      case SLTI:
-      case SLTIU:
       case SLTU:
-      case SRA:
-      case SRAV:
       case SRL:
-      case SRLV:
+      case SRLV: //stop for today
       case SSNOP:
       case SQRT_D:
       case SQRT_S:
