@@ -191,7 +191,7 @@ public enum Opcode {
   LW("lw", 0x8c000000, 0x0, I_TYPE, true, true, false),
   LWE("lwe", 0x7c000000, 0x0000002f, I_TYPE, true, true, false),
   SW("sw", 0xac000000, 0x0, I_TYPE, true, true, false),
-  SWE("swe", 0x48000000, 0x0000001f, I_TYPE, true, true, false),
+  SWE("swe", 0x7c000000, 0x0000001f, I_TYPE, true, true, false),
   SWC1("swc1", 0xe4000000, 0x0, I_TYPE, true, true, false),
   SWC2("swc2", 0x48000000, 0x01600000, I_TYPE, true, true, false),
   LB("lb", 0x80000000, 0x0, I_TYPE, true, true, false),

@@ -548,6 +548,14 @@ public class Assembler implements NodeVisitor {
       case SELEQZ_S:
       case SELNEZ_D:
       case SELNEZ_S:
+      case SQRT_D:
+      case SQRT_S:
+      case SUB_D:
+      case SUB_S:
+      case TRUNC_L_D:
+      case TRUNC_L_S:
+      case TRUNC_W_D:
+      case TRUNC_W_S:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -560,6 +568,7 @@ public class Assembler implements NodeVisitor {
       case ORI:
       case SLTI:
       case SLTIU:
+      case XORI:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -700,6 +709,7 @@ public class Assembler implements NodeVisitor {
       case SC:
       case SCE:
       case SHE:
+      case SWE:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -719,6 +729,7 @@ public class Assembler implements NodeVisitor {
                 | currentRt << 11;
         break;
       case LWC2:
+      case SWC2:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -729,6 +740,9 @@ public class Assembler implements NodeVisitor {
       case LWL:
       case LWR:
       case SDC1:
+      case SWC1:
+      case SWL:
+      case SWR:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -766,6 +780,7 @@ public class Assembler implements NodeVisitor {
       case ROTRV:
       case SLLV:
       case SRAV:
+      case SRLV:
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
@@ -786,6 +801,19 @@ public class Assembler implements NodeVisitor {
                 | currentRt << 16
                 | currentRd << 11
                 | (currentShiftAmt & 0x1f) << 6;
+        break;
+      case SYNC:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | (currentImme & 0x1f) << 6;
+        break;
+      case SYNCI:
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRt << 21
+                | (currentImme & 0xffff);
         break;
       case ADD:
       case ADDI:
@@ -856,22 +884,10 @@ public class Assembler implements NodeVisitor {
       case SLT:
       case SLTU:
       case SRL:
-      case SRLV: //stop for today
       case SSNOP:
-      case SQRT_D:
-      case SQRT_S:
       case SUB:
-      case SUB_D:
-      case SUB_S:
       case SUBU:
       case SW:
-      case SWC1:
-      case SWC2:
-      case SWE:
-      case SWL:
-      case SWR:
-      case SYNC:
-      case SYNCI:
       case SYSCALL:
       case TEQ:
       case TGE:
@@ -885,15 +901,10 @@ public class Assembler implements NodeVisitor {
       case TLT:
       case TLTU:
       case TNE:
-      case TRUNC_L_D:
-      case TRUNC_L_S:
-      case TRUNC_W_D:
-      case TRUNC_W_S:
       case WAIT:
       case WRPGPR:
       case WSBH:
       case XOR:
-      case XORI:
       default:
         encoding =
             opcode.partialEncoding
