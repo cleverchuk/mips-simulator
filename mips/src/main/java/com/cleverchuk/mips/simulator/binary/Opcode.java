@@ -50,7 +50,7 @@ public enum Opcode {
   LI(
       "li", 0x0, 0x0, IDIOM, true, false,
       false), // assembler idiom, needs translation to actual instruction
-  LUI("lui", 0x3c000000, 0x0, I_TYPE, true, false, false), // replace by AUI in R6
+  LUI("lui", 0x3c000000, 0x0, IDIOM, true, false, false), // replace by AUI in R6
   MOVE(
       "move", 0x0, 0x0, IDIOM, false, true,
       true), // assembler idiom, needs translation to actual instruction

@@ -3763,7 +3763,7 @@ public class AssemblerTest {
   }
 
   @Test
-  public void testtlwi() {
+  public void testtlbwi() {
     String[] instructions = {".text", "tlbwi"};
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
@@ -3774,7 +3774,7 @@ public class AssemblerTest {
   }
 
   @Test
-  public void testtlwr() {
+  public void testtlbwr() {
     String[] instructions = {".text", "tlbwr"};
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
