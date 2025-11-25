@@ -3,290 +3,258 @@ package com.cleverchuk.mips.simulator.binary;
 import java.util.*;
 
 /**
- * Robust decoder for MIPS32 Release 6 instructions.
- * Uses a multi-level hierarchical map: opcode -> partialEncoding -> operand flags
- * Optimized for memory efficiency while maintaining fast O(1) average lookup.
+ * MIPS instruction decoder using hierarchical lookup tables.
+ *
+ * STRATEGY:
+ * Level 1: opcode (bits 31-26)
+ * Level 2: function field (bits 5-0) from partialEncoding
+ * Level 3: format/RS field (bits 25-21) from partialEncoding
+ * Level 4: RT field (bits 20-16) from partialEncoding
+ * Level 5: full partialEncoding match
+ * Level 6: disambiguate by operand flags (rs/rt/rd)
  */
 public class MipsInstructionDecoder {
 
-  // Bit masks for instruction fields
-  private static final int OPCODE_MASK = 0xFC000000;      // bits 31-26
-  private static final int RS_MASK = 0x03E00000;          // bits 25-21
-  private static final int RT_MASK = 0x001F0000;          // bits 20-16
-  private static final int RD_MASK = 0x0000F800;          // bits 15-11
-  private static final int SHAMT_MASK = 0x000007C0;       // bits 10-6
-  private static final int FUNCT_MASK = 0x0000003F;       // bits 5-0
+  // Bit masks
+  private static final int OPCODE_MASK = 0xFC000000;
+  private static final int FUNCT_MASK = 0x0000003F;
+  private static final int RS_MASK = 0x03E00000;  // bits 25-21
+  private static final int RT_MASK = 0x001F0000;  // bits 20-16
 
   /**
-   * Node in the decoding tree
-   * Each node either contains an opcode or points to more specific nodes
+   * Hierarchical lookup: opcode -> funct -> rs -> rt -> partialEncoding -> [opcodes]
    */
-  private static class DecoderNode {
-    Opcode opcode;
-    Map<Integer, DecoderNode> children;
-
-    DecoderNode(Opcode opcode) {
-      this.opcode = opcode;
-    }
-
-    DecoderNode() {
-      this.children = new HashMap<>();
-    }
-
-    boolean isLeaf() {
-      return opcode != null;
-    }
-  }
-
-  /**
-   * Three-level hierarchical map structure:
-   * Level 1: Primary opcode (bits 31-26) -> DecoderNode
-   * Level 2: Partial encoding (funct, RS, RT fields) -> DecoderNode
-   * Level 3: Operand disambiguation (rs/rt/rd flags) -> Opcode
-   */
-  private static final Map<Integer, DecoderNode> DECODER_TREE = new HashMap<>();
+  private static final Map<Integer, Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>>> LOOKUP_TABLE = new HashMap<>();
 
   static {
-    buildDecoderTree();
+    buildLookupTable();
   }
 
   /**
-   * Builds the three-level hierarchical decoding tree
+   * Builds the hierarchical lookup table
    */
-  private static void buildDecoderTree() {
+  private static void buildLookupTable() {
     for (Opcode op : Opcode.values()) {
-      // Skip IDIOM format - assembler pseudo-instructions
       if (op.format == InstructionFormat.IDIOM) {
         continue;
       }
 
-      insertIntoTree(op);
+      // Level 1: Primary opcode
+      int primaryOpcode = op.opcode;
+
+      // Level 2: Function field (bits 5-0 of partialEncoding)
+      int funct = op.partialEncoding & FUNCT_MASK;
+
+      // Level 3: RS/format field (bits 25-21 of partialEncoding, shifted to 0-based)
+      int rs = (op.partialEncoding & RS_MASK) >> 21;
+
+      // Level 4: RT field (bits 20-16 of partialEncoding, shifted to 0-based)
+      int rt = (op.partialEncoding & RT_MASK) >> 16;
+
+      // Level 5: Full partialEncoding
+      int partial = op.partialEncoding;
+
+      LOOKUP_TABLE
+          .computeIfAbsent(primaryOpcode, k -> new HashMap<>())
+          .computeIfAbsent(funct, k -> new HashMap<>())
+          .computeIfAbsent(rs, k -> new HashMap<>())
+          .computeIfAbsent(rt, k -> new HashMap<>())
+          .computeIfAbsent(partial, k -> new ArrayList<>())
+          .add(op);
     }
-  }
-
-  /**
-   * Inserts an opcode into the hierarchical tree
-   */
-  private static void insertIntoTree(Opcode opcode) {
-    // Level 1: Get or create node for primary opcode
-    DecoderNode level1 = DECODER_TREE.computeIfAbsent(
-        opcode.opcode,
-        k -> new DecoderNode()
-    );
-
-    // Level 2: Use partialEncoding as key
-    if (level1.children == null) {
-      level1.children = new HashMap<>();
-    }
-
-    DecoderNode level2 = level1.children.computeIfAbsent(
-        opcode.partialEncoding,
-        k -> new DecoderNode()
-    );
-
-    // Level 3: Check if we need operand disambiguation
-    if (level2.isLeaf()) {
-      // Conflict - need to disambiguate by operands
-      resolveConflict(level2, opcode);
-    } else if (level2.children == null || level2.children.isEmpty()) {
-      level2.opcode = opcode;
-    } else {
-      // There are already children, add with operand key
-      int operandKey = makeOperandKey(opcode.rs, opcode.rt, opcode.rd);
-      level2.children.put(operandKey, new DecoderNode(opcode));
-    }
-  }
-
-  /**
-   * Resolves conflict when two opcodes map to same node
-   * Creates operand-based disambiguation
-   */
-  private static void resolveConflict(DecoderNode node, Opcode newOpcode) {
-    Opcode existingOpcode = node.opcode;
-    node.opcode = null;
-
-    if (node.children == null) {
-      node.children = new HashMap<>();
-    }
-
-    // Add both opcodes with operand keys
-    int existingKey = makeOperandKey(existingOpcode.rs, existingOpcode.rt, existingOpcode.rd);
-    int newKey = makeOperandKey(newOpcode.rs, newOpcode.rt, newOpcode.rd);
-
-    node.children.put(existingKey, new DecoderNode(existingOpcode));
-    node.children.put(newKey, new DecoderNode(newOpcode));
-  }
-
-  /**
-   * Creates a compact key from operand flags
-   * Uses 3 bits: bit 0 = rs, bit 1 = rt, bit 2 = rd
-   */
-  private static int makeOperandKey(boolean rs, boolean rt, boolean rd) {
-    return (rs ? 1 : 0) | (rt ? 2 : 0) | (rd ? 4 : 0);
   }
 
   /**
    * Main decode method
-   *
-   * ALGORITHM:
-   * 1. Extract primary opcode (bits 31-26) -> Level 1 lookup
-   * 2. Extract partial encoding (funct/RS/RT) -> Level 2 lookup
-   * 3. If needed, use operand presence -> Level 3 lookup
    */
   public static Opcode decode(int instruction) {
-    // Level 1: Primary opcode lookup
+    // Level 1: Extract primary opcode
     int primaryOpcode = instruction & OPCODE_MASK;
-    DecoderNode level1 = DECODER_TREE.get(primaryOpcode);
-
-    if (level1 == null) {
-      return null;
-    }
-
-    // If it's a leaf, we found it
-    if (level1.isLeaf()) {
-      return level1.opcode;
-    }
-
-    // Level 2: Partial encoding lookup
-    int partialEncoding = extractPartialEncoding(instruction, primaryOpcode);
-
-    // Try exact match first
-    DecoderNode level2 = level1.children.get(partialEncoding);
-
-    // If no exact match, try the default (partialEncoding = 0)
-    if (level2 == null) {
-      level2 = level1.children.get(0);
-    }
+    Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>> level2 = LOOKUP_TABLE.get(primaryOpcode);
 
     if (level2 == null) {
       return null;
     }
 
-    // If it's a leaf, we found it
-    if (level2.isLeaf()) {
-      return level2.opcode;
-    }
+    // Level 2: Extract function field from instruction
+    int funct = instruction & FUNCT_MASK;
+    Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>> level3 = level2.get(funct);
 
-    // Level 3: Operand-based disambiguation
-    if (level2.children != null && !level2.children.isEmpty()) {
-      // Try to find best match based on which operands are present
-      return disambiguateByOperands(instruction, level2.children);
-    }
-
-    return level2.opcode;
-  }
-
-  /**
-   * Extracts the partial encoding from instruction based on format
-   * This is the "function field" or other disambiguating bits
-   */
-  private static int extractPartialEncoding(int instruction, int primaryOpcode) {
-    // For R-Type (opcode = 0x0), use function field
-    if (primaryOpcode == 0x0) {
-      // Check bits 10-6 for shift amount variations (like ROTR)
-      int functExtended = instruction & 0x000007FF; // bits 10-0
-      int funct = instruction & FUNCT_MASK; // bits 5-0
-
-      // Some instructions use extended function field
-      // Check if any bits in 10-6 are set
-      if ((instruction & 0x000007C0) != 0) {
-        return functExtended;
+    if (level3 == null) {
+      // Try wildcard (function = 0) for instructions that don't use function field
+      level3 = level2.get(0);
+      if (level3 == null) {
+        // No match at function level, enumerate all to find matches
+        return enumerateAndMatch(instruction, level2);
       }
-      return funct;
     }
 
-    // For SPECIAL3 (opcode = 0x7C000000), use function field
-    if (primaryOpcode == 0x7C000000) {
-      return instruction & FUNCT_MASK;
-    }
-
-    // For SPECIAL2 (opcode = 0x70000000)
-    if (primaryOpcode == 0x70000000) {
-      return instruction & FUNCT_MASK;
-    }
-
-    // For REGIMM (opcode = 0x04000000), use RT field
-    if (primaryOpcode == 0x04000000) {
-      return instruction & RT_MASK;
-    }
-
-    // For COP0 (opcode = 0x40000000)
-    if (primaryOpcode == 0x40000000) {
-      // COP0 uses lower 26 bits (RS field + rest)
-      return instruction & 0x03FFFFFF;
-    }
-
-    // For COP1 (opcode = 0x44000000) - FPU instructions
-    // Format: opcode|format|ft|fs|fd|funct
-    // We need format (bits 25-21) + funct (bits 5-0)
-    if (primaryOpcode == 0x44000000) {
-      int format = instruction & RS_MASK; // bits 25-21 (RS position is format field)
-      int funct = instruction & FUNCT_MASK; // bits 5-0
-      return format | funct;
-    }
-
-    // For COP2 (opcode = 0x48000000)
-    if (primaryOpcode == 0x48000000) {
-      // Similar to COP1, use format + function
-      int format = instruction & RS_MASK;
-      int funct = instruction & FUNCT_MASK;
-      return format | funct;
-    }
-
-    // For I-Type with RT/RS disambiguation
-    if ((instruction & RT_MASK) != 0 || (instruction & RS_MASK) != 0) {
-      // Some I-Type instructions use RT or RS for disambiguation
-      return (instruction & RT_MASK) | (instruction & RS_MASK);
-    }
-
-    return 0;
-  }
-
-  /**
-   * Disambiguates by checking which operands are present in instruction
-   */
-  private static Opcode disambiguateByOperands(int instruction, Map<Integer, DecoderNode> children) {
-    // Extract which registers are actually used (non-zero)
+    // Level 3: Extract RS/format field from instruction
     int rs = (instruction & RS_MASK) >> 21;
+    Map<Integer, Map<Integer, List<Opcode>>> level4 = level3.get(rs);
+
+    if (level4 == null) {
+      // Try wildcard (rs = 0) for instructions that don't use RS field
+      level4 = level3.get(0);
+      if (level4 == null) {
+        // No match at RS level, enumerate all to find matches
+        return enumerateAndMatch(instruction, level3);
+      }
+    }
+
+    // Level 4: Extract RT field from instruction
     int rt = (instruction & RT_MASK) >> 16;
-    int rd = (instruction & RD_MASK) >> 11;
+    Map<Integer, List<Opcode>> level5 = level4.get(rt);
 
-    // Try all possible operand combinations, prioritizing more specific ones
-    for (int rdFlag = 1; rdFlag >= 0; rdFlag--) {
-      for (int rtFlag = 1; rtFlag >= 0; rtFlag--) {
-        for (int rsFlag = 1; rsFlag >= 0; rsFlag--) {
-          int key = rsFlag | (rtFlag << 1) | (rdFlag << 2);
-          DecoderNode node = children.get(key);
-          if (node != null && node.isLeaf()) {
-            return node.opcode;
-          }
+    if (level5 == null) {
+      // Try wildcard (rt = 0) for instructions that don't use RT field
+      level5 = level4.get(0);
+      if (level5 == null) {
+        // No match at RT level, enumerate all to find matches
+        return enumerateAndMatch(instruction, level4);
+      }
+    }
+
+    // Level 5: Extract full partialEncoding from instruction
+    // Try to match against each partialEncoding key
+    for (Map.Entry<Integer, List<Opcode>> entry : level5.entrySet()) {
+      int partialKey = entry.getKey();
+
+      // Check if instruction matches this partialEncoding
+      if ((instruction & partialKey) == partialKey) {
+        List<Opcode> candidates = entry.getValue();
+
+        if (candidates.size() == 1) {
+          return candidates.get(0);
         }
+
+        // Multiple candidates - disambiguate by operand flags
+        return disambiguateByOperands(instruction, candidates);
       }
     }
 
-    // Fallback: return any available
-    for (DecoderNode node : children.values()) {
-      if (node.isLeaf()) {
-        return node.opcode;
-      }
-    }
-
-    return null;
+    // No exact match, enumerate all possibilities
+    return enumerateAndMatch(instruction, level5);
   }
 
   /**
-   * Helper method to extract and format instruction fields
+   * Enumerates all opcodes in a map structure to find matches
+   * Used when exact lookup fails
+   */
+  private static Opcode enumerateAndMatch(int instruction, Map<?, ?> map) {
+    List<Opcode> allCandidates = new ArrayList<>();
+    collectAllOpcodes(map, allCandidates);
+
+    if (allCandidates.isEmpty()) {
+      return null;
+    }
+
+    // Filter candidates by partialEncoding match
+    List<Opcode> matches = new ArrayList<>();
+    for (Opcode candidate : allCandidates) {
+      if (matchesPartialEncoding(instruction, candidate)) {
+        matches.add(candidate);
+      }
+    }
+
+    if (matches.isEmpty()) {
+      return null;
+    }
+
+    if (matches.size() == 1) {
+      return matches.get(0);
+    }
+
+    return disambiguateByOperands(instruction, matches);
+  }
+
+  /**
+   * Recursively collects all Opcode objects from nested maps
+   */
+  private static void collectAllOpcodes(Map<?, ?> map, List<Opcode> result) {
+    for (Object value : map.values()) {
+      if (value instanceof List) {
+        @SuppressWarnings("unchecked")
+        List<Opcode> opcodes = (List<Opcode>) value;
+        result.addAll(opcodes);
+      } else if (value instanceof Map) {
+        collectAllOpcodes((Map<?, ?>) value, result);
+      }
+    }
+  }
+
+  /**
+   * Checks if instruction matches opcode's partialEncoding
+   */
+  private static boolean matchesPartialEncoding(int instruction, Opcode opcode) {
+    if (opcode.partialEncoding == 0) {
+      return true;
+    }
+
+    // All bits set in partialEncoding must be set in instruction
+    return (instruction & opcode.partialEncoding) == opcode.partialEncoding;
+  }
+
+  /**
+   * Disambiguates multiple candidates using operand flags
+   */
+  private static Opcode disambiguateByOperands(int instruction, List<Opcode> candidates) {
+    if (candidates.isEmpty()) {
+      return null;
+    }
+
+    if (candidates.size() == 1) {
+      return candidates.get(0);
+    }
+
+    // Extract register fields
+    int rs = (instruction >> 21) & 0x1F;
+    int rt = (instruction >> 16) & 0x1F;
+    int rd = (instruction >> 11) & 0x1F;
+
+    // Check which registers are non-zero (actually used)
+    boolean hasRs = rs != 0;
+    boolean hasRt = rt != 0;
+    boolean hasRd = rd != 0;
+
+    // Try exact match on operand flags
+    for (Opcode candidate : candidates) {
+      // For operand-based disambiguation:
+      // If the opcode expects an operand (rs=true), the register should be usable
+      // This is a heuristic - not perfect but works for most cases
+      boolean rsMatch = !candidate.rs || hasRs;
+      boolean rtMatch = !candidate.rt || hasRt;
+      boolean rdMatch = !candidate.rd || hasRd;
+
+      if (rsMatch && rtMatch && rdMatch) {
+        return candidate;
+      }
+    }
+
+    // No perfect match, return the first candidate
+    // Sort by specificity (more operands = more specific)
+    candidates.sort((a, b) -> {
+      int aScore = (a.rs ? 1 : 0) + (a.rt ? 1 : 0) + (a.rd ? 1 : 0);
+      int bScore = (b.rs ? 1 : 0) + (b.rt ? 1 : 0) + (b.rd ? 1 : 0);
+      return Integer.compare(bScore, aScore); // descending
+    });
+
+    return candidates.get(0);
+  }
+
+  /**
+   * Disassembles an instruction to assembly syntax
    */
   public static String disassemble(int instruction, Opcode opcode) {
     if (opcode == null) {
       return String.format("UNKNOWN [0x%08X]", instruction);
     }
 
-    int rs = (instruction & RS_MASK) >> 21;
-    int rt = (instruction & RT_MASK) >> 16;
-    int rd = (instruction & RD_MASK) >> 11;
-    int shamt = (instruction & SHAMT_MASK) >> 6;
-    short imm = (short)(instruction & 0x0000FFFF); // Sign-extended
+    int rs = (instruction >> 21) & 0x1F;
+    int rt = (instruction >> 16) & 0x1F;
+    int rd = (instruction >> 11) & 0x1F;
+    int shamt = (instruction >> 6) & 0x1F;
+    short imm = (short)(instruction & 0xFFFF);
     int target = instruction & 0x03FFFFFF;
 
     StringBuilder sb = new StringBuilder(opcode.name);
@@ -303,7 +271,7 @@ public class MipsInstructionDecoder {
           if (opcode.rd || opcode.rs) sb.append(", ");
           sb.append("$").append(rt);
         }
-        if (shamt != 0 && !opcode.rs) {
+        if (shamt != 0 && !opcode.rs && !opcode.rt) {
           sb.append(", ").append(shamt);
         }
         break;
@@ -327,51 +295,82 @@ public class MipsInstructionDecoder {
   }
 
   /**
-   * Prints the decoder tree structure for analysis
+   * Debug utility
    */
-  public static void printTreeStructure() {
-    System.out.println("=== DECODER TREE STRUCTURE ===\n");
+  public static void debugDecode(int instruction) {
+    System.out.printf("\n=== Decoding 0x%08X ===%n", instruction);
 
-    List<Integer> opcodes = new ArrayList<>(DECODER_TREE.keySet());
-    opcodes.sort(Integer::compareTo);
+    int opcode = instruction & OPCODE_MASK;
+    int funct = instruction & FUNCT_MASK;
+    int format = (instruction >> 21) & 0x1F;
+    int rs = (instruction >> 21) & 0x1F;
+    int rt = (instruction >> 16) & 0x1F;
+    int rd = (instruction >> 11) & 0x1F;
 
-    for (Integer opcode : opcodes) {
-      System.out.printf("Opcode 0x%08X:%n", opcode);
-      DecoderNode node = DECODER_TREE.get(opcode);
-      printNode(node, "  ");
-      System.out.println();
+    System.out.printf("Opcode: 0x%08X, Funct: 0x%02X, Format/RS: %d%n", opcode, funct, format);
+    System.out.printf("RS: %d, RT: %d, RD: %d%n", rs, rt, rd);
+
+    Opcode result = decode(instruction);
+    System.out.printf("Result: %s%n", result != null ? result.name : "NULL");
+
+    if (result != null) {
+      System.out.printf("Disassembly: %s%n", disassemble(instruction, result));
     }
+  }
 
-    // Memory footprint estimate
-    int level1Nodes = DECODER_TREE.size();
-    int level2Nodes = 0;
-    int level3Nodes = 0;
+  /**
+   * Prints statistics about the lookup table
+   */
+  public static void printStats() {
+    int totalInstructions = 0;
+    int level1Keys = LOOKUP_TABLE.size();
+    int level2Keys = 0;
+    int level3Keys = 0;
+    int level4Keys = 0;
+    int level5Keys = 0;
 
-    for (DecoderNode node : DECODER_TREE.values()) {
-      if (node.children != null) {
-        level2Nodes += node.children.size();
-        for (DecoderNode child : node.children.values()) {
-          if (child.children != null) {
-            level3Nodes += child.children.size();
+    for (Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>> l2 : LOOKUP_TABLE.values()) {
+      level2Keys += l2.size();
+      for (Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>> l3 : l2.values()) {
+        level3Keys += l3.size();
+        for (Map<Integer, Map<Integer, List<Opcode>>> l4 : l3.values()) {
+          level4Keys += l4.size();
+          for (Map<Integer, List<Opcode>> l5 : l4.values()) {
+            level5Keys += l5.size();
+            for (List<Opcode> opcodes : l5.values()) {
+              totalInstructions += opcodes.size();
+            }
           }
         }
       }
     }
 
-    System.out.printf("Memory footprint: %d level-1 nodes, %d level-2 nodes, %d level-3 nodes%n",
-        level1Nodes, level2Nodes, level3Nodes);
-    System.out.printf("Total nodes: %d%n", level1Nodes + level2Nodes + level3Nodes);
+    System.out.println("=== LOOKUP TABLE STATISTICS ===");
+    System.out.printf("Level 1 (opcode) keys: %d%n", level1Keys);
+    System.out.printf("Level 2 (function) keys: %d%n", level2Keys);
+    System.out.printf("Level 3 (RS/format) keys: %d%n", level3Keys);
+    System.out.printf("Level 4 (RT) keys: %d%n", level4Keys);
+    System.out.printf("Level 5 (partial) keys: %d%n", level5Keys);
+    System.out.printf("Total instructions: %d%n", totalInstructions);
   }
 
-  private static void printNode(DecoderNode node, String indent) {
-    if (node.isLeaf()) {
-      System.out.printf("%s-> %s (rs=%b, rt=%b, rd=%b)%n",
-          indent, node.opcode.name, node.opcode.rs, node.opcode.rt, node.opcode.rd);
-    } else if (node.children != null) {
-      for (Map.Entry<Integer, DecoderNode> entry : node.children.entrySet()) {
-        System.out.printf("%sKey 0x%08X:%n", indent, entry.getKey());
-        printNode(entry.getValue(), indent + "  ");
-      }
+  /**
+   * Test harness
+   */
+  public static void main(String[] args) {
+    printStats();
+
+    System.out.println("\n" + "=".repeat(60));
+
+    int[] tests = {
+        0x00851020,  // ADD
+        0x20420005,  // ADDI
+        0x46204A05,  // ABS.D
+        0x00021040,  // SLL
+    };
+
+    for (int instr : tests) {
+      debugDecode(instr);
     }
   }
 }

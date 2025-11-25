@@ -71,7 +71,7 @@ public enum Opcode {
   SRAV("srav", 0x0, 0x00000007, R_TYPE, true, true, true),
   SRL("srl", 0x0, 0x00000002, R_TYPE, true, false, true),
   SRLV("srlv", 0x0, 0x00000006, R_TYPE, true, true, true),
-  SSNOP("ssnop", 0x0, 0x00000040, R_TYPE, false, false, false),
+  SSNOP("ssnop", 0x0, 0x00000040, IDIOM, false, false, false),
 
   // LOGICAL AND BIT-FIELD OPERATIONS
   AND("and", 0x0, 0x0000024, R_TYPE, true, true, true),
