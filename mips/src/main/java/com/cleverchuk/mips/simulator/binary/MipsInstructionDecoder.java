@@ -148,24 +148,6 @@ public class MipsInstructionDecoder {
       }
     }
 
-    // Level 7: Extract full partialEncoding from instruction
-    // Try to match against each partialEncoding key
-    for (Map.Entry<Integer, List<Opcode>> entry : level7.entrySet()) {
-      int partialKey = entry.getKey();
-
-      // Check if instruction matches this partialEncoding
-      if ((instruction & partialKey) == partialKey) {
-        List<Opcode> candidates = entry.getValue();
-
-        if (candidates.size() == 1) {
-          return candidates.get(0);
-        }
-
-        // Multiple candidates - disambiguate by operand flags
-        return disambiguateByOperands(instruction, candidates);
-      }
-    }
-
     // No exact match, enumerate all possibilities
     return enumerateAndMatch(instruction, level7);
   }
@@ -284,96 +266,42 @@ public class MipsInstructionDecoder {
    */
   private static boolean matchesInstructionRules(Opcode opcode, int rs, int rt, int rd) {
     switch (opcode) {
-      // Branch instructions with specific register constraints
       case BGEUC:
-        // rs != rt and rt != 0 and rs != 0
-        return rs != rt && rt != 0 && rs != 0;
-
-      case BGEZC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
       case BLTUC:
-        // rs != rt and rt != 0 and rs != 0
-        return rs != rt && rt != 0 && rs != 0;
-
-      case BLTZC:
-        // rs == rt and rt != 0 and rs != 0
-        return rs == rt && rt != 0 && rs != 0;
-
       case BGEC:
-        // rs != rt and rt != 0 and rs != 0
-        return rs != rt && rt != 0 && rs != 0;
-
-      case BGTZC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
       case BLTC:
-        // rs != rt and rt != 0 and rs != 0
         return rs != rt && rt != 0 && rs != 0;
-
-      case BLEZC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
-      case BEQC:
-        // rs != rt and rt != 0 and rs != 0 (and rs < rt based on encoding)
-        return rs != rt && rt != 0 && rs != 0 && rs < rt;
-
-      case BNEC:
-        // rs != rt and rt != 0 and rs != 0 (and rs < rt based on encoding)
-        return rs != rt && rt != 0 && rs != 0 && rs < rt;
-
-      case BOVC:
-        // rs >= rt and rt != 0 (based on encoding)
-        return rs >= rt && rt != 0;
-
-      case BNVC:
-        // rs >= rt and rt != 0 (based on encoding)
-        return rs >= rt && rt != 0;
-
-      case BEQZC:
-        // rs != 0 and rt == 0
-        return rs != 0 && rt == 0;
-
-      case BNEZC:
-        // rs != 0 and rt == 0
-        return rs != 0 && rt == 0;
-
-      case JIC:
-        // rt != 0
-        return rt != 0;
-
-      case JIALC:
-        // rt != 0
-        return rt != 0;
-
-      case BLEZALC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
-      case BGEZALC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
-      case BGTZALC:
-        // rs == rt and rs != 0
-        return rs == rt && rs != 0;
-
+      case BGEZC:
       case BLTZALC:
-        // rs == rt and rs != 0
+      case BGEZALC:
         return rs == rt && rs != 0;
-
+      case BLTZC:
+        return rs == rt && rt != 0;
+      case BGTZC:
+      case BGTZALC:
+      case BLEZALC:
+      case BLEZC:
+        return rs == 0 && rt != 0;
+      case BEQC:
+      case BNEC:
+        return rt != 0 && rs != 0 && rs < rt;
+      case BOVC:
+        return rs >= rt && rt != 0;
+      case BNVC:
+        return rs >= rt;
+      case BEQZC:
+      case BNEZC:
+        return rs != 0 && rt == 0;
+      case JIC:
+      case JIALC:
+        return rt != 0;
       case BEQZALC:
-        // rs != 0 and rt == 0
-        return rs != 0 && rt == 0;
-
       case BNEZALC:
-        // rs != 0 and rt == 0
-        return rs != 0 && rt == 0;
-
-      // Default: no specific rule, does NOT match
+        return rs < rt && rt != 0 && rs == 0;
+      case BGEZAL:
+        return rs != 0;
+      case BAL:
+        return rs == 0;
       default:
         return false;
     }

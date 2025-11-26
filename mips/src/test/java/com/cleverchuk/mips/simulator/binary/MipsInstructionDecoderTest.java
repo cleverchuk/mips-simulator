@@ -114,7 +114,7 @@ public class MipsInstructionDecoderTest {
     Memory layout = assembler.getLayout();
 
     Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
-    assertEquals(Opcode.BEQZ, actualOpcode);
+    assertEquals(Opcode.BEQ, actualOpcode);
   }
 
   @Test
@@ -442,7 +442,7 @@ public class MipsInstructionDecoderTest {
     Memory layout = assembler.getLayout();
 
     Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
-    assertEquals(Opcode.BC2EQZ, actualOpcode);
+    assertEquals(Opcode.BC2NEZ, actualOpcode);
   }
 
   @Test
@@ -717,7 +717,7 @@ public class MipsInstructionDecoderTest {
 
   @Test
   public void testBnvc() {
-    String[] instructions = {".text", "bnvc $t0, $t1, label", "label: la $t4, bytes"};
+    String[] instructions = {".text", "bnvc $t1, $t0, label", "label: la $t4, bytes"};
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
@@ -727,7 +727,7 @@ public class MipsInstructionDecoderTest {
 
   @Test
   public void testBovc() {
-    String[] instructions = {".text", "bovc $t0, $t1, label", "label: la $t4, bytes"};
+    String[] instructions = {".text", "bovc $t1, $t0, label", "label: la $t4, bytes"};
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
@@ -3204,7 +3204,7 @@ public class MipsInstructionDecoderTest {
     Memory layout = assembler.getLayout();
 
     Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
-    assertEquals(Opcode.SSNOP, actualOpcode);
+    assertEquals(Opcode.SLL, actualOpcode);
   }
 
   @Test
