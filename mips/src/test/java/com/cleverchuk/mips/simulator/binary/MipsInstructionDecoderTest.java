@@ -37,6 +37,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -284,6 +285,7 @@ public class MipsInstructionDecoderTest {
   }
 
   @Test
+  @Ignore("Removed in R6 and opcode reused for BEQC")
   public void testAddi() {
     String[] instructions = {".text", "addi $t0, $t1, 1"};
     parser.parse(toLineDelimited(instructions));
@@ -389,7 +391,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BALC, actualOpcode);
   }
 
@@ -399,7 +401,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BC, actualOpcode);
   }
 
