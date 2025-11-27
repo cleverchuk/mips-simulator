@@ -24,10 +24,9 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.simulator.Processor;
+public class UnpredictableException extends Exception {
 
-public class Coprocessor1 implements Processor<BinaryInstruction> {
-
-  @Override
-  public void execute(BinaryInstruction instruction) throws Exception {}
+  public UnpredictableException(String message) {
+    super(message);
+  }
 }

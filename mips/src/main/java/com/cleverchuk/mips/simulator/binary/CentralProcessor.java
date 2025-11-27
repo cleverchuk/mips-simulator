@@ -24,15 +24,1715 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.simulator.Processor;
+import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
+import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.mem.Memory;
 
-public class CentralProcessor implements Processor<BinaryInstruction> {
-  @Override
-  public void execute(BinaryInstruction instruction) throws Exception {
-    int instructionCode = instruction.getInstruction();
-    int opcode = instructionCode & 0xf3000000;
+public class CentralProcessor {
+
+  private final Memory memory;
+
+  private final FpuRegisterFileArray fpuRegisterFileArray = new FpuRegisterFileArray();
+
+  private final CpuRegisterFile cpuRegisterFile = new CpuRegisterFile();
+
+  private int pc;
+
+  public CentralProcessor(Memory memory, int pc, int sp) {
+    this.memory = memory;
+    this.pc = pc;
+    cpuRegisterFile.write("$sp", sp);
+  }
+
+  public int getPc() {
+    return pc;
+  }
+
+  public FpuRegisterFileArray getFpuRegisterFileArray() {
+    return fpuRegisterFileArray;
+  }
+
+  public CpuRegisterFile getCpuRegisterFile() {
+    return cpuRegisterFile;
+  }
+
+  public void execute() throws Exception {
+    int instruction = memory.readWord(pc);
+    pc += 4;
+
+    Opcode opcode = InstructionDecoder.decode(instruction);
+    if (opcode == null) {
+      throw new UnpredictableException("Unknown opcode: " + instruction);
+    }
 
     switch (opcode) {
+      case ADD:
+        add(instruction);
+        break;
+      case ADDU:
+        addu(instruction);
+        break;
+      case ADDI:
+        addi(instruction);
+        break;
+      case ADDIU:
+        addiu(instruction);
+        break;
+      case ADDIUPC:
+        addiupc(instruction);
+        break;
+      case ALIGN:
+        align(instruction);
+        break;
+      case ALUIPC:
+        aluipc(instruction);
+        break;
+      case CLO:
+        clo(instruction);
+        break;
+      case CLZ:
+        clz(instruction);
+        break;
+      case SUB:
+        sub(instruction);
+        break;
+      case SUBU:
+        subu(instruction);
+        break;
+      case SEB:
+        seb(instruction);
+        break;
+      case SEH:
+        seh(instruction);
+        break;
+      case SLL:
+        sll(instruction);
+        break;
+      case SLLV:
+        sslv(instruction);
+        break;
+      case ROTR:
+        rotr(instruction);
+        break;
+      case ROTRV:
+        rotrv(instruction);
+        break;
+      case SRA:
+        sra(instruction);
+        break;
+      case SRAV:
+        srav(instruction);
+        break;
+      case SRL:
+        srl(instruction);
+        break;
+      case SRLV:
+        srlv(instruction);
+        break;
+      case AND:
+        and_(instruction); // 'and' is often a keyword/reserved
+        break;
+      case ANDI:
+        andi(instruction);
+        break;
+      case AUI:
+        aui(instruction);
+        break;
+      case AUIPC:
+        auipc(instruction);
+        break;
+      case BAL:
+        bal(instruction);
+        break;
+      case BALC:
+        balc(instruction);
+        break;
+      case BC:
+        bc(instruction);
+        break;
+      case BC1EQZ:
+        bc1eqz(instruction);
+        break;
+      case BC1NEZ:
+        bc1nez(instruction);
+        break;
+      case BC2EQZ:
+        bc2eqz(instruction);
+        break;
+      case BC2NEZ:
+        bc2nez(instruction);
+        break;
+      case EXT:
+        ext(instruction);
+        break;
+      case INS:
+        ins(instruction);
+        break;
+      case NOR:
+        nor(instruction);
+        break;
+      case OR:
+        or_(instruction); // 'or' is often a keyword/reserved
+        break;
+      case ORI:
+        ori(instruction);
+        break;
+      case XOR:
+        xor_(instruction); // 'xor' is often a keyword/reserved
+        break;
+      case XORI:
+        xori(instruction);
+        break;
+      case WSBH:
+        wsbh(instruction);
+        break;
+      case MOVN:
+        movn(instruction);
+        break;
+      case MOVZ:
+        movz(instruction);
+        break;
+      case SLT:
+        slt(instruction);
+        break;
+      case SLTI:
+        slti(instruction);
+        break;
+      case SLTIU:
+        sltiu(instruction);
+        break;
+      case SLTU:
+        sltu(instruction);
+        break;
+      case DIV:
+        div(instruction);
+        break;
+      case MOD:
+        mod(instruction);
+        break;
+      case MUL:
+        mul(instruction);
+        break;
+      case MUH:
+        muh(instruction);
+        break;
+      case MULU:
+        mulu(instruction);
+        break;
+      case MUHU:
+        muhu(instruction);
+        break;
+      case DIVU:
+        divu(instruction);
+        break;
+      case MODU:
+        modu(instruction);
+        break;
+      case MADD:
+        madd(instruction);
+        break;
+      case MADDU:
+        maddu(instruction);
+        break;
+      case MSUB:
+        msub(instruction);
+        break;
+      case MSUBU:
+        msubu(instruction);
+        break;
+      case MULT:
+        mult(instruction);
+        break;
+      case MULTU:
+        multu(instruction);
+        break;
+      case BEQ:
+        beq(instruction);
+        break;
+      case BEQC:
+        beqc(instruction);
+        break;
+      case BEQZALC:
+        beqzalc(instruction);
+        break;
+      case BNE:
+        bne(instruction);
+        break;
+      case BNEC:
+        bnec(instruction);
+        break;
+      case BNEZC:
+        bnezc(instruction);
+        break;
+      case BOVC:
+        bovc(instruction);
+        break;
+      case BNVC:
+        bnvc(instruction);
+        break;
+      case BEQZC:
+        beqzc(instruction);
+        break;
+      case BREAK:
+        break_(instruction); // 'break' is a keyword
+        break;
+      case J:
+        j(instruction);
+        break;
+      case JAL:
+        jal(instruction);
+        break;
+      case JALR:
+        jalr(instruction);
+        break;
+      case JIC:
+        jic(instruction);
+        break;
+      case JALR_HB:
+        jalr_hb(instruction);
+        break;
+      case JR:
+        jr(instruction);
+        break;
+      case JR_HB:
+        jr_hb(instruction);
+        break;
+      case BGEZ:
+        bgez(instruction);
+        break;
+      case BGTZ:
+        bgtz(instruction);
+        break;
+      case BITSWAP:
+        bitswap(instruction);
+        break;
+      case BGEZAL:
+        bgezal(instruction);
+        break;
+      case BLEZALC:
+        blezalc(instruction);
+        break;
+      case BGEZALC:
+        bgezalc(instruction);
+        break;
+      case BGTZALC:
+        bgtzalc(instruction);
+        break;
+      case BLTZALC:
+        bltzalc(instruction);
+        break;
+      case BNEZALC:
+        bnezalc(instruction);
+        break;
+      case BLEZC:
+        blezc(instruction);
+        break;
+      case BGEZC:
+        bgezc(instruction);
+        break;
+      case BGEC:
+        bgec(instruction);
+        break;
+      case BGTZC:
+        bgtzc(instruction);
+        break;
+      case BLTZC:
+        bltzc(instruction);
+        break;
+      case BLTC:
+        bltc(instruction);
+        break;
+      case BGEUC:
+        bgeuc(instruction);
+        break;
+      case BLTUC:
+        bltuc(instruction);
+        break;
+      case BLEZ:
+        blez(instruction);
+        break;
+      case BLTZ:
+        bltz(instruction);
+        break;
+      case BLTZAL:
+        bltzal(instruction);
+        break;
+      case JIALC:
+        jialc(instruction);
+        break;
+      case NAL:
+        nal(instruction);
+        break;
+      case SELEQZ:
+        seleqz(instruction);
+        break;
+      case SELNEZ:
+        selnez(instruction);
+        break;
+      case TEQ:
+        teq(instruction);
+        break;
+      case TGE:
+        tge(instruction);
+        break;
+      case TGEU:
+        tgeu(instruction);
+        break;
+      case TLT:
+        tlt(instruction);
+        break;
+      case TLTU:
+        tltu(instruction);
+        break;
+      case TNE:
+        tne(instruction);
+        break;
+      case LW:
+        lw(instruction);
+        break;
+      case LWE:
+        lwe(instruction);
+        break;
+      case SW:
+        sw(instruction);
+        break;
+      case SWE:
+        swe(instruction);
+        break;
+      case SWC1:
+        swc1(instruction);
+        break;
+      case SWC2:
+        swc2(instruction);
+        break;
+      case LB:
+        lb(instruction);
+        break;
+      case LBE:
+        lbe(instruction);
+        break;
+      case LBU:
+        lbu(instruction);
+        break;
+      case LBUE:
+        lbue(instruction);
+        break;
+      case LH:
+        lh(instruction);
+        break;
+      case LHE:
+        lhe(instruction);
+        break;
+      case LHU:
+        lhu(instruction);
+        break;
+      case LHUE:
+        lhue(instruction);
+        break;
+      case LSA:
+        lsa(instruction);
+        break;
+      case LWL:
+        lwl(instruction);
+        break;
+      case LWPC:
+        lwpc(instruction);
+        break;
+      case LWR:
+        lwr(instruction);
+        break;
+      case SB:
+        sb(instruction);
+        break;
+      case SBE:
+        sbe(instruction);
+        break;
+      case SH:
+        sh(instruction);
+        break;
+      case SHE:
+        she(instruction);
+        break;
+      case SWL:
+        swl(instruction);
+        break;
+      case SWR:
+        swr(instruction);
+        break;
+      case CACHE:
+        cache(instruction);
+        break;
+      case CACHEE:
+        cachee(instruction);
+        break;
+      case MFHI:
+        mfhi(instruction);
+        break;
+      case MFLO:
+        mflo(instruction);
+        break;
+      case MTHI:
+        mthi(instruction);
+        break;
+      case MTLO:
+        mtlo(instruction);
+        break;
+      case LL:
+        ll(instruction);
+        break;
+      case LLE:
+        lle(instruction);
+        break;
+      case LLWP:
+        llwp(instruction);
+        break;
+      case LLWPE:
+        llwpe(instruction);
+        break;
+      case SC:
+        sc(instruction);
+        break;
+      case SCE:
+        sce(instruction);
+        break;
+      case SCWP:
+        scwp(instruction);
+        break;
+      case SCWPE:
+        scwpe(instruction);
+        break;
+      case LDC1:
+        ldc1(instruction);
+        break;
+      case LDC2:
+        ldc2(instruction);
+        break;
+      case LWC1:
+        lwc1(instruction);
+        break;
+      case LWC2:
+        lwc2(instruction);
+        break;
+      case SDC1:
+        sdc1(instruction);
+        break;
+      case SDC2:
+        sdc2(instruction);
+        break;
+      case CFC1:
+        cfc1(instruction);
+        break;
+      case CFC2:
+        cfc2(instruction);
+        break;
+      case CTC1:
+        ctc1(instruction);
+        break;
+      case CTC2:
+        ctc2(instruction);
+        break;
+      case MFC0:
+        mfc0(instruction);
+        break;
+      case MFC1:
+        mfc1(instruction);
+        break;
+      case MFC2:
+        mfc2(instruction);
+        break;
+      case MFHC0:
+        mfhc0(instruction);
+        break;
+      case MFHC1:
+        mfhc1(instruction);
+        break;
+      case MFHC2:
+        mfhc2(instruction);
+        break;
+      case MTC0:
+        mtc0(instruction);
+        break;
+      case MTC1:
+        mtc1(instruction);
+        break;
+      case MTC2:
+        mtc2(instruction);
+        break;
+      case MTHC0:
+        mthc0(instruction);
+        break;
+      case MTHC1:
+        mthc1(instruction);
+        break;
+      case MTHC2:
+        mthc2(instruction);
+        break;
+      case PREF:
+        pref(instruction);
+        break;
+      case PREFE:
+        prefe(instruction);
+        break;
+      case RDHWR:
+        rdhwr(instruction);
+        break;
+      case RDPGPR:
+        rdpgpr(instruction);
+        break;
+      case ABS_S:
+        abs_s(instruction);
+        break;
+      case ABS_D:
+        abs_d(instruction);
+        break;
+      case ADD_S:
+        add_s(instruction);
+        break;
+      case ADD_D:
+        add_d(instruction);
+        break;
+      case CMP_AF_S:
+        cmp_af_s(instruction);
+        break;
+      case CMP_AF_D:
+        cmp_af_d(instruction);
+        break;
+      case CMP_UN_S:
+        cmp_un_s(instruction);
+        break;
+      case CMP_UN_D:
+        cmp_un_d(instruction);
+        break;
+      case CMP_EQ_S:
+        cmp_eq_s(instruction);
+        break;
+      case CMP_EQ_D:
+        cmp_eq_d(instruction);
+        break;
+      case CMP_UEQ_S:
+        cmp_ueq_s(instruction);
+        break;
+      case CMP_UEQ_D:
+        cmp_ueq_d(instruction);
+        break;
+      case CMP_LT_S:
+        cmp_lt_s(instruction);
+        break;
+      case CMP_LT_D:
+        cmp_lt_d(instruction);
+        break;
+      case CMP_ULT_S:
+        cmp_ult_s(instruction);
+        break;
+      case CMP_ULT_D:
+        cmp_ult_d(instruction);
+        break;
+      case CMP_LE_S:
+        cmp_le_s(instruction);
+        break;
+      case CMP_LE_D:
+        cmp_le_d(instruction);
+        break;
+      case CMP_ULE_S:
+        cmp_ule_s(instruction);
+        break;
+      case CMP_ULE_D:
+        cmp_ule_d(instruction);
+        break;
+      case CMP_SAF_S:
+        cmp_saf_s(instruction);
+        break;
+      case CMP_SAF_D:
+        cmp_saf_d(instruction);
+        break;
+      case CMP_SUN_S:
+        cmp_sun_s(instruction);
+        break;
+      case CMP_SUN_D:
+        cmp_sun_d(instruction);
+        break;
+      case CMP_SEQ_S:
+        cmp_seq_s(instruction);
+        break;
+      case CMP_SEQ_D:
+        cmp_seq_d(instruction);
+        break;
+      case CMP_SUEQ_S:
+        cmp_sueq_s(instruction);
+        break;
+      case CMP_SUEQ_D:
+        cmp_sueq_d(instruction);
+        break;
+      case CMP_SLT_S:
+        cmp_slt_s(instruction);
+        break;
+      case CMP_SLT_D:
+        cmp_slt_d(instruction);
+        break;
+      case CMP_SULT_S:
+        cmp_sult_s(instruction);
+        break;
+      case CMP_SULT_D:
+        cmp_sult_d(instruction);
+        break;
+      case CMP_SLE_S:
+        cmp_sle_s(instruction);
+        break;
+      case CMP_SLE_D:
+        cmp_sle_d(instruction);
+        break;
+      case CMP_SULE_S:
+        cmp_sule_s(instruction);
+        break;
+      case CMP_SULE_D:
+        cmp_sule_d(instruction);
+        break;
+      case CMP_AT_S:
+        cmp_at_s(instruction);
+        break;
+      case CMP_AT_D:
+        cmp_at_d(instruction);
+        break;
+      case CMP_OR_S:
+        cmp_or_s(instruction);
+        break;
+      case CMP_OR_D:
+        cmp_or_d(instruction);
+        break;
+      case CMP_UNE_S:
+        cmp_une_s(instruction);
+        break;
+      case CMP_UNE_D:
+        cmp_une_d(instruction);
+        break;
+      case CMP_NE_S:
+        cmp_ne_s(instruction);
+        break;
+      case CMP_NE_D:
+        cmp_ne_d(instruction);
+        break;
+      case CMP_UGE_S:
+        cmp_uge_s(instruction);
+        break;
+      case CMP_UGE_D:
+        cmp_uge_d(instruction);
+        break;
+      case CMP_OGE_S:
+        cmp_oge_s(instruction);
+        break;
+      case CMP_OGE_D:
+        cmp_oge_d(instruction);
+        break;
+      case CMP_UGT_S:
+        cmp_ugt_s(instruction);
+        break;
+      case CMP_UGT_D:
+        cmp_ugt_d(instruction);
+        break;
+      case CMP_OGT_S:
+        cmp_ogt_s(instruction);
+        break;
+      case CMP_OGT_D:
+        cmp_ogt_d(instruction);
+        break;
+      case CMP_SAT_S:
+        cmp_sat_s(instruction);
+        break;
+      case CMP_SAT_D:
+        cmp_sat_d(instruction);
+        break;
+      case CMP_SOR_S:
+        cmp_sor_s(instruction);
+        break;
+      case CMP_SOR_D:
+        cmp_sor_d(instruction);
+        break;
+      case CMP_SUNE_S:
+        cmp_sune_s(instruction);
+        break;
+      case CMP_SUNE_D:
+        cmp_sune_d(instruction);
+        break;
+      case CMP_SNE_S:
+        cmp_sne_s(instruction);
+        break;
+      case CMP_SNE_D:
+        cmp_sne_d(instruction);
+        break;
+      case CMP_SUGE_S:
+        cmp_suge_s(instruction);
+        break;
+      case CMP_SUGE_D:
+        cmp_suge_d(instruction);
+        break;
+      case CMP_SOGE_S:
+        cmp_soge_s(instruction);
+        break;
+      case CMP_SOGE_D:
+        cmp_soge_d(instruction);
+        break;
+      case CMP_SUGT_S:
+        cmp_sugt_s(instruction);
+        break;
+      case CMP_SUGT_D:
+        cmp_sugt_d(instruction);
+        break;
+      case CMP_SOGT_S:
+        cmp_sogt_s(instruction);
+        break;
+      case CMP_SOGT_D:
+        cmp_sogt_d(instruction);
+        break;
+      case CRC32B:
+        crc32b(instruction);
+        break;
+      case CRC32H:
+        crc32h(instruction);
+        break;
+      case CRC32W:
+        crc32w(instruction);
+        break;
+      case CRC32CB:
+        crc32cb(instruction);
+        break;
+      case CRC32CH:
+        crc32ch(instruction);
+        break;
+      case CRC32CW:
+        crc32cw(instruction);
+        break;
+      case DIV_S:
+        div_s(instruction);
+        break;
+      case DIV_D:
+        div_d(instruction);
+        break;
+      case MUL_S:
+        mul_s(instruction);
+        break;
+      case MUL_D:
+        mul_d(instruction);
+        break;
+      case NEG_S:
+        neg_s(instruction);
+        break;
+      case NEG_D:
+        neg_d(instruction);
+        break;
+      case SQRT_S:
+        sqrt_s(instruction);
+        break;
+      case SQRT_D:
+        sqrt_d(instruction);
+        break;
+      case SUB_S:
+        sub_s(instruction);
+        break;
+      case SUB_D:
+        sub_d(instruction);
+        break;
+      case RECIP_S:
+        recip_s(instruction);
+        break;
+      case RECIP_D:
+        recip_d(instruction);
+        break;
+      case RSQRT_S:
+        rsqrt_s(instruction);
+        break;
+      case RSQRT_D:
+        rsqrt_d(instruction);
+        break;
+      case MADDF_S:
+        maddf_s(instruction);
+        break;
+      case MADDF_D:
+        maddf_d(instruction);
+        break;
+      case MSUBF_S:
+        msubf_s(instruction);
+        break;
+      case MSUBF_D:
+        msubf_d(instruction);
+        break;
+      case CLASS_S:
+        class_s(instruction);
+        break;
+      case CLASS_D:
+        class_d(instruction);
+        break;
+      case MAX_S:
+        max_s(instruction);
+        break;
+      case MAX_D:
+        max_d(instruction);
+        break;
+      case MAXA_S:
+        maxa_s(instruction);
+        break;
+      case MAXA_D:
+        maxa_d(instruction);
+        break;
+      case MIN_S:
+        min_s(instruction);
+        break;
+      case MIN_D:
+        min_d(instruction);
+        break;
+      case MINA_S:
+        mina_s(instruction);
+        break;
+      case MINA_D:
+        mina_d(instruction);
+        break;
+      case CVT_D_S:
+        cvt_d_s(instruction);
+        break;
+      case CVT_D_W:
+        cvt_d_w(instruction);
+        break;
+      case CVT_D_L:
+        cvt_d_l(instruction);
+        break;
+      case CVT_L_S:
+        cvt_l_s(instruction);
+        break;
+      case CVT_L_D:
+        cvt_l_d(instruction);
+        break;
+      case CVT_S_D:
+        cvt_s_d(instruction);
+        break;
+      case CVT_S_W:
+        cvt_s_w(instruction);
+        break;
+      case CVT_S_L:
+        cvt_s_l(instruction);
+        break;
+      case CVT_W_S:
+        cvt_w_s(instruction);
+        break;
+      case CVT_W_D:
+        cvt_w_d(instruction);
+        break;
+      case RINT_S:
+        rint_s(instruction);
+        break;
+      case RINT_D:
+        rint_d(instruction);
+        break;
+      case CEIL_L_S:
+        ceil_l_s(instruction);
+        break;
+      case CEIL_L_D:
+        ceil_l_d(instruction);
+        break;
+      case CEIL_W_S:
+        ceil_w_s(instruction);
+        break;
+      case CEIL_W_D:
+        ceil_w_d(instruction);
+        break;
+      case FLOOR_L_S:
+        floor_l_s(instruction);
+        break;
+      case FLOOR_L_D:
+        floor_l_d(instruction);
+        break;
+      case FLOOR_W_S:
+        floor_w_s(instruction);
+        break;
+      case FLOOR_W_D:
+        floor_w_d(instruction);
+        break;
+      case ROUND_L_S:
+        round_l_s(instruction);
+        break;
+      case ROUND_L_D:
+        round_l_d(instruction);
+        break;
+      case ROUND_W_S:
+        round_w_s(instruction);
+        break;
+      case ROUND_W_D:
+        round_w_d(instruction);
+        break;
+      case TRUNC_L_S:
+        trunc_l_s(instruction);
+        break;
+      case TRUNC_L_D:
+        trunc_l_d(instruction);
+        break;
+      case TRUNC_W_S:
+        trunc_w_s(instruction);
+        break;
+      case TRUNC_W_D:
+        trunc_w_d(instruction);
+        break;
+      case MOV_S:
+        mov_s(instruction);
+        break;
+      case MOV_D:
+        mov_d(instruction);
+        break;
+      case SEL_S:
+        sel_s(instruction);
+        break;
+      case SEL_D:
+        sel_d(instruction);
+        break;
+      case SELEQZ_S:
+        seleqz_s(instruction);
+        break;
+      case SELEQZ_D:
+        seleqz_d(instruction);
+        break;
+      case SELNEZ_S:
+        selnez_s(instruction);
+        break;
+      case SELNEZ_D:
+        selnez_d(instruction);
+        break;
+      case DERET:
+        deret(instruction);
+        break;
+      case DI:
+        di(instruction);
+        break;
+      case DVP:
+        dvp(instruction);
+        break;
+      case EVP:
+        evp(instruction);
+        break;
+      case EI:
+        ei(instruction);
+        break;
+      case ERET:
+        eret(instruction);
+        break;
+      case ERETNC:
+        eretnc(instruction);
+        break;
+      case GINVI:
+        ginvi(instruction);
+        break;
+      case GINVT:
+        ginvt(instruction);
+        break;
+      case PAUSE:
+        pause(instruction);
+        break;
+      case SDBBP:
+        sdbbp(instruction);
+        break;
+      case SIGRIE:
+        sigrie(instruction);
+        break;
+      case SYSCALL:
+        syscall(instruction);
+        break;
+      case SYNC:
+        sync(instruction);
+        break;
+      case SYNCI:
+        synci(instruction);
+        break;
+      case TLBINV:
+        tlbinv(instruction);
+        break;
+      case TLBINVF:
+        tlbinvf(instruction);
+        break;
+      case TLBP:
+        tlbp(instruction);
+        break;
+      case TLBR:
+        tlbr(instruction);
+        break;
+      case TLBWI:
+        tlbwi(instruction);
+        break;
+      case TLBWR:
+        tlbwr(instruction);
+        break;
+      case WAIT:
+        wait(instruction);
+        break;
+      case WRPGPR:
+        wrpgpr(instruction);
+        break;
+      case COP2:
+        cop2(instruction);
+        break;
     }
   }
+
+  private void add(int instruction) {}
+
+  private void addu(int instruction) {}
+
+  private void addi(int instruction) {}
+
+  private void addiu(int instruction) {}
+
+  private void addiupc(int instruction) {}
+
+  private void sub(int instruction) {}
+
+  private void subu(int instruction) {}
+
+  private void seb(int instruction) {}
+
+  private void seh(int instruction) {}
+
+  private void align(int instruction) {}
+
+  private void aluipc(int instruction) {}
+
+  private void clo(int instruction) {}
+
+  private void clz(int instruction) {}
+
+  private void sll(int instruction) {}
+
+  private void sslv(int instruction) {}
+
+  private void sllv(int instruction) {}
+
+  private void rotr(int instruction) {}
+
+  private void rotrv(int instruction) {}
+
+  private void sra(int instruction) {}
+
+  private void srav(int instruction) {}
+
+  private void srl(int instruction) {}
+
+  private void srlv(int instruction) {}
+
+  private void wsbh(int instruction) {}
+
+  private void bitswap(int instruction) {}
+
+  private void and_(int instruction) {}
+
+  private void andi(int instruction) {}
+
+  private void nor(int instruction) {}
+
+  private void or_(int instruction) {}
+
+  private void ori(int instruction) {}
+
+  private void xor_(int instruction) {}
+
+  private void xori(int instruction) {}
+
+  private void ext(int instruction) {}
+
+  private void ins(int instruction) {}
+
+  private void aui(int instruction) {}
+
+  private void auipc(int instruction) {}
+
+  private void movn(int instruction) {}
+
+  private void movz(int instruction) {}
+
+  private void slt(int instruction) {}
+
+  private void slti(int instruction) {}
+
+  private void sltiu(int instruction) {}
+
+  private void sltu(int instruction) {}
+
+  private void div(int instruction) {}
+
+  private void modu(int instruction) {}
+
+  private void mod(int instruction) {}
+
+  private void mul(int instruction) {}
+
+  private void muh(int instruction) {}
+
+  private void mulu(int instruction) {}
+
+  private void muhu(int instruction) {}
+
+  private void divu(int instruction) {}
+
+  private void madd(int instruction) {}
+
+  private void maddu(int instruction) {}
+
+  private void msub(int instruction) {}
+
+  private void msubu(int instruction) {}
+
+  private void mult(int instruction) {}
+
+  private void multu(int instruction) {}
+
+  private void bal(int instruction) {}
+
+  private void balc(int instruction) {}
+
+  private void bc(int instruction) {}
+
+  private void bc1eqz(int instruction) {}
+
+  private void bc1nez(int instruction) {}
+
+  private void bc2eqz(int instruction) {}
+
+  private void bc2nez(int instruction) {}
+
+  private void beq(int instruction) {}
+
+  private void beqc(int instruction) {}
+
+  private void beqzalc(int instruction) {}
+
+  private void bne(int instruction) {}
+
+  private void bnec(int instruction) {}
+
+  private void bnezc(int instruction) {}
+
+  private void bovc(int instruction) {}
+
+  private void bnvc(int instruction) {}
+
+  private void beqzc(int instruction) {}
+
+  private void bgez(int instruction) {}
+
+  private void bgtz(int instruction) {}
+
+  private void bgezal(int instruction) {}
+
+  private void blezalc(int instruction) {}
+
+  private void bgezalc(int instruction) {}
+
+  private void bgtzalc(int instruction) {}
+
+  private void bltzalc(int instruction) {}
+
+  private void bnezalc(int instruction) {}
+
+  private void blezc(int instruction) {}
+
+  private void bgezc(int instruction) {}
+
+  private void bgec(int instruction) {}
+
+  private void bgtzc(int instruction) {}
+
+  private void bltzc(int instruction) {}
+
+  private void bltc(int instruction) {}
+
+  private void bgeuc(int instruction) {}
+
+  private void bltuc(int instruction) {}
+
+  private void blez(int instruction) {}
+
+  private void bltz(int instruction) {}
+
+  private void bltzal(int instruction) {}
+
+  private void nal(int instruction) {}
+
+  private void break_(int instruction) {}
+
+  private void j(int instruction) {}
+
+  private void jal(int instruction) {}
+
+  private void jalr(int instruction) {}
+
+  private void jic(int instruction) {}
+
+  private void jalr_hb(int instruction) {}
+
+  private void jr(int instruction) {}
+
+  private void jr_hb(int instruction) {}
+
+  private void jialc(int instruction) {}
+
+  private void seleqz(int instruction) {}
+
+  private void selnez(int instruction) {}
+
+  private void teq(int instruction) {}
+
+  private void tge(int instruction) {}
+
+  private void tgeu(int instruction) {}
+
+  private void tlt(int instruction) {}
+
+  private void tltu(int instruction) {}
+
+  private void tne(int instruction) {}
+
+  private void lw(int instruction) {}
+
+  private void lwe(int instruction) {}
+
+  private void sw(int instruction) {}
+
+  private void swe(int instruction) {}
+
+  private void lb(int instruction) {}
+
+  private void lbe(int instruction) {}
+
+  private void lbu(int instruction) {}
+
+  private void lbue(int instruction) {}
+
+  private void lh(int instruction) {}
+
+  private void lhe(int instruction) {}
+
+  private void lhu(int instruction) {}
+
+  private void lhue(int instruction) {}
+
+  private void lsa(int instruction) {}
+
+  private void lwl(int instruction) {}
+
+  private void lwpc(int instruction) {}
+
+  private void lwr(int instruction) {}
+
+  private void sb(int instruction) {}
+
+  private void sbe(int instruction) {}
+
+  private void sh(int instruction) {}
+
+  private void she(int instruction) {}
+
+  private void swl(int instruction) {}
+
+  private void swr(int instruction) {}
+
+  private void cache(int instruction) {}
+
+  private void cachee(int instruction) {}
+
+  private void mfhi(int instruction) {}
+
+  private void mflo(int instruction) {}
+
+  private void mthi(int instruction) {}
+
+  private void mtlo(int instruction) {}
+
+  private void ll(int instruction) {}
+
+  private void lle(int instruction) {}
+
+  private void llwp(int instruction) {}
+
+  private void llwpe(int instruction) {}
+
+  private void sc(int instruction) {}
+
+  private void sce(int instruction) {}
+
+  private void scwp(int instruction) {}
+
+  private void scwpe(int instruction) {}
+
+  private void pref(int instruction) {}
+
+  private void prefe(int instruction) {}
+
+  private void rdhwr(int instruction) {}
+
+  private void rdpgpr(int instruction) {}
+
+  private void deret(int instruction) {}
+
+  private void di(int instruction) {}
+
+  private void dvp(int instruction) {}
+
+  private void evp(int instruction) {}
+
+  private void ei(int instruction) {}
+
+  private void eret(int instruction) {}
+
+  private void eretnc(int instruction) {}
+
+  private void ginvi(int instruction) {}
+
+  private void ginvt(int instruction) {}
+
+  private void pause(int instruction) {}
+
+  private void sdbbp(int instruction) {}
+
+  private void sigrie(int instruction) {}
+
+  private void syscall(int instruction) {}
+
+  private void sync(int instruction) {}
+
+  private void synci(int instruction) {}
+
+  private void tlbinv(int instruction) {}
+
+  private void tlbinvf(int instruction) {}
+
+  private void tlbp(int instruction) {}
+
+  private void tlbr(int instruction) {}
+
+  private void tlbwi(int instruction) {}
+
+  private void tlbwr(int instruction) {}
+
+  private void wait(int instruction) {}
+
+  private void wrpgpr(int instruction) {}
+
+  private void cop2(int instruction) {}
+
+  private void swc1(int instruction) {}
+
+  private void swc2(int instruction) {}
+
+  private void ldc1(int instruction) {}
+
+  private void ldc2(int instruction) {}
+
+  private void lwc1(int instruction) {}
+
+  private void lwc2(int instruction) {}
+
+  private void sdc1(int instruction) {}
+
+  private void sdc2(int instruction) {}
+
+  private void cfc1(int instruction) {}
+
+  private void cfc2(int instruction) {}
+
+  private void ctc1(int instruction) {}
+
+  private void ctc2(int instruction) {}
+
+  private void mfc0(int instruction) {}
+
+  private void mfc1(int instruction) {}
+
+  private void mfc2(int instruction) {}
+
+  private void mfhc0(int instruction) {}
+
+  private void mfhc1(int instruction) {}
+
+  private void mfhc2(int instruction) {}
+
+  private void mtc0(int instruction) {}
+
+  private void mtc1(int instruction) {}
+
+  private void mtc2(int instruction) {}
+
+  private void mthc0(int instruction) {}
+
+  private void mthc1(int instruction) {}
+
+  private void mthc2(int instruction) {}
+
+  private void abs_s(int instruction) {}
+
+  private void abs_d(int instruction) {}
+
+  private void add_s(int instruction) {}
+
+  private void add_d(int instruction) {}
+
+  private void div_s(int instruction) {}
+
+  private void div_d(int instruction) {}
+
+  private void mul_s(int instruction) {}
+
+  private void mul_d(int instruction) {}
+
+  private void neg_s(int instruction) {}
+
+  private void neg_d(int instruction) {}
+
+  private void sqrt_s(int instruction) {}
+
+  private void sqrt_d(int instruction) {}
+
+  private void sub_s(int instruction) {}
+
+  private void sub_d(int instruction) {}
+
+  private void recip_s(int instruction) {}
+
+  private void recip_d(int instruction) {}
+
+  private void rsqrt_s(int instruction) {}
+
+  private void rsqrt_d(int instruction) {}
+
+  private void maddf_s(int instruction) {}
+
+  private void maddf_d(int instruction) {}
+
+  private void msubf_s(int instruction) {}
+
+  private void msubf_d(int instruction) {}
+
+  private void class_s(int instruction) {}
+
+  private void class_d(int instruction) {}
+
+  private void max_s(int instruction) {}
+
+  private void max_d(int instruction) {}
+
+  private void maxa_s(int instruction) {}
+
+  private void maxa_d(int instruction) {}
+
+  private void min_s(int instruction) {}
+
+  private void min_d(int instruction) {}
+
+  private void mina_s(int instruction) {}
+
+  private void mina_d(int instruction) {}
+
+  private void rint_s(int instruction) {}
+
+  private void rint_d(int instruction) {}
+
+  private void mov_s(int instruction) {}
+
+  private void mov_d(int instruction) {}
+
+  private void sel_s(int instruction) {}
+
+  private void sel_d(int instruction) {}
+
+  private void seleqz_s(int instruction) {}
+
+  private void seleqz_d(int instruction) {}
+
+  private void selnez_s(int instruction) {}
+
+  private void selnez_d(int instruction) {}
+
+  private void cmp_af_s(int instruction) {}
+
+  private void cmp_af_d(int instruction) {}
+
+  private void cmp_un_s(int instruction) {}
+
+  private void cmp_un_d(int instruction) {}
+
+  private void cmp_eq_s(int instruction) {}
+
+  private void cmp_eq_d(int instruction) {}
+
+  private void cmp_ueq_s(int instruction) {}
+
+  private void cmp_ueq_d(int instruction) {}
+
+  private void cmp_lt_s(int instruction) {}
+
+  private void cmp_lt_d(int instruction) {}
+
+  private void cmp_ult_s(int instruction) {}
+
+  private void cmp_ult_d(int instruction) {}
+
+  private void cmp_le_s(int instruction) {}
+
+  private void cmp_le_d(int instruction) {}
+
+  private void cmp_ule_s(int instruction) {}
+
+  private void cmp_ule_d(int instruction) {}
+
+  private void cmp_saf_s(int instruction) {}
+
+  private void cmp_saf_d(int instruction) {}
+
+  private void cmp_sun_s(int instruction) {}
+
+  private void cmp_sun_d(int instruction) {}
+
+  private void cmp_seq_s(int instruction) {}
+
+  private void cmp_seq_d(int instruction) {}
+
+  private void cmp_sueq_s(int instruction) {}
+
+  private void cmp_sueq_d(int instruction) {}
+
+  private void cmp_slt_s(int instruction) {}
+
+  private void cmp_slt_d(int instruction) {}
+
+  private void cmp_sult_s(int instruction) {}
+
+  private void cmp_sult_d(int instruction) {}
+
+  private void cmp_sle_s(int instruction) {}
+
+  private void cmp_sle_d(int instruction) {}
+
+  private void cmp_sule_s(int instruction) {}
+
+  private void cmp_sule_d(int instruction) {}
+
+  private void cmp_at_s(int instruction) {}
+
+  private void cmp_at_d(int instruction) {}
+
+  private void cmp_or_s(int instruction) {}
+
+  private void cmp_or_d(int instruction) {}
+
+  private void cmp_une_s(int instruction) {}
+
+  private void cmp_une_d(int instruction) {}
+
+  private void cmp_ne_s(int instruction) {}
+
+  private void cmp_ne_d(int instruction) {}
+
+  private void cmp_uge_s(int instruction) {}
+
+  private void cmp_uge_d(int instruction) {}
+
+  private void cmp_oge_s(int instruction) {}
+
+  private void cmp_oge_d(int instruction) {}
+
+  private void cmp_ugt_s(int instruction) {}
+
+  private void cmp_ugt_d(int instruction) {}
+
+  private void cmp_ogt_s(int instruction) {}
+
+  private void cmp_ogt_d(int instruction) {}
+
+  private void cmp_sat_s(int instruction) {}
+
+  private void cmp_sat_d(int instruction) {}
+
+  private void cmp_sor_s(int instruction) {}
+
+  private void cmp_sor_d(int instruction) {}
+
+  private void cmp_sune_s(int instruction) {}
+
+  private void cmp_sune_d(int instruction) {}
+
+  private void cmp_sne_s(int instruction) {}
+
+  private void cmp_sne_d(int instruction) {}
+
+  private void cmp_suge_s(int instruction) {}
+
+  private void cmp_suge_d(int instruction) {}
+
+  private void cmp_soge_s(int instruction) {}
+
+  private void cmp_soge_d(int instruction) {}
+
+  private void cmp_sugt_s(int instruction) {}
+
+  private void cmp_sugt_d(int instruction) {}
+
+  private void cmp_sogt_s(int instruction) {}
+
+  private void cmp_sogt_d(int instruction) {}
+
+  private void cvt_d_s(int instruction) {}
+
+  private void cvt_d_w(int instruction) {}
+
+  private void cvt_d_l(int instruction) {}
+
+  private void cvt_l_s(int instruction) {}
+
+  private void cvt_l_d(int instruction) {}
+
+  private void cvt_s_d(int instruction) {}
+
+  private void cvt_s_w(int instruction) {}
+
+  private void cvt_s_l(int instruction) {}
+
+  private void cvt_w_s(int instruction) {}
+
+  private void cvt_w_d(int instruction) {}
+
+  private void ceil_l_s(int instruction) {}
+
+  private void ceil_l_d(int instruction) {}
+
+  private void ceil_w_s(int instruction) {}
+
+  private void ceil_w_d(int instruction) {}
+
+  private void floor_l_s(int instruction) {}
+
+  private void floor_l_d(int instruction) {}
+
+  private void floor_w_s(int instruction) {}
+
+  private void floor_w_d(int instruction) {}
+
+  private void round_l_s(int instruction) {}
+
+  private void round_l_d(int instruction) {}
+
+  private void round_w_s(int instruction) {}
+
+  private void round_w_d(int instruction) {}
+
+  private void trunc_l_s(int instruction) {}
+
+  private void trunc_l_d(int instruction) {}
+
+  private void trunc_w_s(int instruction) {}
+
+  private void trunc_w_d(int instruction) {}
+
+  private void crc32b(int instruction) {}
+
+  private void crc32h(int instruction) {}
+
+  private void crc32w(int instruction) {}
+
+  private void crc32cb(int instruction) {}
+
+  private void crc32ch(int instruction) {}
+
+  private void crc32cw(int instruction) {}
 }

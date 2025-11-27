@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /** MIPS instruction decoder using hierarchical lookup tables. */
-public class MipsInstructionDecoder {
+public class InstructionDecoder {
 
   // Bit masks
   private static final int OPCODE_MASK = 0xFC000000; // bits 31-26

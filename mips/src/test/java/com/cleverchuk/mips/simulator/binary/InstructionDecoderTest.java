@@ -42,7 +42,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class MipsInstructionDecoderTest {
+public class InstructionDecoderTest {
 
   RecursiveDescentParser parser =
       new RecursiveDescentParser(
@@ -80,7 +80,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ORI, actualOpcode);
   }
 
@@ -90,7 +90,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SDC2, actualOpcode);
   }
 
@@ -100,7 +100,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQ, actualOpcode);
   }
 
@@ -112,7 +112,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQ, actualOpcode);
   }
 
@@ -124,10 +124,10 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.AUI, actualOpcode);
 
-    actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.ORI, actualOpcode);
   }
 
@@ -139,7 +139,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.OR, actualOpcode);
   }
 
@@ -149,7 +149,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SUBU, actualOpcode);
   }
 
@@ -159,7 +159,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLL, actualOpcode);
   }
 
@@ -169,7 +169,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.NOR, actualOpcode);
   }
 
@@ -181,7 +181,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNE, actualOpcode);
   }
 
@@ -193,8 +193,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode =
-        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 8));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 8));
     assertEquals(Opcode.BAL, actualOpcode);
   }
 
@@ -204,10 +203,10 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWL, actualOpcode);
 
-    actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.LWR, actualOpcode);
   }
 
@@ -217,10 +216,10 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWL, actualOpcode);
 
-    actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.SWR, actualOpcode);
   }
 
@@ -230,7 +229,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLL, actualOpcode);
   }
 
@@ -240,7 +239,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ABS_D, actualOpcode);
   }
 
@@ -250,7 +249,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ABS_S, actualOpcode);
   }
 
@@ -260,7 +259,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADD, actualOpcode);
   }
 
@@ -270,7 +269,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADD_D, actualOpcode);
   }
 
@@ -280,7 +279,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADD_S, actualOpcode);
   }
 
@@ -291,7 +290,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADDI, actualOpcode);
   }
 
@@ -301,7 +300,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADDIU, actualOpcode);
   }
 
@@ -311,7 +310,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADDIUPC, actualOpcode);
   }
 
@@ -321,7 +320,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ADDU, actualOpcode);
   }
 
@@ -331,7 +330,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ALIGN, actualOpcode);
   }
 
@@ -341,7 +340,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ALUIPC, actualOpcode);
   }
 
@@ -351,7 +350,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.AND, actualOpcode);
   }
 
@@ -361,7 +360,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ANDI, actualOpcode);
   }
 
@@ -371,7 +370,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.AUI, actualOpcode);
   }
 
@@ -381,7 +380,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.AUIPC, actualOpcode);
   }
 
@@ -391,8 +390,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode =
-        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BALC, actualOpcode);
   }
 
@@ -402,8 +400,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode =
-        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BC, actualOpcode);
   }
 
@@ -415,7 +412,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BC1EQZ, actualOpcode);
   }
 
@@ -425,7 +422,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BC1NEZ, actualOpcode);
   }
 
@@ -437,7 +434,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BC2EQZ, actualOpcode);
   }
 
@@ -447,7 +444,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BC2NEZ, actualOpcode);
   }
 
@@ -457,7 +454,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQ, actualOpcode);
   }
 
@@ -467,7 +464,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQC, actualOpcode);
   }
 
@@ -477,7 +474,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQZALC, actualOpcode);
   }
 
@@ -487,7 +484,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BEQZC, actualOpcode);
   }
 
@@ -497,7 +494,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEC, actualOpcode);
   }
 
@@ -507,7 +504,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEZALC, actualOpcode);
   }
 
@@ -517,7 +514,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEZAL, actualOpcode);
   }
 
@@ -527,7 +524,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEZC, actualOpcode);
   }
 
@@ -537,7 +534,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEZ, actualOpcode);
   }
 
@@ -547,7 +544,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGEUC, actualOpcode);
   }
 
@@ -557,7 +554,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGTZALC, actualOpcode);
   }
 
@@ -567,7 +564,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGTZC, actualOpcode);
   }
 
@@ -577,7 +574,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BGTZ, actualOpcode);
   }
 
@@ -587,7 +584,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BITSWAP, actualOpcode);
   }
 
@@ -597,7 +594,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLEZALC, actualOpcode);
   }
 
@@ -607,7 +604,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLEZC, actualOpcode);
   }
 
@@ -617,7 +614,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLEZ, actualOpcode);
   }
 
@@ -627,7 +624,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTC, actualOpcode);
   }
 
@@ -637,7 +634,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTUC, actualOpcode);
   }
 
@@ -647,7 +644,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTZALC, actualOpcode);
   }
 
@@ -657,7 +654,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTZAL, actualOpcode);
   }
 
@@ -667,7 +664,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTZC, actualOpcode);
   }
 
@@ -677,7 +674,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BLTZ, actualOpcode);
   }
 
@@ -687,7 +684,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNE, actualOpcode);
   }
 
@@ -697,7 +694,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNEC, actualOpcode);
   }
 
@@ -707,7 +704,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNEZALC, actualOpcode);
   }
 
@@ -717,7 +714,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNEZC, actualOpcode);
   }
 
@@ -727,7 +724,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BNVC, actualOpcode);
   }
 
@@ -737,7 +734,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BOVC, actualOpcode);
   }
 
@@ -747,7 +744,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.BREAK, actualOpcode);
   }
 
@@ -757,7 +754,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CACHE, actualOpcode);
   }
 
@@ -767,7 +764,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CACHEE, actualOpcode);
   }
 
@@ -777,7 +774,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CEIL_L_D, actualOpcode);
   }
 
@@ -787,7 +784,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CEIL_L_S, actualOpcode);
   }
 
@@ -797,7 +794,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CEIL_W_D, actualOpcode);
   }
 
@@ -807,7 +804,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CEIL_W_S, actualOpcode);
   }
 
@@ -817,7 +814,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CFC1, actualOpcode);
   }
 
@@ -827,7 +824,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CFC2, actualOpcode);
   }
 
@@ -837,7 +834,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CLASS_D, actualOpcode);
   }
 
@@ -847,7 +844,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CLASS_S, actualOpcode);
   }
 
@@ -857,7 +854,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CLO, actualOpcode);
   }
 
@@ -867,7 +864,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CLZ, actualOpcode);
   }
 
@@ -877,7 +874,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_AF_D, actualOpcode);
   }
 
@@ -887,7 +884,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_AF_S, actualOpcode);
   }
 
@@ -897,7 +894,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_AT_D, actualOpcode);
   }
 
@@ -907,7 +904,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_AT_S, actualOpcode);
   }
 
@@ -917,7 +914,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UN_D, actualOpcode);
   }
 
@@ -927,7 +924,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UN_S, actualOpcode);
   }
 
@@ -937,7 +934,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_EQ_D, actualOpcode);
   }
 
@@ -947,7 +944,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_EQ_S, actualOpcode);
   }
 
@@ -957,7 +954,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UEQ_D, actualOpcode);
   }
 
@@ -967,7 +964,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UEQ_S, actualOpcode);
   }
 
@@ -977,7 +974,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_LT_D, actualOpcode);
   }
 
@@ -987,7 +984,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_LT_S, actualOpcode);
   }
 
@@ -997,7 +994,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_ULT_D, actualOpcode);
   }
 
@@ -1007,7 +1004,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_ULT_S, actualOpcode);
   }
 
@@ -1017,7 +1014,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_LE_D, actualOpcode);
   }
 
@@ -1027,7 +1024,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_LE_S, actualOpcode);
   }
 
@@ -1037,7 +1034,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_ULE_D, actualOpcode);
   }
 
@@ -1047,7 +1044,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_ULE_S, actualOpcode);
   }
 
@@ -1057,7 +1054,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SAF_D, actualOpcode);
   }
 
@@ -1067,7 +1064,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SAF_S, actualOpcode);
   }
 
@@ -1077,7 +1074,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUN_D, actualOpcode);
   }
 
@@ -1087,7 +1084,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUN_S, actualOpcode);
   }
 
@@ -1097,7 +1094,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SEQ_D, actualOpcode);
   }
 
@@ -1107,7 +1104,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SEQ_S, actualOpcode);
   }
 
@@ -1117,7 +1114,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUEQ_D, actualOpcode);
   }
 
@@ -1127,7 +1124,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUEQ_S, actualOpcode);
   }
 
@@ -1137,7 +1134,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SLT_D, actualOpcode);
   }
 
@@ -1147,7 +1144,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SLT_S, actualOpcode);
   }
 
@@ -1157,7 +1154,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SULT_D, actualOpcode);
   }
 
@@ -1167,7 +1164,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SULT_S, actualOpcode);
   }
 
@@ -1177,7 +1174,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SLE_D, actualOpcode);
   }
 
@@ -1187,7 +1184,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SLE_S, actualOpcode);
   }
 
@@ -1197,7 +1194,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SULE_D, actualOpcode);
   }
 
@@ -1207,7 +1204,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SULE_S, actualOpcode);
   }
 
@@ -1217,7 +1214,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OR_D, actualOpcode);
   }
 
@@ -1227,7 +1224,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OR_S, actualOpcode);
   }
 
@@ -1237,7 +1234,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UNE_D, actualOpcode);
   }
 
@@ -1247,7 +1244,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UNE_S, actualOpcode);
   }
 
@@ -1257,7 +1254,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_NE_D, actualOpcode);
   }
 
@@ -1267,7 +1264,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_NE_S, actualOpcode);
   }
 
@@ -1277,7 +1274,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UGE_D, actualOpcode);
   }
 
@@ -1287,7 +1284,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UGE_S, actualOpcode);
   }
 
@@ -1297,7 +1294,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OGE_D, actualOpcode);
   }
 
@@ -1307,7 +1304,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OGE_S, actualOpcode);
   }
 
@@ -1317,7 +1314,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UGT_D, actualOpcode);
   }
 
@@ -1327,7 +1324,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_UGT_S, actualOpcode);
   }
 
@@ -1337,7 +1334,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OGT_D, actualOpcode);
   }
 
@@ -1347,7 +1344,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_OGT_S, actualOpcode);
   }
 
@@ -1357,7 +1354,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SAT_D, actualOpcode);
   }
 
@@ -1367,7 +1364,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SAT_S, actualOpcode);
   }
 
@@ -1377,7 +1374,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOR_D, actualOpcode);
   }
 
@@ -1387,7 +1384,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOR_S, actualOpcode);
   }
 
@@ -1397,7 +1394,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUNE_D, actualOpcode);
   }
 
@@ -1407,7 +1404,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUNE_S, actualOpcode);
   }
 
@@ -1417,7 +1414,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SNE_D, actualOpcode);
   }
 
@@ -1427,7 +1424,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SNE_S, actualOpcode);
   }
 
@@ -1437,7 +1434,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUGE_D, actualOpcode);
   }
 
@@ -1447,7 +1444,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUGE_S, actualOpcode);
   }
 
@@ -1457,7 +1454,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOGE_D, actualOpcode);
   }
 
@@ -1467,7 +1464,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOGE_S, actualOpcode);
   }
 
@@ -1477,7 +1474,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUGT_D, actualOpcode);
   }
 
@@ -1487,7 +1484,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SUGT_S, actualOpcode);
   }
 
@@ -1497,7 +1494,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOGT_D, actualOpcode);
   }
 
@@ -1507,7 +1504,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CMP_SOGT_S, actualOpcode);
   }
 
@@ -1517,7 +1514,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.COP2, actualOpcode);
   }
 
@@ -1527,7 +1524,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32B, actualOpcode);
   }
 
@@ -1537,7 +1534,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32H, actualOpcode);
   }
 
@@ -1547,7 +1544,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32W, actualOpcode);
   }
 
@@ -1557,7 +1554,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32CB, actualOpcode);
   }
 
@@ -1567,7 +1564,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32CH, actualOpcode);
   }
 
@@ -1577,7 +1574,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CRC32CW, actualOpcode);
   }
 
@@ -1587,7 +1584,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CTC1, actualOpcode);
   }
 
@@ -1597,7 +1594,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CTC2, actualOpcode);
   }
 
@@ -1607,7 +1604,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_D_L, actualOpcode);
   }
 
@@ -1617,7 +1614,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_D_S, actualOpcode);
   }
 
@@ -1627,7 +1624,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_D_W, actualOpcode);
   }
 
@@ -1637,7 +1634,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_L_D, actualOpcode);
   }
 
@@ -1647,7 +1644,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_L_S, actualOpcode);
   }
 
@@ -1657,7 +1654,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_S_D, actualOpcode);
   }
 
@@ -1667,7 +1664,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_S_L, actualOpcode);
   }
 
@@ -1677,7 +1674,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_S_W, actualOpcode);
   }
 
@@ -1687,7 +1684,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_W_D, actualOpcode);
   }
 
@@ -1697,7 +1694,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.CVT_W_S, actualOpcode);
   }
 
@@ -1707,7 +1704,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DERET, actualOpcode);
   }
 
@@ -1717,7 +1714,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DI, actualOpcode);
   }
 
@@ -1727,7 +1724,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DIV, actualOpcode);
   }
 
@@ -1737,7 +1734,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DIV_D, actualOpcode);
   }
 
@@ -1747,7 +1744,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DIV_S, actualOpcode);
   }
 
@@ -1757,7 +1754,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DIVU, actualOpcode);
   }
 
@@ -1767,7 +1764,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.DVP, actualOpcode);
   }
 
@@ -1777,7 +1774,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.EI, actualOpcode);
   }
 
@@ -1787,7 +1784,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ERET, actualOpcode);
   }
 
@@ -1797,7 +1794,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ERETNC, actualOpcode);
   }
 
@@ -1807,7 +1804,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.EVP, actualOpcode);
   }
 
@@ -1817,7 +1814,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.EXT, actualOpcode);
   }
 
@@ -1827,7 +1824,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.FLOOR_L_D, actualOpcode);
   }
 
@@ -1837,7 +1834,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.FLOOR_L_S, actualOpcode);
   }
 
@@ -1847,7 +1844,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.FLOOR_W_D, actualOpcode);
   }
 
@@ -1857,7 +1854,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.FLOOR_W_S, actualOpcode);
   }
 
@@ -1867,7 +1864,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.GINVI, actualOpcode);
   }
 
@@ -1877,7 +1874,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.GINVT, actualOpcode);
   }
 
@@ -1887,7 +1884,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.INS, actualOpcode);
   }
 
@@ -1897,7 +1894,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.J, actualOpcode);
   }
 
@@ -1907,7 +1904,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JAL, actualOpcode);
   }
 
@@ -1917,7 +1914,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JALR, actualOpcode);
   }
 
@@ -1927,7 +1924,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JALR_HB, actualOpcode);
   }
 
@@ -1937,7 +1934,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JIC, actualOpcode);
   }
 
@@ -1947,7 +1944,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JIALC, actualOpcode);
   }
 
@@ -1957,7 +1954,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JR, actualOpcode);
   }
 
@@ -1967,7 +1964,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.JR_HB, actualOpcode);
   }
 
@@ -1977,7 +1974,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LB, actualOpcode);
   }
 
@@ -1987,7 +1984,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LBE, actualOpcode);
   }
 
@@ -1997,7 +1994,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LBU, actualOpcode);
   }
 
@@ -2007,7 +2004,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LBUE, actualOpcode);
   }
 
@@ -2017,7 +2014,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LDC1, actualOpcode);
   }
 
@@ -2027,7 +2024,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LDC2, actualOpcode);
   }
 
@@ -2037,7 +2034,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LH, actualOpcode);
   }
 
@@ -2047,7 +2044,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LHE, actualOpcode);
   }
 
@@ -2057,7 +2054,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LHU, actualOpcode);
   }
 
@@ -2067,7 +2064,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LHUE, actualOpcode);
   }
 
@@ -2077,7 +2074,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LL, actualOpcode);
   }
 
@@ -2087,7 +2084,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LLE, actualOpcode);
   }
 
@@ -2097,7 +2094,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LLWP, actualOpcode);
   }
 
@@ -2107,7 +2104,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LLWPE, actualOpcode);
   }
 
@@ -2117,7 +2114,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LSA, actualOpcode);
   }
 
@@ -2127,7 +2124,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.AUI, actualOpcode);
   }
 
@@ -2137,7 +2134,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LW, actualOpcode);
   }
 
@@ -2147,7 +2144,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWC1, actualOpcode);
   }
 
@@ -2157,7 +2154,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWC2, actualOpcode);
   }
 
@@ -2167,7 +2164,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWE, actualOpcode);
   }
 
@@ -2177,7 +2174,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWL, actualOpcode);
   }
 
@@ -2187,7 +2184,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWPC, actualOpcode);
   }
 
@@ -2197,7 +2194,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.LWR, actualOpcode);
   }
 
@@ -2207,7 +2204,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MADD, actualOpcode);
   }
 
@@ -2217,7 +2214,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MADDF_D, actualOpcode);
   }
 
@@ -2227,7 +2224,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MADDF_S, actualOpcode);
   }
 
@@ -2237,7 +2234,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MADDU, actualOpcode);
   }
 
@@ -2247,7 +2244,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MAX_D, actualOpcode);
   }
 
@@ -2257,7 +2254,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MAX_S, actualOpcode);
   }
 
@@ -2267,7 +2264,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MAXA_D, actualOpcode);
   }
 
@@ -2277,7 +2274,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MAXA_S, actualOpcode);
   }
 
@@ -2287,7 +2284,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFC0, actualOpcode);
   }
 
@@ -2297,7 +2294,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFC1, actualOpcode);
   }
 
@@ -2307,7 +2304,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFC2, actualOpcode);
   }
 
@@ -2317,7 +2314,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFHC0, actualOpcode);
   }
 
@@ -2327,7 +2324,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFHC1, actualOpcode);
   }
 
@@ -2337,7 +2334,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFHC2, actualOpcode);
   }
 
@@ -2347,7 +2344,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFHI, actualOpcode);
   }
 
@@ -2357,7 +2354,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MFLO, actualOpcode);
   }
 
@@ -2367,7 +2364,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MIN_D, actualOpcode);
   }
 
@@ -2377,7 +2374,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MIN_S, actualOpcode);
   }
 
@@ -2387,7 +2384,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MINA_D, actualOpcode);
   }
 
@@ -2397,7 +2394,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MINA_S, actualOpcode);
   }
 
@@ -2407,7 +2404,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MOD, actualOpcode);
   }
 
@@ -2417,7 +2414,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MODU, actualOpcode);
   }
 
@@ -2427,7 +2424,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MOV_D, actualOpcode);
   }
 
@@ -2437,7 +2434,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MOV_S, actualOpcode);
   }
 
@@ -2447,7 +2444,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MOVN, actualOpcode);
   }
 
@@ -2457,7 +2454,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MOVZ, actualOpcode);
   }
 
@@ -2467,7 +2464,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MSUBF_D, actualOpcode);
   }
 
@@ -2477,7 +2474,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MSUBF_S, actualOpcode);
   }
 
@@ -2487,7 +2484,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MSUB, actualOpcode);
   }
 
@@ -2497,7 +2494,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MSUBU, actualOpcode);
   }
 
@@ -2507,7 +2504,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTC0, actualOpcode);
   }
 
@@ -2517,7 +2514,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTC1, actualOpcode);
   }
 
@@ -2527,7 +2524,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTC2, actualOpcode);
   }
 
@@ -2537,7 +2534,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTHC0, actualOpcode);
   }
 
@@ -2547,7 +2544,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTHC1, actualOpcode);
   }
 
@@ -2557,7 +2554,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTHC2, actualOpcode);
   }
 
@@ -2567,7 +2564,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTHI, actualOpcode);
   }
 
@@ -2577,7 +2574,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MTLO, actualOpcode);
   }
 
@@ -2587,7 +2584,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MUH, actualOpcode);
   }
 
@@ -2597,7 +2594,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MUHU, actualOpcode);
   }
 
@@ -2607,7 +2604,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MUL, actualOpcode);
   }
 
@@ -2617,7 +2614,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MULU, actualOpcode);
   }
 
@@ -2627,7 +2624,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MUL_D, actualOpcode);
   }
 
@@ -2637,7 +2634,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MUL_S, actualOpcode);
   }
 
@@ -2647,7 +2644,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MULT, actualOpcode);
   }
 
@@ -2657,7 +2654,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.MULTU, actualOpcode);
   }
 
@@ -2667,7 +2664,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.NAL, actualOpcode);
   }
 
@@ -2677,7 +2674,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.NEG_D, actualOpcode);
   }
 
@@ -2687,7 +2684,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.NEG_S, actualOpcode);
   }
 
@@ -2697,7 +2694,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.NOR, actualOpcode);
   }
 
@@ -2707,7 +2704,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.OR, actualOpcode);
   }
 
@@ -2717,7 +2714,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ORI, actualOpcode);
   }
 
@@ -2727,7 +2724,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.PAUSE, actualOpcode);
   }
 
@@ -2737,7 +2734,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.PREF, actualOpcode);
   }
 
@@ -2747,7 +2744,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.PREFE, actualOpcode);
   }
 
@@ -2757,7 +2754,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RDHWR, actualOpcode);
   }
 
@@ -2767,7 +2764,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RDPGPR, actualOpcode);
   }
 
@@ -2777,7 +2774,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RECIP_D, actualOpcode);
   }
 
@@ -2787,7 +2784,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RECIP_S, actualOpcode);
   }
 
@@ -2797,7 +2794,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RINT_D, actualOpcode);
   }
 
@@ -2807,7 +2804,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RINT_S, actualOpcode);
   }
 
@@ -2817,7 +2814,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROTR, actualOpcode);
   }
 
@@ -2827,7 +2824,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROTRV, actualOpcode);
   }
 
@@ -2837,7 +2834,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROUND_L_D, actualOpcode);
   }
 
@@ -2847,7 +2844,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROUND_L_S, actualOpcode);
   }
 
@@ -2857,7 +2854,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROUND_W_D, actualOpcode);
   }
 
@@ -2867,7 +2864,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.ROUND_W_S, actualOpcode);
   }
 
@@ -2877,7 +2874,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RSQRT_D, actualOpcode);
   }
 
@@ -2887,7 +2884,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.RSQRT_S, actualOpcode);
   }
 
@@ -2897,7 +2894,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SB, actualOpcode);
   }
 
@@ -2907,7 +2904,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SBE, actualOpcode);
   }
 
@@ -2917,7 +2914,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SC, actualOpcode);
   }
 
@@ -2927,7 +2924,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SCE, actualOpcode);
   }
 
@@ -2937,7 +2934,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SCWP, actualOpcode);
   }
 
@@ -2947,7 +2944,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SCWPE, actualOpcode);
   }
 
@@ -2957,7 +2954,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SDC1, actualOpcode);
   }
 
@@ -2967,7 +2964,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SDBBP, actualOpcode);
   }
 
@@ -2977,7 +2974,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SEB, actualOpcode);
   }
 
@@ -2987,7 +2984,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SEH, actualOpcode);
   }
 
@@ -2997,7 +2994,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SEL_D, actualOpcode);
   }
 
@@ -3007,7 +3004,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SEL_S, actualOpcode);
   }
 
@@ -3017,7 +3014,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELEQZ, actualOpcode);
   }
 
@@ -3027,7 +3024,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELNEZ, actualOpcode);
   }
 
@@ -3037,7 +3034,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELEQZ_D, actualOpcode);
   }
 
@@ -3047,7 +3044,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELEQZ_S, actualOpcode);
   }
 
@@ -3057,7 +3054,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELNEZ_D, actualOpcode);
   }
 
@@ -3067,7 +3064,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SELNEZ_S, actualOpcode);
   }
 
@@ -3077,7 +3074,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SH, actualOpcode);
   }
 
@@ -3087,7 +3084,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SHE, actualOpcode);
   }
 
@@ -3097,7 +3094,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SIGRIE, actualOpcode);
   }
 
@@ -3107,7 +3104,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLL, actualOpcode);
   }
 
@@ -3117,7 +3114,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLLV, actualOpcode);
   }
 
@@ -3127,7 +3124,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLT, actualOpcode);
   }
 
@@ -3137,7 +3134,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLTI, actualOpcode);
   }
 
@@ -3147,7 +3144,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLTIU, actualOpcode);
   }
 
@@ -3157,7 +3154,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLTU, actualOpcode);
   }
 
@@ -3167,7 +3164,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SRA, actualOpcode);
   }
 
@@ -3177,7 +3174,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SRAV, actualOpcode);
   }
 
@@ -3187,7 +3184,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SRL, actualOpcode);
   }
 
@@ -3197,7 +3194,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SRLV, actualOpcode);
   }
 
@@ -3207,7 +3204,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SLL, actualOpcode);
   }
 
@@ -3217,7 +3214,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SQRT_D, actualOpcode);
   }
 
@@ -3227,7 +3224,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SQRT_S, actualOpcode);
   }
 
@@ -3237,7 +3234,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SUB, actualOpcode);
   }
 
@@ -3247,7 +3244,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SUB_D, actualOpcode);
   }
 
@@ -3257,7 +3254,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SUB_S, actualOpcode);
   }
 
@@ -3267,7 +3264,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SUBU, actualOpcode);
   }
 
@@ -3277,7 +3274,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SW, actualOpcode);
   }
 
@@ -3287,7 +3284,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWC1, actualOpcode);
   }
 
@@ -3297,7 +3294,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWC2, actualOpcode);
   }
 
@@ -3307,7 +3304,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWE, actualOpcode);
   }
 
@@ -3317,7 +3314,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWL, actualOpcode);
   }
 
@@ -3327,7 +3324,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SWR, actualOpcode);
   }
 
@@ -3337,7 +3334,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SYNC, actualOpcode);
   }
 
@@ -3347,7 +3344,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SYNCI, actualOpcode);
   }
 
@@ -3357,7 +3354,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.SYSCALL, actualOpcode);
   }
 
@@ -3367,7 +3364,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TEQ, actualOpcode);
   }
 
@@ -3377,7 +3374,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TGE, actualOpcode);
   }
 
@@ -3387,7 +3384,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBINV, actualOpcode);
   }
 
@@ -3397,7 +3394,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBINVF, actualOpcode);
   }
 
@@ -3407,7 +3404,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBP, actualOpcode);
   }
 
@@ -3417,7 +3414,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBR, actualOpcode);
   }
 
@@ -3427,7 +3424,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBWI, actualOpcode);
   }
 
@@ -3437,7 +3434,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLBWR, actualOpcode);
   }
 
@@ -3447,7 +3444,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLT, actualOpcode);
   }
 
@@ -3457,7 +3454,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TLTU, actualOpcode);
   }
 
@@ -3467,7 +3464,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TNE, actualOpcode);
   }
 
@@ -3477,7 +3474,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TRUNC_L_D, actualOpcode);
   }
 
@@ -3487,7 +3484,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TRUNC_L_S, actualOpcode);
   }
 
@@ -3497,7 +3494,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TRUNC_W_D, actualOpcode);
   }
 
@@ -3507,7 +3504,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.TRUNC_W_S, actualOpcode);
   }
 
@@ -3517,7 +3514,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.WAIT, actualOpcode);
   }
 
@@ -3527,7 +3524,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.WRPGPR, actualOpcode);
   }
 
@@ -3537,7 +3534,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.WSBH, actualOpcode);
   }
 
@@ -3547,7 +3544,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.XOR, actualOpcode);
   }
 
@@ -3557,7 +3554,7 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
+    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
     assertEquals(Opcode.XORI, actualOpcode);
   }
 
