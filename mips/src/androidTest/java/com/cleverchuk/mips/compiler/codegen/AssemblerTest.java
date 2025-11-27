@@ -451,7 +451,9 @@ public class AssemblerTest {
 
   @Test
   public void testBc1eqz() {
-    String[] instructions = {".data", "bytes: .byte 1,2", ".text", "bc1eqz $f1, label", "label: andi $t0, $t1, 5"};
+    String[] instructions = {
+      ".data", "bytes: .byte 1,2", ".text", "bc1eqz $f1, label", "label: andi $t0, $t1, 5"
+    };
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
 
@@ -473,7 +475,9 @@ public class AssemblerTest {
 
   @Test
   public void testBc2eqz() {
-    String[] instructions = {".data", "bytes: .byte 1,2", ".text", "bc2eqz $f1, label", "label: andi $t0, $t1, 5"};
+    String[] instructions = {
+      ".data", "bytes: .byte 1,2", ".text", "bc2eqz $f1, label", "label: andi $t0, $t1, 5"
+    };
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
 
@@ -2253,7 +2257,6 @@ public class AssemblerTest {
     assertEquals(expectedEncoding, actualEncoding);
   }
 
-
   @Test
   public void testlhu() {
     String[] instructions = {".text", "lhu $t0, 4($t1)"};
@@ -3353,7 +3356,6 @@ public class AssemblerTest {
     int expectedEncoding = 0x46031054;
     assertEquals(expectedEncoding, actualEncoding);
   }
-
 
   @Test
   public void testselnezd() {

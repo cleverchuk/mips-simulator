@@ -29,11 +29,10 @@ import com.cleverchuk.mips.simulator.Processor;
 public class CentralProcessor implements Processor<BinaryInstruction> {
   @Override
   public void execute(BinaryInstruction instruction) throws Exception {
-      int instructionCode = instruction.getInstruction();
-      int opcode = instructionCode & 0xf3000000;
+    int instructionCode = instruction.getInstruction();
+    int opcode = instructionCode & 0xf3000000;
 
-      switch (opcode){
-
-      }
+    switch (opcode) {
+    }
   }
 }

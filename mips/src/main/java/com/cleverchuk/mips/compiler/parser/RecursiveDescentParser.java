@@ -46,10 +46,8 @@ public final class RecursiveDescentParser {
 
   private Token ll1;
 
-
   @Inject
-  public RecursiveDescentParser(
-      MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
+  public RecursiveDescentParser(MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
     this.lexer = lexer;
     this.semanticAnalyzer = semanticAnalyzer;
     nodeVisitors.add(new PseudoTransformer());

@@ -24,6 +24,8 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
+import static org.junit.Assert.assertEquals;
+
 import com.cleverchuk.mips.compiler.codegen.Assembler;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
@@ -39,8 +41,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class MipsInstructionDecoderTest {
 
@@ -62,7 +62,6 @@ public class MipsInstructionDecoderTest {
                   new FourOpAnalyzer())));
 
   private Assembler assembler;
-
 
   @Before
   public void setup() {
@@ -108,7 +107,7 @@ public class MipsInstructionDecoderTest {
   @Test
   public void testBeqz() {
     String[] instructions = {
-        ".data", "bytes: .byte 1,2", ".text", "beqz $t0, label", "label: la $t4, bytes"
+      ".data", "bytes: .byte 1,2", ".text", "beqz $t0, label", "label: la $t4, bytes"
     };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
@@ -120,7 +119,7 @@ public class MipsInstructionDecoderTest {
   @Test
   public void testLa() {
     String[] instructions = {
-        ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "la $t0, bytes"
+      ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "la $t0, bytes"
     };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
@@ -135,7 +134,7 @@ public class MipsInstructionDecoderTest {
   @Test
   public void testMove() {
     String[] instructions = {
-        ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "move $t0, $t1"
+      ".data", "floats: .float 1.666,2.333", "bytes: .byte 1,2", ".text", "move $t0, $t1"
     };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
@@ -177,7 +176,7 @@ public class MipsInstructionDecoderTest {
   @Test
   public void testBnez() {
     String[] instructions = {
-        ".data", "bytes: .byte 1, 2", ".text", "bnez $t0, label", "label: la $t4, bytes"
+      ".data", "bytes: .byte 1, 2", ".text", "bnez $t0, label", "label: la $t4, bytes"
     };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
@@ -189,12 +188,13 @@ public class MipsInstructionDecoderTest {
   @Test
   public void testBal() {
     String[] instructions = {
-        ".data", "bytes: .byte 1, 2", ".text", "label: la $t4, bytes", "bal label"
+      ".data", "bytes: .byte 1, 2", ".text", "label: la $t4, bytes", "bal label"
     };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 8));
+    Opcode actualOpcode =
+        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 8));
     assertEquals(Opcode.BAL, actualOpcode);
   }
 
@@ -391,7 +391,8 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    Opcode actualOpcode =
+        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BALC, actualOpcode);
   }
 
@@ -401,13 +402,16 @@ public class MipsInstructionDecoderTest {
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
-    Opcode actualOpcode = MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
+    Opcode actualOpcode =
+        MipsInstructionDecoder.decode(layout.readWord(assembler.getTextOffset() + 4));
     assertEquals(Opcode.BC, actualOpcode);
   }
 
   @Test
   public void testBc1eqz() {
-    String[] instructions = {".data", "bytes: .byte 1,2", ".text", "bc1eqz $f1, label", "label: andi $t0, $t1, 5"};
+    String[] instructions = {
+      ".data", "bytes: .byte 1,2", ".text", "bc1eqz $f1, label", "label: andi $t0, $t1, 5"
+    };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
@@ -427,7 +431,9 @@ public class MipsInstructionDecoderTest {
 
   @Test
   public void testBc2eqz() {
-    String[] instructions = {".data", "bytes: .byte 1,2", ".text", "bc2eqz $f1, label", "label: andi $t0, $t1, 5"};
+    String[] instructions = {
+      ".data", "bytes: .byte 1,2", ".text", "bc2eqz $f1, label", "label: andi $t0, $t1, 5"
+    };
     parser.parse(toLineDelimited(instructions));
     Memory layout = assembler.getLayout();
 
@@ -2045,7 +2051,6 @@ public class MipsInstructionDecoderTest {
     assertEquals(Opcode.LHE, actualOpcode);
   }
 
-
   @Test
   public void testlhu() {
     String[] instructions = {".text", "lhu $t0, 4($t1)"};
@@ -3046,7 +3051,6 @@ public class MipsInstructionDecoderTest {
     assertEquals(Opcode.SELEQZ_S, actualOpcode);
   }
 
-
   @Test
   public void testselnezd() {
     String[] instructions = {".text", "selnez.d $f1, $f2, $f3"};
@@ -3565,5 +3569,4 @@ public class MipsInstructionDecoderTest {
 
     return builder.toString();
   }
-
 }

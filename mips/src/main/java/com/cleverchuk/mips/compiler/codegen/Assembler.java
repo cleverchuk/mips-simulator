@@ -87,8 +87,7 @@ public class Assembler implements NodeVisitor {
   private InstructionIR.Builder irBuilder = null;
 
   @Override
-  public void visit(Node node) {
-  }
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {
@@ -108,8 +107,7 @@ public class Assembler implements NodeVisitor {
               .build());
 
     } else {
-      symbolTable.put(
-          label, index);
+      symbolTable.put(label, index);
     }
   }
 
@@ -160,10 +158,16 @@ public class Assembler implements NodeVisitor {
     exprEval(expr, ops, operands);
     if (currentDataMode.isEmpty()) {
       int constant = operands.pop().intValue();
-      if (opcode == Opcode.ALIGN || opcode == Opcode.ROTR || opcode == Opcode.SLL
-          || opcode == Opcode.SRA || opcode == Opcode.SRL) {
+      if (opcode == Opcode.ALIGN
+          || opcode == Opcode.ROTR
+          || opcode == Opcode.SLL
+          || opcode == Opcode.SRA
+          || opcode == Opcode.SRL) {
         irBuilder.withSa(constant);
-      } else if (opcode == Opcode.CACHE || opcode == Opcode.CACHEE || opcode == Opcode.PREF || opcode == Opcode.PREFE) {
+      } else if (opcode == Opcode.CACHE
+          || opcode == Opcode.CACHEE
+          || opcode == Opcode.PREF
+          || opcode == Opcode.PREFE) {
         if ((opBitfield & 1) == 0) {
           irBuilder.withSa(constant);
           opBitfield |= 1;
@@ -657,17 +661,10 @@ public class Assembler implements NodeVisitor {
       case MFHC2:
       case MTC2:
       case MTHC2:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRt << 16
-                | currentImme & 0xffff;
+        encoding = opcode.partialEncoding | opcode.opcode | currentRt << 16 | currentImme & 0xffff;
         break;
       case COP2:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentImme & 0x1ffffff;
+        encoding = opcode.partialEncoding | opcode.opcode | currentImme & 0x1ffffff;
         break;
       case CRC32B:
       case CRC32CB:
@@ -692,11 +689,7 @@ public class Assembler implements NodeVisitor {
                 | currentPos << 6;
         break;
       case GINVT:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 21
-                | currentShiftAmt << 8;
+        encoding = opcode.partialEncoding | opcode.opcode | currentRs << 21 | currentShiftAmt << 8;
         break;
       case LBE:
       case LBUE:
@@ -789,10 +782,7 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 11;
         break;
       case SDBBP:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | (currentImme & 0xfffff) << 6;
+        encoding = opcode.partialEncoding | opcode.opcode | (currentImme & 0xfffff) << 6;
         break;
       case SRA:
         encoding =
@@ -803,17 +793,11 @@ public class Assembler implements NodeVisitor {
                 | (currentShiftAmt & 0x1f) << 6;
         break;
       case SYNC:
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | (currentImme & 0x1f) << 6;
+        encoding = opcode.partialEncoding | opcode.opcode | (currentImme & 0x1f) << 6;
         break;
       case SYNCI:
         encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRt << 21
-                | (currentImme & 0xffff);
+            opcode.partialEncoding | opcode.opcode | currentRt << 21 | (currentImme & 0xffff);
         break;
       case ADD:
       case ADDI:

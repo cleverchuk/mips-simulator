@@ -28,7 +28,5 @@ import com.cleverchuk.mips.simulator.Processor;
 
 public class Coprocessor0 implements Processor<BinaryInstruction> {
   @Override
-  public void execute(BinaryInstruction instruction) throws Exception {
-
-  }
+  public void execute(BinaryInstruction instruction) throws Exception {}
 }
