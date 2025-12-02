@@ -48,6 +48,10 @@ public class CentralProcessor {
     return pc;
   }
 
+  public void setPc(int pc) {
+    this.pc = pc;
+  }
+
   public FpuRegisterFileArray getFpuRegisterFileArray() {
     return fpuRegisterFileArray;
   }
@@ -109,7 +113,7 @@ public class CentralProcessor {
         sll(instruction);
         break;
       case SLLV:
-        sslv(instruction);
+        sllv(instruction);
         break;
       case ROTR:
         rotr(instruction);
@@ -1068,89 +1072,428 @@ public class CentralProcessor {
     }
   }
 
-  private void add(int instruction) {}
+  private void add(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void addu(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source + target);
+  }
 
-  private void addi(int instruction) {}
+  private void addu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void addiu(int instruction) {}
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    cpuRegisterFile.write(String.valueOf(rd), (int) (source + target));
+  }
 
-  private void addiupc(int instruction) {}
+  private void addi(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
 
-  private void sub(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), Math.addExact(source, imm));
+  }
 
-  private void subu(int instruction) {}
+  private void addiu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
 
-  private void seb(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), source + imm);
+  }
 
-  private void seh(int instruction) {}
+  private void addiupc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
+    int immv = imm << 2;
 
-  private void align(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rs), pc - 1 + immv);
+  }
 
-  private void aluipc(int instruction) {}
+  private void sub(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void clo(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), Math.subtractExact(source, target));
+  }
 
-  private void clz(int instruction) {}
+  private void subu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void sll(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source - target);
+  }
 
-  private void sslv(int instruction) {}
+  private void seb(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void sllv(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(
+        String.valueOf(rd), (target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
+  }
 
-  private void rotr(int instruction) {}
+  private void seh(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void rotrv(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(
+        String.valueOf(rd), (target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
+  }
 
-  private void sra(int instruction) {}
+  private void align(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void srav(int instruction) {}
+    int bp = (instruction >> 6) & 0x3;
+    int source = cpuRegisterFile.read(String.valueOf(rs)) >> (8 * (4 - bp));
+    int target = cpuRegisterFile.read(String.valueOf(rt)) << (8 * bp);
 
-  private void srl(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), source | target);
+  }
 
-  private void srlv(int instruction) {}
+  private void aluipc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short imm = (short)(instruction & 0xffff);
 
-  private void wsbh(int instruction) {}
+    int immv = imm << 16;
+    cpuRegisterFile.write(String.valueOf(rs), ~0x0ffff & (pc - 1 + immv));
+  }
 
-  private void bitswap(int instruction) {}
+  private void clo(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int source = cpuRegisterFile.read(String.valueOf(rs));
 
-  private void and_(int instruction) {}
+    int i = 32, mask = 0x80000000;
+    for (; (source & mask) == 0 && i > 0; i--, mask >>>= 1)
+      ;
+    cpuRegisterFile.write(String.valueOf(rd), 32 - i);
+  }
 
-  private void andi(int instruction) {}
+  private void clz(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void nor(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rd), Integer.numberOfLeadingZeros(source));
+  }
 
-  private void or_(int instruction) {}
+  private void sll(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int sa = (instruction >> 6) & 0x1f;
 
-  private void ori(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), target << sa);
+  }
 
-  private void xor_(int instruction) {}
+  private void sllv(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void xori(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), target << source);
+  }
 
-  private void ext(int instruction) {}
+  private void rotr(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int sa = (instruction >> 6) & 0x1f;
 
-  private void ins(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(
+        String.valueOf(rd),
+        (extractBits(target, 0x0, sa) << (0x20 - sa)) | (extractBits(target, sa, 0x20 - sa) >>> sa));
+  }
 
-  private void aui(int instruction) {}
+  private void rotrv(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void auipc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int sa = source & 0x1f;
 
-  private void movn(int instruction) {}
+    cpuRegisterFile.write(
+        String.valueOf(rd),
+        (extractBits(target, 0x0, sa) << (0x20 - sa)) | extractBits(target, sa, 0x20 - sa));
+  }
 
-  private void movz(int instruction) {}
+  private void sra(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int sa = (instruction >> 6) & 0x1f;
 
-  private void slt(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), target >> sa);
+  }
 
-  private void slti(int instruction) {}
+  private void srav(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void sltiu(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int sa = source & 0x1f;
 
-  private void sltu(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), target >> sa);
+  }
 
-  private void div(int instruction) {}
+  private void srl(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int sa = (instruction >> 6) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), target >>> sa);
+  }
+
+  private void srlv(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int sa = source & 0x1f;
+
+    cpuRegisterFile.write(String.valueOf(rd), target >>> sa);
+  }
+
+  private void wsbh(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(
+        String.valueOf(rd),
+        (extractBits(target, 0x10, 0x8) << 0x18)
+            | (extractBits(target, 0x18, 0x8) << 0x10)
+            | (extractBits(target, 0x0, 0x8) << 0x8)
+            | extractBits(target, 0x8, 0x8));
+  }
+
+  private void bitswap(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(
+        String.valueOf(rd),
+        (reverseByte(extractBits(target, 0x18, 0x8)) << 0x18)
+            | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10)
+            | (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8)
+            | reverseByte(extractBits(target, 0x0, 0x8)));
+  }
+
+  private void and_(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source & target);
+  }
+
+  private void andi(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int imm = instruction & 0xffff;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), source & imm);
+  }
+
+  private void nor(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), ~(source | target));
+  }
+
+  private void or_(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source | target);
+  }
+
+  private void ori(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int imm = instruction & 0xffff;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), source | imm);
+  }
+
+  private void xor_(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source ^ target);
+  }
+
+  private void xori(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int imm = instruction & 0xffff;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), source ^ imm);
+  }
+
+  private void ext(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int pos = (instruction >> 6) & 0x1f;
+    int size = ((instruction >> 11) & 0x1f) + 1;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int extracted = extractBits(source, pos, size);
+    cpuRegisterFile.write(String.valueOf(rt), extracted);
+  }
+
+  private void ins(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int pos = (instruction >> 6) & 0x1f;
+    int size = ((instruction >> 11) & 0x1f) + 1;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+
+    int mask = ((1 << size) - 1) << pos;
+    int result = (target & ~mask) | (extractBits(source, pos, size) << pos);
+    cpuRegisterFile.write(String.valueOf(rt), result);
+  }
+
+  private void aui(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
+    int immv = imm << 16;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rt), source + immv);
+  }
+
+  private void auipc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int imm = instruction & 0xffff;
+
+    cpuRegisterFile.write(String.valueOf(rs), pc - 1 + (imm << 16));
+  }
+
+  private void movn(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target != 0) {
+      cpuRegisterFile.write(String.valueOf(rd), source);
+    }
+  }
+
+  private void movz(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target == 0) {
+      cpuRegisterFile.write(String.valueOf(rd), source);
+    }
+  }
+
+  private void slt(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = source < target ? 1 : 0;
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
+
+  private void slti(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int result = source < imm ? 1 : 0;
+    cpuRegisterFile.write(String.valueOf(rt), result);
+  }
+
+  private void sltiu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short imm = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int result = Integer.compareUnsigned(source, imm) < 0 ? 1 : 0;
+    cpuRegisterFile.write(String.valueOf(rt), result);
+  }
+
+  private void sltu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = Integer.compareUnsigned(source, target) < 0 ? 1 : 0;
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
+
+  private void div(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int quotient = source / target;
+
+    int remainder = source % target;
+    cpuRegisterFile.accSetLO(quotient);
+    cpuRegisterFile.accSetHI(remainder);
+  }
 
   private void modu(int instruction) {}
 
@@ -1735,4 +2078,20 @@ public class CentralProcessor {
   private void crc32ch(int instruction) {}
 
   private void crc32cw(int instruction) {}
+
+  private int extractBits(int source, int pos, int size) {
+    int mask = (1 << size) - 1;
+    mask <<= pos; // align mask with bits to extract
+    return (source & mask) >>> pos;
+  }
+
+  private byte reverseByte(int target) {
+    byte out = 0;
+    for (int n = 0; n < 8; n++, target >>= 1) {
+      out <<= 1;
+      out |= (byte) (target & 1);
+    }
+
+    return out;
+  }
 }
