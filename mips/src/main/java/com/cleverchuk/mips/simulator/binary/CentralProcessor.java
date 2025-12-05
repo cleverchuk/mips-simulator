@@ -25,6 +25,7 @@
 package com.cleverchuk.mips.simulator.binary;
 
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
+import com.cleverchuk.mips.simulator.fpu.Cop2RegisterFileArray;
 import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 
@@ -35,6 +36,8 @@ public class CentralProcessor {
   private final FpuRegisterFileArray fpuRegisterFileArray = new FpuRegisterFileArray();
 
   private final CpuRegisterFile cpuRegisterFile = new CpuRegisterFile();
+
+  private final Cop2RegisterFileArray cop2RegisterFileArray = new Cop2RegisterFileArray();
 
   private int pc;
 
@@ -1115,7 +1118,7 @@ public class CentralProcessor {
     short imm = (short) (instruction & 0xffff);
     int immv = imm << 2;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 1 + immv);
+    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + immv);
   }
 
   private void sub(int instruction) {
@@ -1170,10 +1173,10 @@ public class CentralProcessor {
 
   private void aluipc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    short imm = (short)(instruction & 0xffff);
+    short imm = (short) (instruction & 0xffff);
 
     int immv = imm << 16;
-    cpuRegisterFile.write(String.valueOf(rs), ~0x0ffff & (pc - 1 + immv));
+    cpuRegisterFile.write(String.valueOf(rs), ~0x0ffff & (pc - 4 + immv));
   }
 
   private void clo(int instruction) {
@@ -1222,7 +1225,8 @@ public class CentralProcessor {
     int target = cpuRegisterFile.read(String.valueOf(rt));
     cpuRegisterFile.write(
         String.valueOf(rd),
-        (extractBits(target, 0x0, sa) << (0x20 - sa)) | (extractBits(target, sa, 0x20 - sa) >>> sa));
+        (extractBits(target, 0x0, sa) << (0x20 - sa))
+            | (extractBits(target, sa, 0x20 - sa) >>> sa));
   }
 
   private void rotrv(int instruction) {
@@ -1413,7 +1417,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int imm = instruction & 0xffff;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 1 + (imm << 16));
+    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + (imm << 16));
   }
 
   private void movn(int instruction) {
@@ -1485,61 +1489,258 @@ public class CentralProcessor {
   private void div(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
     int source = cpuRegisterFile.read(String.valueOf(rs));
     int target = cpuRegisterFile.read(String.valueOf(rt));
-    int quotient = source / target;
-
-    int remainder = source % target;
-    cpuRegisterFile.accSetLO(quotient);
-    cpuRegisterFile.accSetHI(remainder);
+    cpuRegisterFile.write(String.valueOf(rd), source / target);
   }
 
-  private void modu(int instruction) {}
+  private void divu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void mod(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = (int) (Integer.toUnsignedLong(source) / Integer.toUnsignedLong(target));
 
-  private void mul(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
 
-  private void muh(int instruction) {}
+  private void modu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void mulu(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = Integer.remainderUnsigned(source, target);
 
-  private void muhu(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
 
-  private void divu(int instruction) {}
+  private void mod(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void madd(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write(String.valueOf(rd), source % target);
+  }
 
-  private void maddu(int instruction) {}
+  private void mul(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void msub(int instruction) {}
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source * target;
 
-  private void msubu(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), (int) result);
+  }
 
-  private void mult(int instruction) {}
+  private void muh(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void multu(int instruction) {}
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source * target;
 
-  private void bal(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), (int) (result >> 32));
+  }
 
-  private void balc(int instruction) {}
+  private void mulu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void bc(int instruction) {}
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long result = source * target;
 
-  private void bc1eqz(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), (int) result);
+  }
 
-  private void bc1nez(int instruction) {}
+  private void muhu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void bc2eqz(int instruction) {}
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long result = source * target;
 
-  private void bc2nez(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rd), (int) (result >> 32));
+  }
 
-  private void beq(int instruction) {}
+  private void madd(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
 
-  private void beqc(int instruction) {}
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source * target;
 
-  private void beqzalc(int instruction) {}
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void maddu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long result = source * target;
+
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void msub(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = cpuRegisterFile.getAccumulator() - source * target;
+
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void msubu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long result = cpuRegisterFile.getAccumulator() - source * target;
+
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void mult(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source * target;
+
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void multu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long result = source * target;
+
+    cpuRegisterFile.accSetHI((int) (result >> 32));
+    cpuRegisterFile.accSetLO((int) result);
+  }
+
+  private void bal(int instruction) {
+    short offset = (short) (instruction & 0xffff);
+    cpuRegisterFile.write("31", pc + 4);
+    pc += (offset << 2);
+  }
+
+  private void balc(int instruction) {
+    int offset = instruction & 0x3ffffff;
+    cpuRegisterFile.write("31", pc);
+    pc += signExtend(offset << 2, 28);
+  }
+
+  private void bc(int instruction) {
+    int offset = instruction & 0x3ffffff;
+    pc += signExtend(offset << 2, 28);
+  }
+
+  private void bc1eqz(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    if ((target & 1) == 0) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void bc1nez(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    if ((target & 1) == 1) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void bc2eqz(int instruction) {
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cop2RegisterFileArray.getFile(String.valueOf(ct)).readWord();
+    if (target != 0) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void bc2nez(int instruction) {
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cop2RegisterFileArray.getFile(String.valueOf(ct)).readWord();
+    if (target == 0) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void beq(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source == target) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void beqc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source == target) {
+      pc += (offset << 2);
+    }
+  }
+
+  private void beqzalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target == 0) {
+      cpuRegisterFile.write("$31", pc);
+      pc += offset << 2;
+    }
+  }
 
   private void bne(int instruction) {}
 
@@ -2093,5 +2294,13 @@ public class CentralProcessor {
     }
 
     return out;
+  }
+
+  private int signExtend(int target, int size) {
+    int mask = 1 << size;
+    if ((target & mask) != 0) {
+      return target | -mask;
+    }
+    return target;
   }
 }
