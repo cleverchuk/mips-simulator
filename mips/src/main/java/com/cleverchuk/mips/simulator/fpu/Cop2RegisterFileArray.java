@@ -24,20 +24,18 @@
 
 package com.cleverchuk.mips.simulator.fpu;
 
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FpuRegisterFileArray {
+public class Cop2RegisterFileArray {
   private final Map<String, RegisterFile> registerFile = new HashMap<>();
 
-  public FpuRegisterFileArray() {
-    MipsLexer.DECI_TO_FPU_REG.forEach(
-        (key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
-  }
-
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
+  public Cop2RegisterFileArray() {
+    registerFile.put("0", createReg(0));
+    registerFile.put("1", createReg(1));
+    registerFile.put("2", createReg(2));
+    registerFile.put("3", createReg(3));
+    registerFile.put("4", createReg(4));
   }
 
   public String regContents() {
@@ -53,11 +51,11 @@ public class FpuRegisterFileArray {
     return content.toString();
   }
 
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
+  public RegisterFile getFile(String reg) {
+    return registerFile.get(reg);
+  }
 
+  private RegisterFile createReg(int id) {
     return new DefaultRegisterFile(id);
   }
 }

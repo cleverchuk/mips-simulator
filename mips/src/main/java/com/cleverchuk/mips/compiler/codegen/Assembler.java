@@ -1018,6 +1018,6 @@ public class Assembler implements NodeVisitor {
   }
 
   private int computePcRelativeOffset(int address) {
-    return address - index + 4;
+    return (address - index + 4) / 4;
   }
 }

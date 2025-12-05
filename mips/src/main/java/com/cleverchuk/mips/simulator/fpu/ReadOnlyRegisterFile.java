@@ -24,40 +24,41 @@
 
 package com.cleverchuk.mips.simulator.fpu;
 
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import java.util.HashMap;
-import java.util.Map;
+public class ReadOnlyRegisterFile implements RegisterFile {
+  private final RegisterFile delegate;
 
-public class FpuRegisterFileArray {
-  private final Map<String, RegisterFile> registerFile = new HashMap<>();
-
-  public FpuRegisterFileArray() {
-    MipsLexer.DECI_TO_FPU_REG.forEach(
-        (key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
+  public ReadOnlyRegisterFile(RegisterFile delegate, int defaultValue) {
+    this.delegate = delegate;
+    this.delegate.writeWord(defaultValue);
   }
 
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
+  @Override
+  public int id() {
+    return delegate.id();
   }
 
-  public String regContents() {
-    StringBuilder content = new StringBuilder();
-    for (Map.Entry<String, RegisterFile> regEntry : registerFile.entrySet()) {
-      content
-          .append(regEntry.getKey())
-          .append(": ")
-          .append(regEntry.getValue().hexValue())
-          .append("\n");
-    }
-
-    return content.toString();
+  @Override
+  public String hexValue() {
+    return delegate.hexValue();
   }
 
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
+  @Override
+  public int readWord() {
+    return delegate.readWord();
+  }
 
-    return new DefaultRegisterFile(id);
+  @Override
+  public long readDword() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public float readSingle() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public double readDouble() {
+    return delegate.readWord();
   }
 }

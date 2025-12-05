@@ -24,40 +24,29 @@
 
 package com.cleverchuk.mips.simulator.fpu;
 
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import java.util.HashMap;
-import java.util.Map;
+public interface RegisterFile {
 
-public class FpuRegisterFileArray {
-  private final Map<String, RegisterFile> registerFile = new HashMap<>();
+  int id();
 
-  public FpuRegisterFileArray() {
-    MipsLexer.DECI_TO_FPU_REG.forEach(
-        (key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
-  }
+  String hexValue();
 
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
-  }
+  default void writeOnes(int length) {}
 
-  public String regContents() {
-    StringBuilder content = new StringBuilder();
-    for (Map.Entry<String, RegisterFile> regEntry : registerFile.entrySet()) {
-      content
-          .append(regEntry.getKey())
-          .append(": ")
-          .append(regEntry.getValue().hexValue())
-          .append("\n");
-    }
+  default void writeZeroes(int length) {}
 
-    return content.toString();
-  }
+  default void writeWord(int word) {}
 
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
+  default void writeDword(long dword) {}
 
-    return new DefaultRegisterFile(id);
-  }
+  default void writeSingle(float single) {}
+
+  default void writeDouble(double doubl) {}
+
+  int readWord();
+
+  long readDword();
+
+  float readSingle();
+
+  double readDouble();
 }

@@ -395,7 +395,7 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void ldc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
     int baseIndex = cpuRegisterFileSupplier.get().read(fpuInstruction.fs);
     long dWord = memory.readDWord(baseIndex + fpuInstruction.offset);
 
@@ -403,7 +403,7 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void lwc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
     int baseIndex = cpuRegisterFileSupplier.get().read(fpuInstruction.fs);
     int word = memory.readWord(baseIndex + fpuInstruction.offset);
 
@@ -411,21 +411,21 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void sdc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
     int baseIndex = cpuRegisterFileSupplier.get().read(fpuInstruction.fs);
     memory.storeDword(fd.readDword(), baseIndex + fpuInstruction.offset);
   }
 
   private void swc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
     int baseIndex = cpuRegisterFileSupplier.get().read(fpuInstruction.fs);
     memory.storeWord(fd.readWord(), baseIndex + fpuInstruction.offset);
   }
 
   private void cfc1(FpuInstruction fpuInstruction) {
     // FIXME ignores configs from the COP0 and not trapping because there's no COP0
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
     if (fs.id() == 0) {
       cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fcsr.readWord());
 
@@ -447,8 +447,8 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
 
   private void ctc1(FpuInstruction fpuInstruction) {
     // FIXME ignores configs from the COP0 and not trapping because there's no COP0
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fcsr = fpuRegisterFileArray.getFile("$f31");
     int word = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
 
     if (fs.id() == 26) {
@@ -472,60 +472,58 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void mfc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     cpuRegisterFileSupplier.get().write(fpuInstruction.fd, fs.readWord());
   }
 
   private void mfhc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     long value = fs.readDword();
     cpuRegisterFileSupplier.get().write(fpuInstruction.fd, (int) (value >>> 0x20));
   }
 
   private void mtc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     int value = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
     fs.writeWord(value);
   }
 
   private void mthc1(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     long value = cpuRegisterFileSupplier.get().read(fpuInstruction.fd);
     fs.writeDword((value << 0x20) | (fs.readDword() & 0x00_00_00_00_ff_ff_ff_ffL));
   }
 
   private void absS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile registerFile =
-        fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile registerFile = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     fpuRegisterFileArray
         .getFile(fpuInstruction.fd)
         .writeSingle(Math.abs(registerFile.readSingle()));
   }
 
   private void absD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile registerFile =
-        fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile registerFile = fpuRegisterFileArray.getFile(fpuInstruction.fs);
     fpuRegisterFileArray
         .getFile(fpuInstruction.fd)
         .writeDouble(Math.abs(registerFile.readDouble()));
   }
 
   private void addS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
     fpuRegisterFileArray.getFile(fpuInstruction.fd).writeSingle(fs.readSingle() + ft.readSingle());
   }
 
   private void addD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
     fpuRegisterFileArray.getFile(fpuInstruction.fd).writeDouble(fs.readDouble() + ft.readDouble());
   }
 
   private void compareDouble(FpuInstruction fpuInstruction) throws CoProcessorException {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     double fsV = fs.readDouble(), ftV = ft.readDouble();
     int cond = fpuInstruction.opcode.getCondEncoding();
@@ -603,9 +601,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void compareSingle(FpuInstruction fpuInstruction) throws CoProcessorException {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     float fsV = fs.readSingle(), ftV = ft.readSingle();
     int cond = fpuInstruction.opcode.getCondEncoding();
@@ -683,137 +681,137 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void divS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(fs.readSingle() / ft.readSingle());
   }
 
   private void divD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(fs.readDouble() / ft.readDouble());
   }
 
   private void mulS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(fs.readSingle() * ft.readSingle());
   }
 
   private void mulD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(fs.readDouble() * ft.readDouble());
   }
 
   private void negS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle(-fs.readSingle());
   }
 
   private void negD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(-fs.readDouble());
   }
 
   private void sqrtS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle((float) Math.sqrt(fs.readSingle()));
   }
 
   private void sqrtD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(Math.sqrt(fs.readDouble()));
   }
 
   private void subS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
     fd.writeSingle(fs.readSingle() - ft.readSingle());
   }
 
   private void subD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
     fd.writeDouble(fs.readDouble() - ft.readDouble());
   }
 
   private void recipS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle(1.0F / fs.readSingle());
   }
 
   private void recipD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(1.0 / fs.readDouble());
   }
 
   private void rsqrtS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle((float) (1.0F / Math.sqrt(fs.readSingle())));
   }
 
   private void rsqrtD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(1.0 / Math.sqrt(fs.readDouble()));
   }
 
   private void maddfS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(fd.readSingle() + fs.readSingle() * ft.readSingle());
   }
 
   private void maddfD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(fd.readDouble() + fs.readDouble() * ft.readDouble());
   }
 
   private void msubfS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(fd.readSingle() - fs.readSingle() * ft.readSingle());
   }
 
   private void msubfD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(fd.readDouble() - fs.readDouble() * ft.readDouble());
   }
@@ -830,25 +828,25 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void maxS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(Math.max(fs.readSingle(), ft.readSingle()));
   }
 
   private void maxD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(Math.max(fs.readDouble(), ft.readDouble()));
   }
 
   private void maxaS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     float fsV = fs.readSingle(), ftV = ft.readSingle();
     if (Math.abs(fsV) > Math.abs(ftV)) {
@@ -859,9 +857,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void maxaD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     double fsV = fs.readDouble(), ftV = ft.readDouble();
     if (Math.abs(fsV) > Math.abs(ftV)) {
@@ -872,25 +870,25 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void minS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeSingle(Math.min(fs.readSingle(), ft.readSingle()));
   }
 
   private void minD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     fd.writeDouble(Math.min(fs.readDouble(), ft.readDouble()));
   }
 
   private void minaS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     float fsV = fs.readSingle(), ftV = ft.readSingle();
     if (Math.abs(fsV) < Math.abs(ftV)) {
@@ -901,9 +899,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void minaD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     double fsV = fs.readDouble(), ftV = ft.readDouble();
     if (Math.abs(fsV) < Math.abs(ftV)) {
@@ -914,223 +912,223 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void cvtdS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     // FIXME no rounding
     fd.writeDouble((double) fs.readSingle());
   }
 
   private void cvtdW(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     // FIXME no rounding
     fd.writeDouble((double) fs.readWord());
   }
 
   private void cvtdL(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     // FIXME no rounding
     fd.writeDouble((double) fs.readDword());
   }
 
   private void cvtlS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) fs.readSingle());
   }
 
   private void cvtlD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) fs.readDouble());
   }
 
   private void cvtsD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     // FIXME no rounding
     fd.writeSingle((float) fs.readDouble());
   }
 
   private void cvtsW(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle((float) fs.readWord());
   }
 
   private void cvtsL(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle((float) fs.readDword());
   }
 
   private void cvtwS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) fs.readSingle());
   }
 
   private void cvtwD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) fs.readDouble());
   }
 
   private void rintS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle((float) Math.rint(fs.readSingle()));
   }
 
   private void rintD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(Math.rint(fs.readDouble()));
   }
 
   private void ceillS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.ceil(fs.readSingle()));
   }
 
   private void ceillD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.ceil(fs.readDouble()));
   }
 
   private void ceilwS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.ceil(fs.readSingle()));
   }
 
   private void ceilwD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.ceil(fs.readDouble()));
   }
 
   private void floorlS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.floor(fs.readSingle()));
   }
 
   private void floorlD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.floor(fs.readDouble()));
   }
 
   private void floorwS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.floor(fs.readSingle()));
   }
 
   private void floorwD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.floor(fs.readDouble()));
   }
 
   private void roundlS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.round(fs.readSingle()));
   }
 
   private void roundlD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) Math.round(fs.readDouble()));
   }
 
   private void roundwS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.round(fs.readSingle()));
   }
 
   private void roundwD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) Math.round(fs.readDouble()));
   }
 
   private void trunclS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) fs.readSingle());
   }
 
   private void trunclD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDword((long) fs.readDouble());
   }
 
   private void truncwS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) fs.readSingle());
   }
 
   private void truncwD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeWord((int) fs.readDouble());
   }
 
   private void movS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeSingle(fs.readSingle());
   }
 
   private void movD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
 
     fd.writeDouble(fs.readDouble());
   }
 
   private void selS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     int fdV = fd.readWord();
     if ((fdV & 0x1) > 0) {
@@ -1141,9 +1139,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void selD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     long fdV = fd.readDword();
     if ((fdV & 0x1) > 0) {
@@ -1154,9 +1152,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void seleqzS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     int ftV = ft.readWord();
     if ((ftV & 0x1) > 0) {
@@ -1167,9 +1165,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void seleqzD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     long ftV = ft.readDword();
     if ((ftV & 0x1) > 0) {
@@ -1180,9 +1178,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void selnezS(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     int ftV = ft.readWord();
     if ((ftV & 0x1) == 0) {
@@ -1193,9 +1191,9 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void selnezD(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
-    FpuRegisterFileArray.RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile fd = fpuRegisterFileArray.getFile(fpuInstruction.fd);
+    RegisterFile fs = fpuRegisterFileArray.getFile(fpuInstruction.fs);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     long ftV = ft.readDword();
     if ((ftV & 0x1) == 0) {
@@ -1206,7 +1204,7 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void bc1eqz(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     int ftV = ft.readWord();
     if ((ftV & 0x1) == 0) {
@@ -1215,7 +1213,7 @@ public class CoProcessor1 implements Processor<FpuInstruction> {
   }
 
   private void bc1nez(FpuInstruction fpuInstruction) {
-    FpuRegisterFileArray.RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
+    RegisterFile ft = fpuRegisterFileArray.getFile(fpuInstruction.ft);
 
     long ftV = ft.readDword();
     if ((ftV & 0x1) > 0) {
