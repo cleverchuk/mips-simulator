@@ -63,6 +63,10 @@ public class CentralProcessor {
     return cpuRegisterFile;
   }
 
+  public Cop2RegisterFileArray getCop2RegisterFileArray() {
+    return cop2RegisterFileArray;
+  }
+
   public void execute() throws Exception {
     int instruction = memory.readWord(pc);
     pc += 4;
@@ -1737,64 +1741,293 @@ public class CentralProcessor {
 
     int target = cpuRegisterFile.read(String.valueOf(rt));
     if (target == 0) {
-      cpuRegisterFile.write("$31", pc);
+      cpuRegisterFile.write("31", pc);
       pc += offset << 2;
     }
   }
 
-  private void bne(int instruction) {}
+  private void bne(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bnec(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source != target) {
+      pc += (offset << 2);
+    }
+  }
 
-  private void bnezc(int instruction) {}
+  private void bnec(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bovc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source != target) {
+      pc += (offset << 2);
+    }
+  }
 
-  private void bnvc(int instruction) {}
+  private void bnezc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int offset = signExtend(instruction & 0x1fffff, 21);
 
-  private void beqzc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source != 0) {
+      pc += (offset << 2);
+    }
+  }
 
-  private void bgez(int instruction) {}
+  private void bovc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bgtz(int instruction) {}
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source + target;
+    if (result != (int) result) {
+      pc += offset << 2;
+    }
+  }
 
-  private void bgezal(int instruction) {}
+  private void bnvc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void blezalc(int instruction) {}
+    long source = cpuRegisterFile.read(String.valueOf(rs));
+    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long result = source + target;
+    if (result == (int) result) {
+      pc += offset << 2;
+    }
+  }
 
-  private void bgezalc(int instruction) {}
+  private void beqzc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int offset = instruction & 0x1fffff;
 
-  private void bgtzalc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source == 0) {
+      pc += signExtend(offset << 2, 23);
+    }
+  }
 
-  private void bltzalc(int instruction) {}
+  private void bgez(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bnezalc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source >= 0) {
+      pc += (offset << 2);
+    }
+  }
 
-  private void blezc(int instruction) {}
+  private void bgtz(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bgezc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source > 0) {
+      pc += (offset << 2);
+    }
+  }
 
-  private void bgec(int instruction) {}
+  private void bgezal(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bgtzc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source >= 0) {
+      cpuRegisterFile.write("31", pc + 4);
+      pc += (offset << 2);
+    }
+  }
 
-  private void bltzc(int instruction) {}
+  private void blezalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bltc(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target <= 0) {
+      cpuRegisterFile.write("31", pc);
+      pc += offset << 2;
+    }
+  }
 
-  private void bgeuc(int instruction) {}
+  private void bgezalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bltuc(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target >= 0) {
+      cpuRegisterFile.write("31", pc);
+      pc += offset << 2;
+    }
+  }
 
-  private void blez(int instruction) {}
+  private void bgtzalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void bltz(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target > 0) {
+      cpuRegisterFile.write("31", pc);
+      pc += offset << 2;
+    }
+  }
 
-  private void bltzal(int instruction) {}
+  private void bltzalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void nal(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target < 0) {
+      cpuRegisterFile.write("31", pc);
+      pc += offset << 2;
+    }
+  }
 
-  private void break_(int instruction) {}
+  private void bnezalc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target != 0) {
+      cpuRegisterFile.write("31", pc);
+      pc += offset << 2;
+    }
+  }
+
+  private void blezc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target <= 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bgezc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target >= 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bgec(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source >= target) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bgtzc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target > 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bltzc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (target < 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bltc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source < target) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bgeuc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    long source = cpuRegisterFile.read(String.valueOf(rs)) & 0xffffffffL;
+    long target = cpuRegisterFile.read(String.valueOf(rt)) & 0xffffffffL;
+    if (source >= target) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bltuc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    long source = cpuRegisterFile.read(String.valueOf(rs)) & 0xffffffffL;
+    long target = cpuRegisterFile.read(String.valueOf(rt)) & 0xffffffffL;
+    if (source < target) {
+      pc += offset << 2;
+    }
+  }
+
+  private void blez(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source <= 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bltz(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source < 0) {
+      pc += offset << 2;
+    }
+  }
+
+  private void bltzal(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    if (source < 0) {
+      cpuRegisterFile.write("31", pc + 4);
+      pc += offset << 2;
+    }
+  }
+
+  private void nal(int instruction) {
+    cpuRegisterFile.write("31", pc + 4);
+  }
+
+  private void break_(int instruction) {
+    throw new BreakException();
+  }
 
   private void j(int instruction) {}
 
@@ -2304,3 +2537,4 @@ public class CentralProcessor {
     return target;
   }
 }
+
