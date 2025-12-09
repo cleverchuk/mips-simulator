@@ -2029,37 +2029,149 @@ public class CentralProcessor {
     throw new BreakException();
   }
 
-  private void j(int instruction) {}
+  private void j(int instruction) {
+    int instr_index = instruction & 0x3ffffff;
+    pc = (pc & 0xf0000000) | (instr_index << 2);
+  }
 
-  private void jal(int instruction) {}
+  private void jal(int instruction) {
+    int instr_index = instruction & 0x3ffffff;
+    cpuRegisterFile.write("31", pc + 4);
+    pc = (pc & 0xf0000000) | (instr_index << 2);
+  }
 
-  private void jalr(int instruction) {}
+  private void jalr(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void jic(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rd), pc);
+    pc = source;
+  }
 
-  private void jalr_hb(int instruction) {}
+  private void jic(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void jr(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    pc = target + offset;
+  }
 
-  private void jr_hb(int instruction) {}
+  private void jalr_hb(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void jialc(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.write(String.valueOf(rd), pc);
+    pc = source;
+  }
 
-  private void seleqz(int instruction) {}
+  private void jr(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    pc = cpuRegisterFile.read(String.valueOf(rs));
+  }
 
-  private void selnez(int instruction) {}
+  private void jr_hb(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    pc = cpuRegisterFile.read(String.valueOf(rs));
+  }
 
-  private void teq(int instruction) {}
+  private void jialc(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void tge(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cpuRegisterFile.write("31", pc);
+    pc = target + offset;
+  }
 
-  private void tgeu(int instruction) {}
+  private void seleqz(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void tlt(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = (target == 0) ? source : 0;
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
 
-  private void tltu(int instruction) {}
+  private void selnez(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void tne(int instruction) {}
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = (target != 0) ? source : 0;
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
+
+  private void teq(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source == target) {
+      throw new TrapException();
+    }
+  }
+
+  private void tge(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source >= target) {
+      throw new TrapException();
+    }
+  }
+
+  private void tgeu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    if (source >= target) {
+      throw new TrapException();
+    }
+  }
+
+  private void tlt(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source < target) {
+      throw new TrapException();
+    }
+  }
+
+  private void tltu(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
+    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    if (source < target) {
+      throw new TrapException();
+    }
+  }
+
+  private void tne(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    if (source != target) {
+      throw new TrapException();
+    }
+  }
 
   private void lw(int instruction) {}
 

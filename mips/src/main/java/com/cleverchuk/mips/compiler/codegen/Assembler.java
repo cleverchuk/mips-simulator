@@ -799,6 +799,17 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding | opcode.opcode | currentRt << 21 | (currentImme & 0xffff);
         break;
+      case JALR:
+      case JALR_HB:
+        if (currentRd == 0) {
+          currentRd = 31;
+        }
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRd << 11;
+        break;
       case ADD:
       case ADDI:
       case ADDIUPC:
@@ -820,8 +831,6 @@ public class Assembler implements NodeVisitor {
       case ERET:
       case ERETNC:
       case GINVI:
-      case JALR:
-      case JALR_HB:
       case JR:
       case JR_HB:
       case LB:
