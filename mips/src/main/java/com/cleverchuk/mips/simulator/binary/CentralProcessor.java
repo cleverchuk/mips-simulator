@@ -1119,10 +1119,9 @@ public class CentralProcessor {
 
   private void addiupc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    short imm = (short) (instruction & 0xffff);
-    int immv = imm << 2;
+    int imm = signExtend (instruction & 0xffff, 16) << 2;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + immv);
+    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + imm);
   }
 
   private void sub(int instruction) {
@@ -1421,7 +1420,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int imm = instruction & 0xffff;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + (imm << 16));
+    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + (signExtend(imm, 16) << 16));
   }
 
   private void movn(int instruction) {
@@ -1842,7 +1841,7 @@ public class CentralProcessor {
 
     int source = cpuRegisterFile.read(String.valueOf(rs));
     if (source >= 0) {
-      cpuRegisterFile.write("31", pc + 4);
+      cpuRegisterFile.write("31", pc); // no delay slot implementation
       pc += (offset << 2);
     }
   }
@@ -2016,13 +2015,13 @@ public class CentralProcessor {
 
     int source = cpuRegisterFile.read(String.valueOf(rs));
     if (source < 0) {
-      cpuRegisterFile.write("31", pc + 4);
+      cpuRegisterFile.write("31", pc); // no delay slot implementation
       pc += offset << 2;
     }
   }
 
   private void nal(int instruction) {
-    cpuRegisterFile.write("31", pc + 4);
+    cpuRegisterFile.write("31", pc); // no delay slot implementation
   }
 
   private void break_(int instruction) {
@@ -2173,51 +2172,238 @@ public class CentralProcessor {
     }
   }
 
-  private void lw(int instruction) {}
+  private void lw(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void lwe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int word = memory.readWord(address);
+    cpuRegisterFile.write(String.valueOf(rt), word);
+  }
 
-  private void sw(int instruction) {}
+  private void lwe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void swe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int word = memory.readWord(address);
+    cpuRegisterFile.write(String.valueOf(rt), word);
+  }
 
-  private void lb(int instruction) {}
+  private void sw(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void lbe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeWord(target, address);
+  }
 
-  private void lbu(int instruction) {}
+  private void swe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void lbue(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeWord(target, address);
+  }
 
-  private void lh(int instruction) {}
+  private void lb(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void lhe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int bite = memory.read(address);
+    cpuRegisterFile.write(String.valueOf(rt), bite);
+  }
 
-  private void lhu(int instruction) {}
+  private void lbe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void lhue(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int bite = memory.read(address);
+    cpuRegisterFile.write(String.valueOf(rt), bite);
+  }
 
-  private void lsa(int instruction) {}
+  private void lbu(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void lwl(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int ubite = memory.read(address) & 0xff;
+    cpuRegisterFile.write(String.valueOf(rt), ubite);
+  }
 
-  private void lwpc(int instruction) {}
+  private void lbue(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void lwr(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int ubite = memory.read(address) & 0xff;
+    cpuRegisterFile.write(String.valueOf(rt), ubite);
+  }
 
-  private void sb(int instruction) {}
+  private void lh(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void sbe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int half = memory.readHalf(address);
+    cpuRegisterFile.write(String.valueOf(rt), half);
+  }
 
-  private void sh(int instruction) {}
+  private void lhe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void she(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int half = memory.readHalf(address);
+    cpuRegisterFile.write(String.valueOf(rt), half);
+  }
 
-  private void swl(int instruction) {}
+  private void lhu(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void swr(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int uhalf = memory.readHalf(address) & 0xffff;
+    cpuRegisterFile.write(String.valueOf(rt), uhalf);
+  }
 
-  private void cache(int instruction) {}
+  private void lhue(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int uhalf = memory.readHalf(address) & 0xffff;
+    cpuRegisterFile.write(String.valueOf(rt), uhalf);
+  }
+
+  private void lsa(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+    int sa = ((instruction >> 6) & 0x3) + 1;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int result = (source << sa) + target;
+    cpuRegisterFile.write(String.valueOf(rd), result);
+  }
+
+  private void lwl(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int mem = memory.readHalf(address);
+
+    target &= 0xffff;
+    target |= (mem << 16);
+    cpuRegisterFile.write(String.valueOf(rt), target);
+  }
+
+  private void lwpc(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int offset = instruction & 0x7ffff;
+
+    int address = pc + signExtend(offset << 2, 21);
+    int result = memory.readWord(address);
+    cpuRegisterFile.write(String.valueOf(rs), result);
+  }
+
+  private void lwr(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int mem = memory.readHalf(address - 1);
+
+    target &= 0xffff0000;
+    target |= mem;
+    cpuRegisterFile.write(String.valueOf(rt), target);
+  }
+
+  private void sb(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.store((byte) target, address);
+  }
+
+  private void sbe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.store((byte) target, address);
+  }
+
+  private void sh(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeHalf((short) target, address);
+  }
+
+  private void she(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeHalf((short) target, address);
+  }
+
+  private void swl(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeHalf((short) (target >> 16), address);
+  }
+
+  private void swr(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeHalf((short) target , address - 1);
+  }
+
+  private void cache(int instruction) {
+    // noop
+  }
 
   private void cachee(int instruction) {}
 
