@@ -22,31 +22,38 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator.fpu;
+package com.cleverchuk.mips.simulator.registers;
 
-public interface RegisterFile {
+import java.util.HashMap;
+import java.util.Map;
 
-  int id();
+public class Cop2RegisterFileArray {
+  private final RegisterFile[] registerFile = new RegisterFile[32];
 
-  String hexValue();
+  public Cop2RegisterFileArray() {
+    for (int i = 0; i < 32; i++) {
+      registerFile[i] = createReg(i);
+    }
+  }
 
-  default void writeOnes(int length) {}
+  public String regContents() {
+    StringBuilder content = new StringBuilder();
+    for (int i = 0; i < 32; i++) {
+      content
+          .append(i)
+          .append(": ")
+          .append(registerFile[i])
+          .append("\n");
+    }
 
-  default void writeZeroes(int length) {}
+    return content.toString();
+  }
 
-  default void writeWord(int word) {}
+  public RegisterFile getFile(int reg) {
+    return registerFile[reg];
+  }
 
-  default void writeDword(long dword) {}
-
-  default void writeSingle(float single) {}
-
-  default void writeDouble(double doubl) {}
-
-  int readWord();
-
-  long readDword();
-
-  float readSingle();
-
-  double readDouble();
+  private RegisterFile createReg(int id) {
+    return new DefaultRegisterFile(id);
+  }
 }

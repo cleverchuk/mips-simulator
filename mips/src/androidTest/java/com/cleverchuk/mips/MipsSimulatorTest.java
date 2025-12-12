@@ -49,7 +49,7 @@ import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
 import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
-import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
 import org.junit.After;
 import org.junit.Before;

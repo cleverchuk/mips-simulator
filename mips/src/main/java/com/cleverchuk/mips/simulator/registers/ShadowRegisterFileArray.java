@@ -22,14 +22,35 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.registers;
 
-import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
+public class ShadowRegisterFileArray {
+  private final RegisterFile[] registerFile = new RegisterFile[32];
 
-public interface Processor<T extends VirtualInstruction> {
-  void execute(T instruction) throws Exception;
+  public ShadowRegisterFileArray() {
+    for (int i = 0; i < 32; i++) {
+      registerFile[i] = createReg(i);
+    }
+  }
 
-  default FpuRegisterFileArray registerFiles() {
-    return new FpuRegisterFileArray();
+  public String regContents() {
+    StringBuilder content = new StringBuilder();
+    for (int i = 0; i < 32; i++) {
+      content
+          .append(i)
+          .append(": ")
+          .append(registerFile[i])
+          .append("\n");
+    }
+
+    return content.toString();
+  }
+
+  public RegisterFile getFile(int reg) {
+    return registerFile[reg];
+  }
+
+  private RegisterFile createReg(int id) {
+    return new DefaultRegisterFile(id);
   }
 }

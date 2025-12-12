@@ -22,14 +22,7 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
-
-public interface Processor<T extends VirtualInstruction> {
-  void execute(T instruction) throws Exception;
-
-  default FpuRegisterFileArray registerFiles() {
-    return new FpuRegisterFileArray();
-  }
+public class DebugBreakpointException extends RuntimeException {
 }

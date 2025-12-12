@@ -25,9 +25,10 @@
 package com.cleverchuk.mips.simulator.binary;
 
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
-import com.cleverchuk.mips.simulator.fpu.Cop2RegisterFileArray;
-import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.Cop2RegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
+import com.cleverchuk.mips.simulator.registers.ShadowRegisterFileArray;
 
 public class CentralProcessor {
 
@@ -38,6 +39,8 @@ public class CentralProcessor {
   private final CpuRegisterFile cpuRegisterFile = new CpuRegisterFile();
 
   private final Cop2RegisterFileArray cop2RegisterFileArray = new Cop2RegisterFileArray();
+
+  private final ShadowRegisterFileArray shadowRegisterFileArray = new ShadowRegisterFileArray();
 
   private int pc;
 
@@ -1694,7 +1697,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cop2RegisterFileArray.getFile(String.valueOf(ct)).readWord();
+    int target = cop2RegisterFileArray.getFile(ct).readWord();
     if (target != 0) {
       pc += (offset << 2);
     }
@@ -1704,7 +1707,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cop2RegisterFileArray.getFile(String.valueOf(ct)).readWord();
+    int target = cop2RegisterFileArray.getFile(ct).readWord();
     if (target == 0) {
       pc += (offset << 2);
     }
@@ -2405,99 +2408,306 @@ public class CentralProcessor {
     // noop
   }
 
-  private void cachee(int instruction) {}
+  private void cachee(int instruction) {
+    // noop
+  }
 
-  private void mfhi(int instruction) {}
+  private void mfhi(int instruction) {
+    int rd = (instruction >> 11) & 0x1f;
+    int hi = cpuRegisterFile.accHI();
+    cpuRegisterFile.write(String.valueOf(rd), hi);
+  }
 
-  private void mflo(int instruction) {}
+  private void mflo(int instruction) {
+    int rd = (instruction >> 11) & 0x1f;
+    int lo = cpuRegisterFile.accLO();
+    cpuRegisterFile.write(String.valueOf(rd), lo);
+  }
 
-  private void mthi(int instruction) {}
+  private void mthi(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.accSetHI(source);
+  }
 
-  private void mtlo(int instruction) {}
+  private void mtlo(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    cpuRegisterFile.accSetLO(source);
+  }
 
-  private void ll(int instruction) {}
+  //Note: atomic instructions always succeeds because we're not really going try to simulate synchronization
+  private void ll(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void lle(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int mem = memory.readWord(address);
+    cpuRegisterFile.write(String.valueOf(rt), mem);
+  }
 
-  private void llwp(int instruction) {}
+  private void lle(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void llwpe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int result = memory.readWord(address);
+    cpuRegisterFile.write(String.valueOf(rt), result);
+  }
 
-  private void sc(int instruction) {}
+  private void llwp(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void sce(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base));
+    cpuRegisterFile.write(String.valueOf(rd), memory.readWord(address));
+    cpuRegisterFile.write(String.valueOf(rt), memory.readWord(address + 4));
+  }
 
-  private void scwp(int instruction) {}
+  private void llwpe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void scwpe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base));
+    cpuRegisterFile.write(String.valueOf(rd), memory.readWord(address));
+    cpuRegisterFile.write(String.valueOf(rt), memory.readWord(address + 4));
+  }
 
-  private void pref(int instruction) {}
+  private void sc(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-  private void prefe(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeWord(target, address);
 
-  private void rdhwr(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rt), 1);
+  }
 
-  private void rdpgpr(int instruction) {}
+  private void sce(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    short offset = (short) ((instruction & 0x1ff) << 7 >> 7);
 
-  private void deret(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int value = cpuRegisterFile.read(String.valueOf(rt));
+    memory.storeWord(value, address);
 
-  private void di(int instruction) {}
+    cpuRegisterFile.write(String.valueOf(rt), 1);
+  }
 
-  private void dvp(int instruction) {}
+  private void scwp(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void evp(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int dest = cpuRegisterFile.read(String.valueOf(rd));
 
-  private void ei(int instruction) {}
+    memory.storeWord(dest, address);
+    memory.storeWord(target, address + 4);
+    cpuRegisterFile.write(String.valueOf(rt), 1);
+  }
 
-  private void eret(int instruction) {}
+  private void scwpe(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void eretnc(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int dest = cpuRegisterFile.read(String.valueOf(rd));
 
-  private void ginvi(int instruction) {}
+    memory.storeWord(dest, address);
+    memory.storeWord(target, address + 4);
+    cpuRegisterFile.write(String.valueOf(rt), 1);
+  }
 
-  private void ginvt(int instruction) {}
+  private void pref(int instruction) {
+    // noop
+  }
 
-  private void pause(int instruction) {}
+  private void prefe(int instruction) {
+    // noop
+  }
 
-  private void sdbbp(int instruction) {}
+  private void rdhwr(int instruction) {
+    // noop
+  }
 
-  private void sigrie(int instruction) {}
+  private void rdpgpr(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
 
-  private void syscall(int instruction) {}
+    int dest = shadowRegisterFileArray.getFile(rd).readWord();
+    cpuRegisterFile.write(String.valueOf(rt), dest);
+  }
 
-  private void sync(int instruction) {}
+  private void deret(int instruction) {
+    // noop
+  }
 
-  private void synci(int instruction) {}
+  private void di(int instruction) {
+    // noop
+  }
 
-  private void tlbinv(int instruction) {}
+  private void dvp(int instruction) {
+    // noop
+  }
 
-  private void tlbinvf(int instruction) {}
+  private void evp(int instruction) {
+    // noop
+  }
 
-  private void tlbp(int instruction) {}
+  private void ei(int instruction) {
+    // noop
+  }
 
-  private void tlbr(int instruction) {}
+  private void eret(int instruction) {
+    // noop
+  }
 
-  private void tlbwi(int instruction) {}
+  private void eretnc(int instruction) {
+    // noop
+  }
 
-  private void tlbwr(int instruction) {}
+  private void ginvi(int instruction) {
+    // noop
+  }
 
-  private void wait(int instruction) {}
+  private void ginvt(int instruction) {
+    // noop
+  }
 
-  private void wrpgpr(int instruction) {}
+  private void pause(int instruction) {
+    // noop
+  }
 
-  private void cop2(int instruction) {}
+  private void sdbbp(int instruction) {
+    throw new DebugBreakpointException();
+  }
 
-  private void swc1(int instruction) {}
+  private void sigrie(int instruction) {
+    throw new ReservedInstructionException();
+  }
 
-  private void swc2(int instruction) {}
+  private void syscall(int instruction) {
+    throw new SyscallException();
+  }
 
-  private void ldc1(int instruction) {}
+  private void sync(int instruction) {
+    // noop
+  }
 
-  private void ldc2(int instruction) {}
+  private void synci(int instruction) {
+    // noop
+  }
 
-  private void lwc1(int instruction) {}
+  private void tlbinv(int instruction) {
+    // noop
+  }
 
-  private void lwc2(int instruction) {}
+  private void tlbinvf(int instruction) {
+    // noop
+  }
+
+  private void tlbp(int instruction) {
+    // noop
+  }
+
+  private void tlbr(int instruction) {
+    // noop
+  }
+
+  private void tlbwi(int instruction) {
+    // noop
+  }
+
+  private void tlbwr(int instruction) {
+    // noop
+  }
+
+  private void wait(int instruction) {
+    // noop
+  }
+
+  private void wrpgpr(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int rd = (instruction >> 11) & 0x1f;
+
+    int value = cpuRegisterFile.read(String.valueOf(rt));
+    shadowRegisterFileArray.getFile(rd).writeWord(value);
+  }
+
+  private void cop2(int instruction) {
+    // noop
+  }
+
+  private void swc1(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    memory.storeWord(target, address);
+  }
+
+  private void swc2(int instruction) {
+    int base = (instruction >> 11) & 0x1f;
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0x7ff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int target = cop2RegisterFileArray.getFile(ct).readWord();
+    memory.storeWord(target, address);
+  }
+
+  private void ldc1(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    long mem = memory.readDWord(address);
+    fpuRegisterFileArray.getFile(String.valueOf(ft)).writeDword(mem);
+  }
+
+  private void ldc2(int instruction) {
+    int base = (instruction >> 11) & 0x1f;
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0x7ff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    long mem = memory.readDWord(address);
+    cop2RegisterFileArray.getFile(ct).writeDword(mem);
+  }
+
+  private void lwc1(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int mem = memory.readWord(address);
+    fpuRegisterFileArray.getFile(String.valueOf(ft)).writeWord(mem);
+  }
+
+  private void lwc2(int instruction) {
+    int base = (instruction >> 11) & 0x1f;
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0x7ff);
+
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int mem = memory.readWord(address);
+    cop2RegisterFileArray.getFile(ct).writeWord(mem);
+  }
 
   private void sdc1(int instruction) {}
 

@@ -22,42 +22,7 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator.fpu;
+package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import java.util.HashMap;
-import java.util.Map;
-
-public class FpuRegisterFileArray {
-  private final Map<String, RegisterFile> registerFile = new HashMap<>();
-
-  public FpuRegisterFileArray() {
-    MipsLexer.DECI_TO_FPU_REG.forEach(
-        (key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
-  }
-
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
-  }
-
-  public String regContents() {
-    StringBuilder content = new StringBuilder();
-    for (Map.Entry<String, RegisterFile> regEntry : registerFile.entrySet()) {
-      content
-          .append(regEntry.getKey())
-          .append(": ")
-          .append(regEntry.getValue().hexValue())
-          .append("\n");
-    }
-
-    return content.toString();
-  }
-
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
-
-    return new DefaultRegisterFile(id);
-  }
+public class ReservedInstructionException extends RuntimeException {
 }

@@ -30,6 +30,8 @@ import com.cleverchuk.mips.simulator.Processor;
 import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
 import com.cleverchuk.mips.simulator.mem.Memory;
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.RegisterFile;
 import java.util.function.Supplier;
 
 /** A 64-bit register model Coprocessor. Even/Odd register is not supported */

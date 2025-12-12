@@ -47,7 +47,7 @@ import com.cleverchuk.mips.simulator.cpu.Cpu;
 import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
 import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
 import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
-import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.ArrayList;
 import java.util.Locale;

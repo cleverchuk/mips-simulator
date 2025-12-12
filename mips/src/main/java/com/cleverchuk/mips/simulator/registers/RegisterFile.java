@@ -22,14 +22,31 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator;
+package com.cleverchuk.mips.simulator.registers;
 
-import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
+public interface RegisterFile {
 
-public interface Processor<T extends VirtualInstruction> {
-  void execute(T instruction) throws Exception;
+  int id();
 
-  default FpuRegisterFileArray registerFiles() {
-    return new FpuRegisterFileArray();
-  }
+  String hexValue();
+
+  default void writeOnes(int length) {}
+
+  default void writeZeroes(int length) {}
+
+  default void writeWord(int word) {}
+
+  default void writeDword(long dword) {}
+
+  default void writeSingle(float single) {}
+
+  default void writeDouble(double doubl) {}
+
+  int readWord();
+
+  long readDword();
+
+  float readSingle();
+
+  double readDouble();
 }

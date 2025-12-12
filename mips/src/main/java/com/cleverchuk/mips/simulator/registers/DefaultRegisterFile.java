@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator.fpu;
+package com.cleverchuk.mips.simulator.registers;
 
 public class DefaultRegisterFile implements RegisterFile {
   private final byte[] dflops = new byte[8];

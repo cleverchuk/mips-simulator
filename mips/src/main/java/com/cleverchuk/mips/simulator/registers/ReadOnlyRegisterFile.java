@@ -22,40 +22,43 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator.fpu;
+package com.cleverchuk.mips.simulator.registers;
 
-import java.util.HashMap;
-import java.util.Map;
+public class ReadOnlyRegisterFile implements RegisterFile {
+  private final RegisterFile delegate;
 
-public class Cop2RegisterFileArray {
-  private final Map<String, RegisterFile> registerFile = new HashMap<>();
-
-  public Cop2RegisterFileArray() {
-    registerFile.put("0", createReg(0));
-    registerFile.put("1", createReg(1));
-    registerFile.put("2", createReg(2));
-    registerFile.put("3", createReg(3));
-    registerFile.put("4", createReg(4));
+  public ReadOnlyRegisterFile(RegisterFile delegate, int defaultValue) {
+    this.delegate = delegate;
+    this.delegate.writeWord(defaultValue);
   }
 
-  public String regContents() {
-    StringBuilder content = new StringBuilder();
-    for (Map.Entry<String, RegisterFile> regEntry : registerFile.entrySet()) {
-      content
-          .append(regEntry.getKey())
-          .append(": ")
-          .append(regEntry.getValue().hexValue())
-          .append("\n");
-    }
-
-    return content.toString();
+  @Override
+  public int id() {
+    return delegate.id();
   }
 
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
+  @Override
+  public String hexValue() {
+    return delegate.hexValue();
   }
 
-  private RegisterFile createReg(int id) {
-    return new DefaultRegisterFile(id);
+  @Override
+  public int readWord() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public long readDword() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public float readSingle() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public double readDouble() {
+    return delegate.readWord();
   }
 }

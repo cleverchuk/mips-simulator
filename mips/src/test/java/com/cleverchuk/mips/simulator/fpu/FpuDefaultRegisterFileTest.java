@@ -26,6 +26,7 @@ package com.cleverchuk.mips.simulator.fpu;
 
 import static org.junit.Assert.assertEquals;
 
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
