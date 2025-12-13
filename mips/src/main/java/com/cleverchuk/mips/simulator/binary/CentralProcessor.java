@@ -25,7 +25,9 @@
 package com.cleverchuk.mips.simulator.binary;
 
 import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
+import com.cleverchuk.mips.simulator.registers.Cop2ControlRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.Cop2RegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.FpcRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.registers.ShadowRegisterFileArray;
@@ -41,6 +43,10 @@ public class CentralProcessor {
   private final Cop2RegisterFileArray cop2RegisterFileArray = new Cop2RegisterFileArray();
 
   private final ShadowRegisterFileArray shadowRegisterFileArray = new ShadowRegisterFileArray();
+
+  private final Cop2ControlRegisterFileArray cop2ControlRegisterFileArray = new Cop2ControlRegisterFileArray();
+
+  private final FpcRegisterFileArray fpcRegisterFileArray = new FpcRegisterFileArray();
 
   private int pc;
 
@@ -2709,49 +2715,174 @@ public class CentralProcessor {
     cop2RegisterFileArray.getFile(ct).writeWord(mem);
   }
 
-  private void sdc1(int instruction) {}
+  private void sdc1(int instruction) {
+    int base = (instruction >> 21) & 0x1f;
+    int ft = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0xffff);
 
-  private void sdc2(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
+    memory.storeDword(target, address);
+  }
 
-  private void cfc1(int instruction) {}
+  private void sdc2(int instruction) {
+    int base = (instruction >> 11) & 0x1f;
+    int ct = (instruction >> 16) & 0x1f;
+    short offset = (short) (instruction & 0x7ff);
 
-  private void cfc2(int instruction) {}
+    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    long target = cop2RegisterFileArray.getFile(ct).readDword();
+    memory.storeDword(target, address);
+  }
 
-  private void ctc1(int instruction) {}
+  private void cfc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
 
-  private void ctc2(int instruction) {}
+    int source = fpcRegisterFileArray.getFile(fs).readWord();
+    cpuRegisterFile.write(String.valueOf(rt), source);
+  }
 
-  private void mfc0(int instruction) {}
+  private void cfc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = instruction & 0x1f;
 
-  private void mfc1(int instruction) {}
+    int source = cop2ControlRegisterFileArray.getFile(cs).readWord();
+    cpuRegisterFile.write(String.valueOf(rt), source);
+  }
 
-  private void mfc2(int instruction) {}
+  private void ctc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
 
-  private void mfhc0(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    fpcRegisterFileArray.getFile(fs).writeWord(target);
+  }
 
-  private void mfhc1(int instruction) {}
+  private void ctc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = instruction & 0x1f;
 
-  private void mfhc2(int instruction) {}
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cop2ControlRegisterFileArray.getFile(cs).writeWord(target);
+  }
 
-  private void mtc0(int instruction) {}
+  private void mfc0(int instruction) {
+    // noop
+  }
 
-  private void mtc1(int instruction) {}
+  private void mfc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
 
-  private void mtc2(int instruction) {}
+    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
+    cpuRegisterFile.write(String.valueOf(rt), source);
+  }
 
-  private void mthc0(int instruction) {}
+  private void mfc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = instruction & 0x1f;
 
-  private void mthc1(int instruction) {}
+    int source = cop2RegisterFileArray.getFile(cs).readWord();
+    cpuRegisterFile.write(String.valueOf(rt), source);
+  }
 
-  private void mthc2(int instruction) {}
+  private void mfhc0(int instruction) {
+    // noop
+  }
 
-  private void abs_s(int instruction) {}
+  private void mfhc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
 
-  private void abs_d(int instruction) {}
+    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
+    cpuRegisterFile.write(String.valueOf(rt), (int) (source >> 32));
+  }
 
-  private void add_s(int instruction) {}
+  private void mfhc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
 
-  private void add_d(int instruction) {}
+    long source = cop2RegisterFileArray.getFile(cs).readDword();
+    cpuRegisterFile.write(String.valueOf(rt), (int) (source >> 32));
+  }
+
+  private void mtc0(int instruction) {// noop
+  }
+
+  private void mtc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    fpuRegisterFileArray.getFile(String.valueOf(fs)).writeWord(target);
+  }
+
+  private void mtc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    cop2RegisterFileArray.getFile(cs).writeWord(target);
+  }
+
+  private void mthc0(int instruction) {
+    // noop
+  }
+
+  private void mthc1(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
+    fpuRegisterFileArray.getFile(String.valueOf(fs)).writeDword((source & 0xffffffffL) | ((long) target << 32));
+  }
+
+  private void mthc2(int instruction) {
+    int rt = (instruction >> 16) & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
+
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = cop2RegisterFileArray.getFile(cs).readDword();
+    cop2RegisterFileArray.getFile(cs).writeDword((source & 0xffffffffL) | ((long) target << 32));
+  }
+
+  private void abs_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.abs(source));
+  }
+
+  private void abs_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.abs(source));
+  }
+
+  private void add_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source + target);
+  }
+
+  private void add_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source + target);
+  }
 
   private void div_s(int instruction) {}
 
