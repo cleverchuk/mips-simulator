@@ -3292,147 +3292,923 @@ public class CentralProcessor {
     fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((target & 1) != 0 ? source : 0.0);
   }
 
-  private void cmp_af_s(int instruction) {}
-
-  private void cmp_af_d(int instruction) {}
-
-  private void cmp_un_s(int instruction) {}
-
-  private void cmp_un_d(int instruction) {}
-
-  private void cmp_eq_s(int instruction) {}
-
-  private void cmp_eq_d(int instruction) {}
-
-  private void cmp_ueq_s(int instruction) {}
-
-  private void cmp_ueq_d(int instruction) {}
-
-  private void cmp_lt_s(int instruction) {}
-
-  private void cmp_lt_d(int instruction) {}
-
-  private void cmp_ult_s(int instruction) {}
-
-  private void cmp_ult_d(int instruction) {}
-
-  private void cmp_le_s(int instruction) {}
-
-  private void cmp_le_d(int instruction) {}
-
-  private void cmp_ule_s(int instruction) {}
-
-  private void cmp_ule_d(int instruction) {}
-
-  private void cmp_saf_s(int instruction) {}
-
-  private void cmp_saf_d(int instruction) {}
-
-  private void cmp_sun_s(int instruction) {}
-
-  private void cmp_sun_d(int instruction) {}
-
-  private void cmp_seq_s(int instruction) {}
-
-  private void cmp_seq_d(int instruction) {}
-
-  private void cmp_sueq_s(int instruction) {}
-
-  private void cmp_sueq_d(int instruction) {}
-
-  private void cmp_slt_s(int instruction) {}
-
-  private void cmp_slt_d(int instruction) {}
-
-  private void cmp_sult_s(int instruction) {}
-
-  private void cmp_sult_d(int instruction) {}
-
-  private void cmp_sle_s(int instruction) {}
-
-  private void cmp_sle_d(int instruction) {}
-
-  private void cmp_sule_s(int instruction) {}
-
-  private void cmp_sule_d(int instruction) {}
-
-  private void cmp_at_s(int instruction) {}
-
-  private void cmp_at_d(int instruction) {}
-
-  private void cmp_or_s(int instruction) {}
-
-  private void cmp_or_d(int instruction) {}
-
-  private void cmp_une_s(int instruction) {}
-
-  private void cmp_une_d(int instruction) {}
-
-  private void cmp_ne_s(int instruction) {}
-
-  private void cmp_ne_d(int instruction) {}
-
-  private void cmp_uge_s(int instruction) {}
-
-  private void cmp_uge_d(int instruction) {}
-
-  private void cmp_oge_s(int instruction) {}
-
-  private void cmp_oge_d(int instruction) {}
-
-  private void cmp_ugt_s(int instruction) {}
-
-  private void cmp_ugt_d(int instruction) {}
-
-  private void cmp_ogt_s(int instruction) {}
-
-  private void cmp_ogt_d(int instruction) {}
-
-  private void cmp_sat_s(int instruction) {}
-
-  private void cmp_sat_d(int instruction) {}
-
-  private void cmp_sor_s(int instruction) {}
-
-  private void cmp_sor_d(int instruction) {}
-
-  private void cmp_sune_s(int instruction) {}
-
-  private void cmp_sune_d(int instruction) {}
-
-  private void cmp_sne_s(int instruction) {}
-
-  private void cmp_sne_d(int instruction) {}
-
-  private void cmp_suge_s(int instruction) {}
-
-  private void cmp_suge_d(int instruction) {}
-
-  private void cmp_soge_s(int instruction) {}
-
-  private void cmp_soge_d(int instruction) {}
-
-  private void cmp_sugt_s(int instruction) {}
-
-  private void cmp_sugt_d(int instruction) {}
-
-  private void cmp_sogt_s(int instruction) {}
-
-  private void cmp_sogt_d(int instruction) {}
-
-  private void cvt_d_s(int instruction) {}
-
-  private void cvt_d_w(int instruction) {}
-
-  private void cvt_d_l(int instruction) {}
-
-  private void cvt_l_s(int instruction) {}
-
-  private void cvt_l_d(int instruction) {}
-
-  private void cvt_s_d(int instruction) {}
-
-  private void cvt_s_w(int instruction) {}
+  private void cmp_af_s(int instruction) {
+    int fd = (instruction >> 6) & 0x1f;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0);
+  }
+
+  private void cmp_af_d(int instruction) {
+    int fd = (instruction >> 6) & 0x1f;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0);
+  }
+
+  private void cmp_un_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (Float.isNaN(source) || Float.isNaN(target)) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_un_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (Double.isNaN(source) || Double.isNaN(target)) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_eq_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source == target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_eq_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source == target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ueq_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source == target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ueq_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source == target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_lt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source < target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_lt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source < target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ult_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source < target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ult_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source < target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_le_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source <= target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_le_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source <= target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ule_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source <= target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ule_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source <= target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  // No distinction for qNAN or sNAN for all signaling operation here
+  private void cmp_saf_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0);
+
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_saf_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0);
+
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sun_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(unordered ? 0xffffffff : 0);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sun_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(unordered ? 0xffffffffffffffffL : 0);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_seq_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source == target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_seq_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source == target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sueq_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source == target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sueq_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source == target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_slt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source < target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_slt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source < target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sult_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source < target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+
+  }
+
+  private void cmp_sult_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source < target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sle_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source <= target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sle_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source <= target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sule_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source <= target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sule_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source <= target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_at_s(int instruction) {
+    int fd = (instruction >> 6) & 0x1f;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0xffffffff);
+  }
+
+  private void cmp_at_d(int instruction) {
+    int fd = (instruction >> 6) & 0x1f;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0xffffffffffffffffL);
+  }
+
+  private void cmp_or_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean ordered = !Float.isNaN(source) && !Float.isNaN(target);
+
+    int result = ordered ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_or_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean ordered = !Double.isNaN(source) && !Double.isNaN(target);
+
+    long result = ordered ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_une_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source != target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_une_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source != target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ne_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source != target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ne_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source != target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_uge_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source >= target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_uge_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source >= target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_oge_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source >= target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_oge_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source >= target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ugt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source > target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ugt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source > target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_ogt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source > target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  private void cmp_ogt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source > target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void cmp_sat_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0xffffffff);
+
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sat_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0xffffffffffffffffL);
+
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sor_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = !unordered ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sor_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = !unordered ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sune_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source != target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sune_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source != target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sne_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source != target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sne_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source != target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_suge_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source >= target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_suge_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source >= target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_soge_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source >= target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_soge_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source >= target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sugt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    boolean unordered = Float.isNaN(source) || Float.isNaN(target);
+
+    int result = (unordered || source > target) ? 0xffffffff : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sugt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    boolean unordered = Double.isNaN(source) || Double.isNaN(target);
+
+    long result = (unordered || source > target) ? 0xffffffffffffffffL : 0;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (unordered) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sogt_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    int result = (source > target) ? 0xffffffff : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    if (Float.isNaN(source) || Float.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cmp_sogt_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    long result = (source > target) ? 0xffffffffffffffffL : 0;
+
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    if (Double.isNaN(source) || Double.isNaN(target)) {
+      throw new InvalidOperationException();
+    }
+  }
+
+  private void cvt_d_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+  }
+
+  private void cvt_d_w(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+  }
+
+  private void cvt_d_l(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((double) source);
+  }
+
+  private void cvt_l_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+  }
+
+  private void cvt_l_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+  }
+
+  private void cvt_s_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+  }
+
+  private void cvt_s_w(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+  }
 
   private void cvt_s_l(int instruction) {}
 
