@@ -4210,55 +4210,243 @@ public class CentralProcessor {
     fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
   }
 
-  private void cvt_s_l(int instruction) {}
+  private void cvt_s_l(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void cvt_w_s(int instruction) {}
+    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+  }
 
-  private void cvt_w_d(int instruction) {}
+  private void cvt_w_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void ceil_l_s(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+  }
 
-  private void ceil_l_d(int instruction) {}
+  private void cvt_w_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void ceil_w_s(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+  }
 
-  private void ceil_w_d(int instruction) {}
+  private void ceil_l_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void floor_l_s(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.ceil(source));
+  }
 
-  private void floor_l_d(int instruction) {}
+  private void ceil_l_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void floor_w_s(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.ceil(source));
+  }
 
-  private void floor_w_d(int instruction) {}
+  private void ceil_w_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void round_l_s(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.ceil(source));
+  }
 
-  private void round_l_d(int instruction) {}
+  private void ceil_w_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void round_w_s(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.ceil(source));
+  }
 
-  private void round_w_d(int instruction) {}
+  private void floor_l_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void trunc_l_s(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.floor(source));
+  }
 
-  private void trunc_l_d(int instruction) {}
+  private void floor_l_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void trunc_w_s(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.floor(source));
+  }
 
-  private void trunc_w_d(int instruction) {}
+  private void floor_w_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void crc32b(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.floor(source));
+  }
 
-  private void crc32h(int instruction) {}
+  private void floor_w_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void crc32w(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.floor(source));
+  }
 
-  private void crc32cb(int instruction) {}
+  private void round_l_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void crc32ch(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(Math.round((double) source));
+  }
 
-  private void crc32cw(int instruction) {}
+  private void round_l_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(Math.round(source));
+  }
+
+  private void round_w_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(Math.round(source));
+  }
+
+  private void round_w_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.round(source));
+  }
+
+  private void trunc_l_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+  }
+
+  private void trunc_l_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+  }
+
+  private void trunc_w_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+  }
+
+  private void trunc_w_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+  }
+
+  private void crc32b(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32(target, source & 0xff, 8);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private void crc32h(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32(target, source & 0xffff, 16);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private void crc32w(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32(target, source, 32);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private void crc32cb(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32c(target, source & 0xff, 8);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private void crc32ch(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32c(target, source & 0xffff, 16);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private void crc32cw(int instruction) {
+    int rs = (instruction >> 21) & 0x1f;
+    int rt = (instruction >> 16) & 0x1f;
+
+    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int crc = crc32c(target, source, 32);
+    cpuRegisterFile.write(String.valueOf(rt), crc);
+  }
+
+  private int crc32(int crc, int data, int bits) {
+    int polynomial = 0xEDB88320;
+    crc ^= data;
+    for (int i = 0; i < bits; i++) {
+      if ((crc & 1) != 0) {
+        crc = (crc >>> 1) ^ polynomial;
+      } else {
+        crc = crc >>> 1;
+      }
+    }
+    return crc;
+  }
+
+  private int crc32c(int crc, int data, int bits) {
+    int polynomial = 0x82F63B78;
+    crc ^= data;
+    for (int i = 0; i < bits; i++) {
+      if ((crc & 1) != 0) {
+        crc = (crc >>> 1) ^ polynomial;
+      } else {
+        crc = crc >>> 1;
+      }
+    }
+    return crc;
+  }
 
   private int extractBits(int source, int pos, int size) {
     int mask = (1 << size) - 1;
