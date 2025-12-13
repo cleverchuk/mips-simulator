@@ -2884,81 +2884,413 @@ public class CentralProcessor {
     fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source + target);
   }
 
-  private void div_s(int instruction) {}
+  private void div_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void div_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source / target);
+  }
 
-  private void mul_s(int instruction) {}
+  private void div_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void mul_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source / target);
+  }
 
-  private void neg_s(int instruction) {}
+  private void mul_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void neg_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source * target);
+  }
 
-  private void sqrt_s(int instruction) {}
+  private void mul_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void sqrt_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source * target);
+  }
 
-  private void sub_s(int instruction) {}
+  private void neg_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void sub_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(-source);
+  }
 
-  private void recip_s(int instruction) {}
+  private void neg_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void recip_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(-source);
+  }
 
-  private void rsqrt_s(int instruction) {}
+  private void sqrt_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void rsqrt_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) Math.sqrt(source));
+  }
 
-  private void maddf_s(int instruction) {}
+  private void sqrt_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void maddf_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.sqrt(source));
+  }
 
-  private void msubf_s(int instruction) {}
+  private void sub_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void msubf_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source - target);
+  }
 
-  private void class_s(int instruction) {}
+  private void sub_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void class_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source - target);
+  }
 
-  private void max_s(int instruction) {}
+  private void recip_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void max_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(1.0f / source);
+  }
 
-  private void maxa_s(int instruction) {}
+  private void recip_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void maxa_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(1.0 / source);
+  }
 
-  private void min_s(int instruction) {}
+  private void rsqrt_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void min_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(1.0f / (float) Math.sqrt(source));
+  }
 
-  private void mina_s(int instruction) {}
+  private void rsqrt_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void mina_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(1.0 / Math.sqrt(source));
+  }
 
-  private void rint_s(int instruction) {}
+  private void maddf_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void rint_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(dest + (source * target));
+  }
 
-  private void mov_s(int instruction) {}
+  private void maddf_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void mov_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(dest + (source * target));
+  }
 
-  private void sel_s(int instruction) {}
+  private void msubf_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void sel_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(dest - (source * target));
+  }
 
-  private void seleqz_s(int instruction) {}
+  private void msubf_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void seleqz_d(int instruction) {}
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(dest - (source * target));
+  }
 
-  private void selnez_s(int instruction) {}
+  //TODO: verify
+  private void class_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
 
-  private void selnez_d(int instruction) {}
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    int result = 0;
+    if (Float.isNaN(source)) {
+      int bits = Float.floatToRawIntBits(source);
+      if ((bits & 0x00400000) != 0) {
+        result = 0x2; // qNAN
+      } else {
+        result = 0x1; // sNAN
+      }
+    } else if (Float.isInfinite(source)) {
+      result = source < 0 ? 0x4/*-inf*/ : 0x40/*+inf*/;
+    } else if (source == 0) {
+      int bits = Float.floatToRawIntBits(source);
+      result = (bits & 0x80000000) != 0 ? 0x8/*-norm*/ : 0x200/*+0*/;
+    } else {
+      int bits = Float.floatToRawIntBits(source);
+      int exp = (bits >> 23) & 0xff;
+      if (exp == 0) {
+        result = source < 0 ? 0x10/*-subnorm*/ : 0x100/*+subnorm*/;
+      } else {
+        result = source < 0 ? 0x20/*-0*/ : 0x80/*+norm*/;
+      }
+    }
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+  }
+
+  //TODO: verify
+  private void class_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    int result = 0;
+    if (Double.isNaN(source)) {
+      long bits = Double.doubleToRawLongBits(source);
+      if ((bits & 0x0008000000000000L) != 0) {
+        result = 0x2;
+      } else {
+        result = 0x1;
+      }
+    } else if (Double.isInfinite(source)) {
+      result = source < 0 ? 0x4 : 0x40;
+    } else if (source == 0) {
+      long bits = Double.doubleToRawLongBits(source);
+      result = (bits & 0x8000000000000000L) != 0 ? 0x8 : 0x200;
+    } else {
+      long bits = Double.doubleToRawLongBits(source);
+      long exp = (bits >> 52) & 0x7ff;
+      if (exp == 0) {
+        result = source < 0 ? 0x10 : 0x100;
+      } else {
+        result = source < 0 ? 0x20 : 0x80;
+      }
+    }
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+  }
+
+  private void max_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.max(source, target));
+  }
+
+  private void max_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.max(source, target));
+  }
+
+  private void maxa_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float result = Math.abs(source) > Math.abs(target) ? source : target;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(result);
+  }
+
+  private void maxa_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double result = Math.abs(source) > Math.abs(target) ? source : target;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(result);
+  }
+
+  private void min_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.min(source, target));
+  }
+
+  private void min_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.min(source, target));
+  }
+
+  private void mina_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float result = Math.abs(source) < Math.abs(target) ? source : target;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(result);
+  }
+
+  private void mina_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double result = Math.abs(source) < Math.abs(target) ? source : target;
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(result);
+  }
+
+  private void rint_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) Math.rint(source));
+  }
+
+  private void rint_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.rint(source));
+  }
+
+  private void mov_s(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source);
+  }
+
+  private void mov_d(int instruction) {
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+  }
+
+  private void sel_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    int dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readWord();
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((dest & 1) == 0 ? source : target);
+  }
+
+  private void sel_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    long dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDword();
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((dest & 1) == 0 ? source : target);
+  }
+
+  private void seleqz_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((target & 1) == 0 ? source : 0.0f);
+  }
+
+  private void seleqz_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((target & 1) == 0 ? source : 0.0);
+  }
+
+  private void selnez_s(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((target & 1) != 0 ? source : 0.0f);
+  }
+
+  private void selnez_d(int instruction) {
+    int ft = (instruction >> 16) & 0x1f;
+    int fs = (instruction >> 11) & 0x1f;
+    int fd = (instruction >> 6) & 0x1f;
+
+    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
+    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((target & 1) != 0 ? source : 0.0);
+  }
 
   private void cmp_af_s(int instruction) {}
 
