@@ -685,7 +685,7 @@ public class Assembler implements NodeVisitor {
                 | opcode.opcode
                 | currentRt << 21 // rs captured in rt
                 | currentRs << 16
-                | (currentSize - 1) << 11
+                | currentSize << 11
                 | currentPos << 6;
         break;
       case GINVT:
