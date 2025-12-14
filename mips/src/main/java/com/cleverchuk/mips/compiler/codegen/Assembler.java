@@ -115,9 +115,6 @@ public class Assembler implements NodeVisitor {
   public void visitOpcode(Node node) {
     String opcodeName = node.getValue().toString();
     Opcode newOpcode = Objects.requireNonNull(opcodesMap.get(opcodeName));
-    if (opcode != null && newOpcode != opcode) {
-      irs.add(irBuilder.build());
-    }
 
     opcode = newOpcode;
     regBitfield = opBitfield = posBitfield = 0;
@@ -245,9 +242,6 @@ public class Assembler implements NodeVisitor {
 
   @Override
   public void visitSegment(Node segment) {
-    if (irBuilder != null) {
-      irs.add(irBuilder.build()); // add the last instruction
-    }
     flush();
   }
 
@@ -257,6 +251,11 @@ public class Assembler implements NodeVisitor {
     if (leftLeaf.getConstruct() == Construct.LABEL) {
       irBuilder.withLabel(leftLeaf.getValue().toString());
     }
+  }
+
+  @Override
+  public void visitInstruction(Node instruction) {
+    irs.add(irBuilder.build());
   }
 
   private void flushEncoding(InstructionIR instructionIR) {
@@ -567,6 +566,7 @@ public class Assembler implements NodeVisitor {
                 | currentRs << 11
                 | currentRd << 6;
         break;
+      case ADDIU:
       case ANDI:
       case AUI:
       case ORI:
@@ -811,9 +811,7 @@ public class Assembler implements NodeVisitor {
                 | currentRd << 11;
         break;
       case ADD:
-      case ADDI:
       case ADDIUPC:
-      case ADDIU:
       case ADDU:
       case ALIGN:
       case ALUIPC:

@@ -50,4 +50,7 @@ public interface NodeVisitor {
   default void visitSegment(Node segment) {}
 
   default void visitOperand(Node operand) {}
+
+  default void visitInstruction(Node instruction) {}
+
 }

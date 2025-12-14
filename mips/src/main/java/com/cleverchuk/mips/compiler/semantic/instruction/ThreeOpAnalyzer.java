@@ -205,7 +205,6 @@ public class ThreeOpAnalyzer implements Analyzer {
           return Construct.REGISTER == children.get(1).getConstruct()
               && Construct.REGISTER == children.get(2).getConstruct()
               && Construct.REGISTER == construct;
-        case ADDI:
         case ADDIU:
         case ANDI:
         case ORI:

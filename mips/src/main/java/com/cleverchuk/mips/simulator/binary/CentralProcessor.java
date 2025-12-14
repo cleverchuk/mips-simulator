@@ -92,9 +92,6 @@ public class CentralProcessor {
       case ADDU:
         addu(instruction);
         break;
-      case ADDI:
-        addi(instruction);
-        break;
       case ADDIU:
         addiu(instruction);
         break;
@@ -1106,15 +1103,6 @@ public class CentralProcessor {
     long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
     long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
     cpuRegisterFile.write(String.valueOf(rd), (int) (source + target));
-  }
-
-  private void addi(int instruction) {
-    int rs = (instruction >> 21) & 0x1f;
-    int rt = (instruction >> 16) & 0x1f;
-    short imm = (short) (instruction & 0xffff);
-
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), Math.addExact(source, imm));
   }
 
   private void addiu(int instruction) {

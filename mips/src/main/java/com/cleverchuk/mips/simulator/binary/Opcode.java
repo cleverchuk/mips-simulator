@@ -36,8 +36,6 @@ import java.util.stream.Collectors;
 public enum Opcode {
   // ARITHMETIC OPERATIONS
   ADD("add", 0x0, 0x0000020, R_TYPE, true, true, true),
-  @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  ADDI("addi", 0x20000000, 0x0, I_TYPE, true, true, false),
   ADDIU("addiu", 0x24000000, 0x0, I_TYPE, true, true, false),
   ADDIUPC("addiupc", 0xec000000, 0x0, I_TYPE, false, true, false),
   ADDU("addu", 0x0, 0x0000021, R_TYPE, true, true, true),

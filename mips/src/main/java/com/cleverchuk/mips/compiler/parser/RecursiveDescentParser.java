@@ -723,6 +723,8 @@ public final class RecursiveDescentParser {
     if (fourOp != null) {
       instruction.addChild(fourOp);
       visit(instruction);
+
+      visit(instruction, NodeVisitor::visitInstruction);
       return instruction;
     }
 
@@ -730,6 +732,8 @@ public final class RecursiveDescentParser {
     if (threeOp != null) {
       instruction.addChild(threeOp);
       visit(instruction);
+
+      visit(instruction, NodeVisitor::visitInstruction);
       return instruction;
     }
 
@@ -737,6 +741,8 @@ public final class RecursiveDescentParser {
     if (twoOp != null) {
       instruction.addChild(twoOp);
       visit(instruction);
+
+      visit(instruction, NodeVisitor::visitInstruction);
       return instruction;
     }
 
@@ -744,6 +750,8 @@ public final class RecursiveDescentParser {
     if (oneOp != null) {
       instruction.addChild(oneOp);
       visit(instruction);
+
+      visit(instruction, NodeVisitor::visitInstruction);
       return instruction;
     }
 
@@ -751,6 +759,8 @@ public final class RecursiveDescentParser {
     if (zeroOp != null) {
       instruction.addChild(zeroOp);
       visit(instruction);
+
+      visit(instruction, NodeVisitor::visitInstruction);
       return instruction;
     }
 

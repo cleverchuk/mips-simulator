@@ -284,17 +284,6 @@ public class InstructionDecoderTest {
   }
 
   @Test
-  @Ignore("Removed in R6 and opcode reused for BEQC")
-  public void testAddi() {
-    String[] instructions = {".text", "addi $t0, $t1, 1"};
-    parser.parse(toLineDelimited(instructions));
-    Memory layout = assembler.getLayout();
-
-    Opcode actualOpcode = InstructionDecoder.decode(layout.readWord(assembler.getTextOffset()));
-    assertEquals(Opcode.ADDI, actualOpcode);
-  }
-
-  @Test
   public void testAddiu() {
     String[] instructions = {".text", "addiu $t0, $t1, 1"};
     parser.parse(toLineDelimited(instructions));
