@@ -65,7 +65,7 @@ public class RecursiveDescentParserTest {
         ".text\n"
             + "add $t0, $t1, $t2 # comment\n"
             + "# hello no op\n"
-            + "addi $t0, $t1, 400\n"
+            + "#addi $t0, $t1, 400\n"
             + "beq $t0, $t1, 10\n"
             + "lw $t0, 2($t1   )\n"
             + "sw $t0, 67 (   $sp )\n"
@@ -73,7 +73,7 @@ public class RecursiveDescentParserTest {
             + "la $t0, label # comment\n"
             + "jal label\n"
             + "return:jr $ra\n"
-            + "addi $t0, $zero, 300\n"
+            + "#addi $t0, $zero, 300\n"
             + "add $t0, $t1,             $zero\n"
             + "li $v0,                       1\n"
             + "syscall\n"
@@ -177,7 +177,7 @@ public class RecursiveDescentParserTest {
             + ".text\n"
             + "add $t0, $t1, $t2 # comment\n"
             + "# hello no op\n"
-            + "addi $t0, $t1, 400\n"
+            + "addiu $t0, $t1, 400\n"
             + "beq $t0, $t1, 10\n"
             + "lw $t0, 2($t1   )\n"
             + "sw $t0, 67 (   $sp )\n"
@@ -185,7 +185,7 @@ public class RecursiveDescentParserTest {
             + "la $t0, label # comment\n"
             + "jal label\n"
             + "return:jr $ra\n"
-            + "addi $t0, $zero, 300\n"
+            + "addiu $t0, $zero, 300\n"
             + "add $t0, $t1,             $zero\n"
             + "li $v0,                       1\n"
             + "syscall\n";
@@ -202,7 +202,7 @@ public class RecursiveDescentParserTest {
             + ".text\n"
             + "add $t0, $t1, $t2 # comment\n"
             + "# hello no op\n"
-            + "addi $t0, $t1, 400\n"
+            + "addiu $t0, $t1, 400\n"
             + "beq $t0, $t1, 10\n"
             + "lw $t0, 2($t1   )\n"
             + "sw $t0, 67 (   $sp )\n"
@@ -210,7 +210,7 @@ public class RecursiveDescentParserTest {
             + "la $t0, label # comment\n"
             + "jal label\n"
             + "return:jr $ra\n"
-            + "addi $t0, $zero, 300\n"
+            + "addiu $t0, $zero, 300\n"
             + "add $t0, $t1,             $zero\n"
             + "li $v0,                       1\n"
             + "syscall\n"
@@ -296,7 +296,7 @@ public class RecursiveDescentParserTest {
 
   @Test
   public void parseProgramWithHexAndOctalConstants() {
-    String source = ".text\n" + "li $t0, 027\n" + "addi $t0, $t1, 0xf\n";
+    String source = ".text\n" + "li $t0, 027\n" + "addiu $t0, $t1, 0xf\n";
 
     Node program = parser.parse(source);
     assertNotNull(program);
@@ -305,7 +305,7 @@ public class RecursiveDescentParserTest {
 
   @Test
   public void parseProgramWithDeciReg() {
-    String source = ".text\n" + "li $9, 027\n" + "addi $4, $8, 0xf\n";
+    String source = ".text\n" + "li $9, 027\n" + "addiu $4, $8, 0xf\n";
 
     Node program = parser.parse(source);
     assertNotNull(program);

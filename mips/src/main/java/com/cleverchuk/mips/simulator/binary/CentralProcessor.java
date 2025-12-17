@@ -24,11 +24,11 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
+import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.registers.Cop2ControlRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.Cop2RegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.FpcRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
-import com.cleverchuk.mips.simulator.mem.Memory;
 import com.cleverchuk.mips.simulator.registers.GprRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.ShadowRegisterFileArray;
 
@@ -44,7 +44,8 @@ public class CentralProcessor {
 
   private final ShadowRegisterFileArray shadowRegisterFileArray = new ShadowRegisterFileArray();
 
-  private final Cop2ControlRegisterFileArray cop2ControlRegisterFileArray = new Cop2ControlRegisterFileArray();
+  private final Cop2ControlRegisterFileArray cop2ControlRegisterFileArray =
+      new Cop2ControlRegisterFileArray();
 
   private final FpcRegisterFileArray fpcRegisterFileArray = new FpcRegisterFileArray();
 
@@ -1150,7 +1151,9 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray.getFile(rd).writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
+    gprFileArray
+        .getFile(rd)
+        .writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
   }
 
   private void seh(int instruction) {
@@ -1158,7 +1161,9 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray.getFile(rd).writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
+    gprFileArray
+        .getFile(rd)
+        .writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
   }
 
   private void align(int instruction) {
@@ -1225,7 +1230,11 @@ public class CentralProcessor {
     int sa = (instruction >> 6) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray.getFile(rd).writeWord((extractBits(target, 0x0, sa) << (0x20 - sa)) | (extractBits(target, sa, 0x20 - sa) >>> sa));
+    gprFileArray
+        .getFile(rd)
+        .writeWord(
+            (extractBits(target, 0x0, sa) << (0x20 - sa))
+                | (extractBits(target, sa, 0x20 - sa) >>> sa));
   }
 
   private void rotrv(int instruction) {
@@ -1237,7 +1246,10 @@ public class CentralProcessor {
     int target = gprFileArray.getFile(rt).readWord();
     int sa = source & 0x1f;
 
-    gprFileArray.getFile(rd).writeWord((extractBits(target, 0x0, sa) << (0x20 - sa)) | extractBits(target, sa, 0x20 - sa));
+    gprFileArray
+        .getFile(rd)
+        .writeWord(
+            (extractBits(target, 0x0, sa) << (0x20 - sa)) | extractBits(target, sa, 0x20 - sa));
   }
 
   private void sra(int instruction) {
@@ -1287,9 +1299,13 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray.getFile(rd).writeWord(
-        (extractBits(target, 0x10, 0x8) << 0x18) | (extractBits(target, 0x18, 0x8) << 0x10) | (extractBits(target, 0x0, 0x8) << 0x8) |
-            extractBits(target, 0x8, 0x8));
+    gprFileArray
+        .getFile(rd)
+        .writeWord(
+            (extractBits(target, 0x10, 0x8) << 0x18)
+                | (extractBits(target, 0x18, 0x8) << 0x10)
+                | (extractBits(target, 0x0, 0x8) << 0x8)
+                | extractBits(target, 0x8, 0x8));
   }
 
   private void bitswap(int instruction) {
@@ -1297,8 +1313,13 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray.getFile(rd).writeWord((reverseByte(extractBits(target, 0x18, 0x8)) << 0x18) | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10) |
-        (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8) | reverseByte(extractBits(target, 0x0, 0x8)));
+    gprFileArray
+        .getFile(rd)
+        .writeWord(
+            (reverseByte(extractBits(target, 0x18, 0x8)) << 0x18)
+                | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10)
+                | (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8)
+                | reverseByte(extractBits(target, 0x0, 0x8)));
   }
 
   private void and_(int instruction) {
@@ -2422,7 +2443,8 @@ public class CentralProcessor {
     lo = source;
   }
 
-  //Note: atomic instructions always succeeds because we're not really going try to simulate synchronization
+  // Note: atomic instructions always succeeds because we're not really going try to simulate
+  // synchronization
   private void ll(int instruction) {
     int base = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
@@ -2787,7 +2809,7 @@ public class CentralProcessor {
     gprFileArray.getFile(rt).writeWord((int) (source >> 32));
   }
 
-  private void mtc0(int instruction) {// noop
+  private void mtc0(int instruction) { // noop
   }
 
   private void mtc1(int instruction) {
@@ -3032,7 +3054,7 @@ public class CentralProcessor {
     fpuRegisterFileArray.getFile(fd).writeDouble(dest - (source * target));
   }
 
-  //TODO: verify
+  // TODO: verify
   private void class_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
@@ -3047,23 +3069,23 @@ public class CentralProcessor {
         result = 0x1; // sNAN
       }
     } else if (Float.isInfinite(source)) {
-      result = source < 0 ? 0x4/*-inf*/ : 0x40/*+inf*/;
+      result = source < 0 ? 0x4 /*-inf*/ : 0x40 /*+inf*/;
     } else if (source == 0) {
       int bits = Float.floatToRawIntBits(source);
-      result = (bits & 0x80000000) != 0 ? 0x8/*-norm*/ : 0x200/*+0*/;
+      result = (bits & 0x80000000) != 0 ? 0x8 /*-norm*/ : 0x200 /*+0*/;
     } else {
       int bits = Float.floatToRawIntBits(source);
       int exp = (bits >> 23) & 0xff;
       if (exp == 0) {
-        result = source < 0 ? 0x10/*-subnorm*/ : 0x100/*+subnorm*/;
+        result = source < 0 ? 0x10 /*-subnorm*/ : 0x100 /*+subnorm*/;
       } else {
-        result = source < 0 ? 0x20/*-0*/ : 0x80/*+norm*/;
+        result = source < 0 ? 0x20 /*-0*/ : 0x80 /*+norm*/;
       }
     }
     fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
-  //TODO: verify
+  // TODO: verify
   private void class_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
@@ -3621,7 +3643,6 @@ public class CentralProcessor {
     if (unordered) {
       throw new InvalidOperationException();
     }
-
   }
 
   private void cmp_sult_d(int instruction) {

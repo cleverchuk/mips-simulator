@@ -804,11 +804,7 @@ public class Assembler implements NodeVisitor {
         if (currentRd == 0) {
           currentRd = 31;
         }
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 21
-                | currentRd << 11;
+        encoding = opcode.partialEncoding | opcode.opcode | currentRs << 21 | currentRd << 11;
         break;
       case ADD:
       case ADDIUPC:

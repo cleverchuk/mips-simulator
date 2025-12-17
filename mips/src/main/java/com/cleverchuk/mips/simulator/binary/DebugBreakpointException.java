@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-public class DebugBreakpointException extends RuntimeException {
-}
+public class DebugBreakpointException extends RuntimeException {}

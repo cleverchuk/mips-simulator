@@ -39,7 +39,6 @@ import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class InstructionDecoderTest {

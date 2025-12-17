@@ -131,6 +131,8 @@ public class TwoOpAnalyzer implements Analyzer {
       switch (Objects.requireNonNull(op)) {
         default:
           return false;
+        case LA:
+          return true;
         case LB:
         case LBU:
         case LH:

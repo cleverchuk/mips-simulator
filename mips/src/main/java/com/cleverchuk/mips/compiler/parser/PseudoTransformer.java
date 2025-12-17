@@ -31,6 +31,7 @@ import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 public final class PseudoTransformer implements NodeVisitor {
   @Override
@@ -179,11 +180,33 @@ public final class PseudoTransformer implements NodeVisitor {
               .addChild(Node.builder().nodeType(TERMINAL).value("zero").build());
 
       ori.addChild(opcode);
-      ori.addChild(li.getChildren().get(1));
+      ori.addChild(findRegisterNode(li.getChildren().get(1)).orElse(li.getChildren().get(1)));
 
       ori.addChild(zeroReg);
       ori.addChild(li.getChildren().get(2));
       instruction.addChild(ori);
     }
+  }
+
+  private Optional<Node> findRegisterNode(Node node) {
+    Deque<Node> nodeDeque = new ArrayDeque<>();
+    nodeDeque.push(node);
+
+    do {
+      int size = nodeDeque.size();
+      for (int i = 0; i < size; i++) {
+        Node root = nodeDeque.remove();
+        if (root.getConstruct() == Construct.REGISTER) {
+          return Optional.of(root);
+        }
+
+        for (Node child : root.getChildren()) {
+          nodeDeque.addLast(child);
+        }
+      }
+
+    } while (!nodeDeque.isEmpty());
+
+    return Optional.empty();
   }
 }

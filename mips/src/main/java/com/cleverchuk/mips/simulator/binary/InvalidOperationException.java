@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-public class InvalidOperationException extends RuntimeException {
-}
+public class InvalidOperationException extends RuntimeException {}

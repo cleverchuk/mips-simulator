@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-public class SyscallException extends RuntimeException {
-}
+public class SyscallException extends RuntimeException {}

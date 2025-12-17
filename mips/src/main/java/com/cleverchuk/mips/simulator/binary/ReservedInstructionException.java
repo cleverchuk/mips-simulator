@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-public class ReservedInstructionException extends RuntimeException {
-}
+public class ReservedInstructionException extends RuntimeException {}

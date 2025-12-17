@@ -24,5 +24,4 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-public class TrapException extends RuntimeException {
-}
+public class TrapException extends RuntimeException {}

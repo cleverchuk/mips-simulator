@@ -192,7 +192,7 @@ public class ThreeOpAnalyzer implements Analyzer {
       Node opcode = children.get(0);
       switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
-          return false;
+          return true;
         case ADD:
         case ADDU:
         case SUB:

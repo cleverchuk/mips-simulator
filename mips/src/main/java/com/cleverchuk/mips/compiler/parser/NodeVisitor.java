@@ -52,5 +52,4 @@ public interface NodeVisitor {
   default void visitOperand(Node operand) {}
 
   default void visitInstruction(Node instruction) {}
-
 }

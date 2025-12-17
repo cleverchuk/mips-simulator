@@ -36,11 +36,7 @@ public class FpcRegisterFileArray {
   public String regContents() {
     StringBuilder content = new StringBuilder();
     for (int i = 0; i < 32; i++) {
-      content
-          .append(i)
-          .append(": ")
-          .append(registerFile[i])
-          .append("\n");
+      content.append(i).append(": ").append(registerFile[i]).append("\n");
     }
 
     return content.toString();

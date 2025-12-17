@@ -24,9 +24,6 @@
 
 package com.cleverchuk.mips.simulator.registers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Cop2RegisterFileArray {
   private final RegisterFile[] registerFile = new RegisterFile[32];
 
@@ -39,11 +36,7 @@ public class Cop2RegisterFileArray {
   public String regContents() {
     StringBuilder content = new StringBuilder();
     for (int i = 0; i < 32; i++) {
-      content
-          .append(i)
-          .append(": ")
-          .append(registerFile[i])
-          .append("\n");
+      content.append(i).append(": ").append(registerFile[i]).append("\n");
     }
 
     return content.toString();
