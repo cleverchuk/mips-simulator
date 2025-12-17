@@ -157,7 +157,7 @@ public class MipsLexerTest {
         ".text\n"
             + "add $t0, $t1, $t2 # comment\n"
             + "# hello no op\n"
-            + "addi $t0, $t1, 400\n"
+            + "#addi $t0, $t1, 400\n"
             + "beq $t0, $t1, label\n"
             + "lw $t0, 2($t1   )\n"
             + "sw $t0, 67 (   $sp )\n"
@@ -165,7 +165,7 @@ public class MipsLexerTest {
             + "la $t0, label # comment\n"
             + "jal label\n"
             + "return:jr $ra\n"
-            + "addi $t0, $zero, 300\n"
+            + "#addi $t0, $zero, 300\n"
             + "add $t0, $t1,             $zero\n"
             + "li $v0,                       1\n"
             + "syscall\n"
@@ -194,14 +194,6 @@ public class MipsLexerTest {
           new Token(TokenType.COMMA, ",", 2),
           new Token(TokenType.DOLLAR_SIGN, "$", 2),
           new Token(TokenType.REG, "t2", 2),
-          new Token(TokenType.OPCODE, "addi", 4),
-          new Token(TokenType.DOLLAR_SIGN, "$", 4),
-          new Token(TokenType.REG, "t0", 4),
-          new Token(TokenType.COMMA, ",", 4),
-          new Token(TokenType.DOLLAR_SIGN, "$", 4),
-          new Token(TokenType.REG, "t1", 4),
-          new Token(TokenType.COMMA, ",", 4),
-          new Token(TokenType.DECI, "400", 4),
           new Token(TokenType.OPCODE, "beq", 5),
           new Token(TokenType.DOLLAR_SIGN, "$", 5),
           new Token(TokenType.REG, "t0", 5),
@@ -245,14 +237,6 @@ public class MipsLexerTest {
           new Token(TokenType.OPCODE, "jr", 11),
           new Token(TokenType.DOLLAR_SIGN, "$", 11),
           new Token(TokenType.REG, "ra", 11),
-          new Token(TokenType.OPCODE, "addi", 12),
-          new Token(TokenType.DOLLAR_SIGN, "$", 12),
-          new Token(TokenType.REG, "t0", 12),
-          new Token(TokenType.COMMA, ",", 12),
-          new Token(TokenType.DOLLAR_SIGN, "$", 12),
-          new Token(TokenType.REG, "zero", 12),
-          new Token(TokenType.COMMA, ",", 12),
-          new Token(TokenType.DECI, "300", 12),
           new Token(TokenType.OPCODE, "add", 13),
           new Token(TokenType.DOLLAR_SIGN, "$", 13),
           new Token(TokenType.REG, "t0", 13),

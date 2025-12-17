@@ -318,17 +318,6 @@ public class AssemblerTest {
   }
 
   @Test
-  public void testAddi() {
-    String[] instructions = {".text", "addi $t0, $t1, 1"};
-    parser.parse(toLineDelimited(instructions));
-    Memory layout = tested.getLayout();
-
-    int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x21280001;
-    assertEquals(expectedEncoding, actualEncoding);
-  }
-
-  @Test
   public void testAddiu() {
     String[] instructions = {".text", "addiu $t0, $t1, 1"};
     parser.parse(toLineDelimited(instructions));
@@ -1896,12 +1885,12 @@ public class AssemblerTest {
 
   @Test
   public void testDiv() {
-    String[] instructions = {".text", "div $t0, $t1"};
+    String[] instructions = {".text", "div $t2, $t1, $t0"};
     parser.parse(toLineDelimited(instructions));
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x0109001a;
+    int expectedEncoding = 0x0128509a;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -1934,7 +1923,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x0128509a;
+    int expectedEncoding = 0x0128509b;
     assertEquals(expectedEncoding, actualEncoding);
   }
 

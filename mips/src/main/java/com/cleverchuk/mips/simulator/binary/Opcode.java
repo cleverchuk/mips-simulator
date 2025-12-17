@@ -99,14 +99,13 @@ public enum Opcode {
   SLTU("sltu", 0x0, 0x0000002b, R_TYPE, true, true, true),
 
   // MULTIPLY AND DIVIDE OPERATIONS
-  @Deprecated(forRemoval = true, since = "Removed in Release 6")
-  DIV("div", 0x0, 0x0000001a, R_TYPE, true, true, false),
+  DIV("div", 0x0, 0x0000009a, R_TYPE, true, true, true),
   MOD("mod", 0x0, 0x000000da, R_TYPE, true, true, true),
   MUL("mul", 0x0, 0x00000098, R_TYPE, true, true, true),
   MUH("muh", 0x0, 0x000000d8, R_TYPE, true, true, true),
   MULU("mulu", 0x0, 0x00000099, R_TYPE, true, true, true),
   MUHU("muhu", 0x0, 0x000000d9, R_TYPE, true, true, true),
-  DIVU("divu", 0x0, 0x0000009a, R_TYPE, true, true, true),
+  DIVU("divu", 0x0, 0x0000009b, R_TYPE, true, true, true),
   MODU("modu", 0x0, 0x000000db, R_TYPE, true, true, true),
   @Deprecated(forRemoval = true, since = "Removed in Release 6")
   MADD("madd", 0x70000000, 0x0, R_TYPE, true, true, false),

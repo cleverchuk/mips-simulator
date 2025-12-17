@@ -51,7 +51,7 @@ public final class MipsLexer {
 
   private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*");
 
-  private static final Pattern HEX = Pattern.compile("0[xX][a-f0-9]+");
+  private static final Pattern HEX = Pattern.compile("0[xX][Aa-fF0-9]+");
 
   private static final Pattern OCTAL = Pattern.compile("0[0-7]+");
 

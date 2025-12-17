@@ -153,7 +153,7 @@ public class TwoOpAnalyzer implements Analyzer {
 
     private boolean isValidMemAccess(List<Node> children, Node operand) {
       List<Node> operandChildren = operand.getChildren();
-      return Construct.REGISTER == children.get(1).getConstruct()
+      return Construct.OPERAND == children.get(1).getConstruct()
           && Construct.OPERAND == operand.getConstruct()
           && Construct.EXPR == operandChildren.get(0).getConstruct()
           && Construct.PARENREG == operandChildren.get(1).getConstruct();
