@@ -24,49 +24,30 @@
 
 package com.cleverchuk.mips.simulator.registers;
 
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import java.util.HashMap;
-import java.util.Map;
+public class GprRegisterFileArray {
+  private final RegisterFile[] registerFile = new RegisterFile[32];
 
-public class FpuRegisterFileArray {
-  private final Map<String, RegisterFile> registerFile = new HashMap<>();
-  private final Map<Integer, RegisterFile> regFile = new HashMap<>();
-
-  public FpuRegisterFileArray() {
-    MipsLexer.DECI_TO_FPU_REG.forEach(
-        (key, name) -> registerFile.put("$" + name, createReg(name, Integer.parseInt(key))));
-
-    for (int i = 0; i < 32; i++) {
-      regFile.put(i, createReg("f" + i, i));
+  public GprRegisterFileArray() {
+    registerFile[0] = new ReadOnlyRegisterFile(new DefaultRegisterFile(0), 0);
+    for (int i = 1; i < 32; i++) {
+      registerFile[i] = new DefaultRegisterFile(i);
     }
-  }
-
-  public RegisterFile getFile(int reg) {
-    return regFile.get(reg);
-  }
-
-  public RegisterFile getFile(String reg) {
-    return registerFile.get(reg);
   }
 
   public String regContents() {
     StringBuilder content = new StringBuilder();
-    for (Map.Entry<String, RegisterFile> regEntry : registerFile.entrySet()) {
+    for (int i = 0; i < 32; i++) {
       content
-          .append(regEntry.getKey())
+          .append(i)
           .append(": ")
-          .append(regEntry.getValue().hexValue())
+          .append(registerFile[i])
           .append("\n");
     }
 
     return content.toString();
   }
 
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
-
-    return new DefaultRegisterFile(id);
+  public RegisterFile getFile(int reg) {
+    return registerFile[reg];
   }
 }

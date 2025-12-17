@@ -24,12 +24,12 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
 import com.cleverchuk.mips.simulator.registers.Cop2ControlRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.Cop2RegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.FpcRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.mem.Memory;
+import com.cleverchuk.mips.simulator.registers.GprRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.ShadowRegisterFileArray;
 
 public class CentralProcessor {
@@ -38,7 +38,7 @@ public class CentralProcessor {
 
   private final FpuRegisterFileArray fpuRegisterFileArray = new FpuRegisterFileArray();
 
-  private final CpuRegisterFile cpuRegisterFile = new CpuRegisterFile();
+  private final GprRegisterFileArray gprFileArray = new GprRegisterFileArray();
 
   private final Cop2RegisterFileArray cop2RegisterFileArray = new Cop2RegisterFileArray();
 
@@ -50,10 +50,14 @@ public class CentralProcessor {
 
   private int pc;
 
+  private int hi = 0;
+
+  private int lo = 0;
+
   public CentralProcessor(Memory memory, int pc, int sp) {
     this.memory = memory;
     this.pc = pc;
-    cpuRegisterFile.write("$sp", sp);
+    gprFileArray.getFile(29).writeWord(sp);
   }
 
   public int getPc() {
@@ -68,8 +72,8 @@ public class CentralProcessor {
     return fpuRegisterFileArray;
   }
 
-  public CpuRegisterFile getCpuRegisterFile() {
-    return cpuRegisterFile;
+  public GprRegisterFileArray getGprFileArray() {
+    return gprFileArray;
   }
 
   public Cop2RegisterFileArray getCop2RegisterFileArray() {
@@ -1090,9 +1094,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source + target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source + target);
   }
 
   private void addu(int instruction) {
@@ -1100,9 +1104,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
-    cpuRegisterFile.write(String.valueOf(rd), (int) (source + target));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
+    gprFileArray.getFile(rd).writeWord((int) (source + target));
   }
 
   private void addiu(int instruction) {
@@ -1110,15 +1114,15 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short imm = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), source + imm);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rt).writeWord(source + imm);
   }
 
   private void addiupc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    int imm = signExtend (instruction & 0xffff, 16) << 2;
+    int imm = signExtend(instruction & 0xffff, 16) << 2;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + imm);
+    gprFileArray.getFile(rs).writeWord(pc - 4 + imm);
   }
 
   private void sub(int instruction) {
@@ -1126,9 +1130,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), Math.subtractExact(source, target));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(Math.subtractExact(source, target));
   }
 
   private void subu(int instruction) {
@@ -1136,27 +1140,25 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source - target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source - target);
   }
 
   private void seb(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(
-        String.valueOf(rd), (target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
   }
 
   private void seh(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(
-        String.valueOf(rd), (target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
   }
 
   private void align(int instruction) {
@@ -1165,10 +1167,10 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int bp = (instruction >> 6) & 0x3;
-    int source = cpuRegisterFile.read(String.valueOf(rs)) >> (8 * (4 - bp));
-    int target = cpuRegisterFile.read(String.valueOf(rt)) << (8 * bp);
+    int source = gprFileArray.getFile(rs).readWord() >> (8 * (4 - bp));
+    int target = gprFileArray.getFile(rt).readWord() << (8 * bp);
 
-    cpuRegisterFile.write(String.valueOf(rd), source | target);
+    gprFileArray.getFile(rd).writeWord(source | target);
   }
 
   private void aluipc(int instruction) {
@@ -1176,26 +1178,26 @@ public class CentralProcessor {
     short imm = (short) (instruction & 0xffff);
 
     int immv = imm << 16;
-    cpuRegisterFile.write(String.valueOf(rs), ~0x0ffff & (pc - 4 + immv));
+    gprFileArray.getFile(rs).writeWord(~0x0ffff & (pc - 4 + immv));
   }
 
   private void clo(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
 
     int i = 32, mask = 0x80000000;
     for (; (source & mask) == 0 && i > 0; i--, mask >>>= 1)
       ;
-    cpuRegisterFile.write(String.valueOf(rd), 32 - i);
+    gprFileArray.getFile(rd).writeWord(32 - i);
   }
 
   private void clz(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rd), Integer.numberOfLeadingZeros(source));
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rd).writeWord(Integer.numberOfLeadingZeros(source));
   }
 
   private void sll(int instruction) {
@@ -1203,8 +1205,8 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
     int sa = (instruction >> 6) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), target << sa);
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(target << sa);
   }
 
   private void sllv(int instruction) {
@@ -1212,9 +1214,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), target << source);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(target << source);
   }
 
   private void rotr(int instruction) {
@@ -1222,11 +1224,8 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
     int sa = (instruction >> 6) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(
-        String.valueOf(rd),
-        (extractBits(target, 0x0, sa) << (0x20 - sa))
-            | (extractBits(target, sa, 0x20 - sa) >>> sa));
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord((extractBits(target, 0x0, sa) << (0x20 - sa)) | (extractBits(target, sa, 0x20 - sa) >>> sa));
   }
 
   private void rotrv(int instruction) {
@@ -1234,13 +1233,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int sa = source & 0x1f;
 
-    cpuRegisterFile.write(
-        String.valueOf(rd),
-        (extractBits(target, 0x0, sa) << (0x20 - sa)) | extractBits(target, sa, 0x20 - sa));
+    gprFileArray.getFile(rd).writeWord((extractBits(target, 0x0, sa) << (0x20 - sa)) | extractBits(target, sa, 0x20 - sa));
   }
 
   private void sra(int instruction) {
@@ -1248,8 +1245,8 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
     int sa = (instruction >> 6) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), target >> sa);
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(target >> sa);
   }
 
   private void srav(int instruction) {
@@ -1257,11 +1254,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int sa = source & 0x1f;
 
-    cpuRegisterFile.write(String.valueOf(rd), target >> sa);
+    gprFileArray.getFile(rd).writeWord(target >> sa);
   }
 
   private void srl(int instruction) {
@@ -1269,8 +1266,8 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
     int sa = (instruction >> 6) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), target >>> sa);
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(target >>> sa);
   }
 
   private void srlv(int instruction) {
@@ -1278,37 +1275,30 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int sa = source & 0x1f;
 
-    cpuRegisterFile.write(String.valueOf(rd), target >>> sa);
+    gprFileArray.getFile(rd).writeWord(target >>> sa);
   }
 
   private void wsbh(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(
-        String.valueOf(rd),
-        (extractBits(target, 0x10, 0x8) << 0x18)
-            | (extractBits(target, 0x18, 0x8) << 0x10)
-            | (extractBits(target, 0x0, 0x8) << 0x8)
-            | extractBits(target, 0x8, 0x8));
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(
+        (extractBits(target, 0x10, 0x8) << 0x18) | (extractBits(target, 0x18, 0x8) << 0x10) | (extractBits(target, 0x0, 0x8) << 0x8) |
+            extractBits(target, 0x8, 0x8));
   }
 
   private void bitswap(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(
-        String.valueOf(rd),
-        (reverseByte(extractBits(target, 0x18, 0x8)) << 0x18)
-            | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10)
-            | (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8)
-            | reverseByte(extractBits(target, 0x0, 0x8)));
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord((reverseByte(extractBits(target, 0x18, 0x8)) << 0x18) | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10) |
+        (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8) | reverseByte(extractBits(target, 0x0, 0x8)));
   }
 
   private void and_(int instruction) {
@@ -1316,9 +1306,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source & target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source & target);
   }
 
   private void andi(int instruction) {
@@ -1326,8 +1316,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int imm = instruction & 0xffff;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), source & imm);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rt).writeWord(source & imm);
   }
 
   private void nor(int instruction) {
@@ -1335,9 +1325,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), ~(source | target));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(~(source | target));
   }
 
   private void or_(int instruction) {
@@ -1345,9 +1335,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source | target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source | target);
   }
 
   private void ori(int instruction) {
@@ -1355,8 +1345,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int imm = instruction & 0xffff;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), source | imm);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rt).writeWord(source | imm);
   }
 
   private void xor_(int instruction) {
@@ -1364,9 +1354,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source ^ target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source ^ target);
   }
 
   private void xori(int instruction) {
@@ -1374,8 +1364,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int imm = instruction & 0xffff;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), source ^ imm);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rt).writeWord(source ^ imm);
   }
 
   private void ext(int instruction) {
@@ -1384,9 +1374,9 @@ public class CentralProcessor {
     int pos = (instruction >> 6) & 0x1f;
     int size = ((instruction >> 11) & 0x1f) + 1;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     int extracted = extractBits(source, pos, size);
-    cpuRegisterFile.write(String.valueOf(rt), extracted);
+    gprFileArray.getFile(rt).writeWord(extracted);
   }
 
   private void ins(int instruction) {
@@ -1395,12 +1385,12 @@ public class CentralProcessor {
     int pos = (instruction >> 6) & 0x1f;
     int size = ((instruction >> 11) & 0x1f) + 1;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
 
     int mask = ((1 << size) - 1) << pos;
     int result = (target & ~mask) | (extractBits(source, pos, size) << pos);
-    cpuRegisterFile.write(String.valueOf(rt), result);
+    gprFileArray.getFile(rt).writeWord(result);
   }
 
   private void aui(int instruction) {
@@ -1409,15 +1399,15 @@ public class CentralProcessor {
     short imm = (short) (instruction & 0xffff);
     int immv = imm << 16;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rt), source + immv);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rt).writeWord(source + immv);
   }
 
   private void auipc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int imm = instruction & 0xffff;
 
-    cpuRegisterFile.write(String.valueOf(rs), pc - 4 + (signExtend(imm, 16) << 16));
+    gprFileArray.getFile(rs).writeWord(pc - 4 + (signExtend(imm, 16) << 16));
   }
 
   private void movn(int instruction) {
@@ -1425,10 +1415,10 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (target != 0) {
-      cpuRegisterFile.write(String.valueOf(rd), source);
+      gprFileArray.getFile(rd).writeWord(source);
     }
   }
 
@@ -1437,10 +1427,10 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (target == 0) {
-      cpuRegisterFile.write(String.valueOf(rd), source);
+      gprFileArray.getFile(rd).writeWord(source);
     }
   }
 
@@ -1449,10 +1439,10 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = source < target ? 1 : 0;
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void slti(int instruction) {
@@ -1460,9 +1450,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short imm = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     int result = source < imm ? 1 : 0;
-    cpuRegisterFile.write(String.valueOf(rt), result);
+    gprFileArray.getFile(rt).writeWord(result);
   }
 
   private void sltiu(int instruction) {
@@ -1470,9 +1460,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short imm = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     int result = Integer.compareUnsigned(source, imm) < 0 ? 1 : 0;
-    cpuRegisterFile.write(String.valueOf(rt), result);
+    gprFileArray.getFile(rt).writeWord(result);
   }
 
   private void sltu(int instruction) {
@@ -1480,10 +1470,10 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = Integer.compareUnsigned(source, target) < 0 ? 1 : 0;
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void div(int instruction) {
@@ -1491,9 +1481,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source / target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source / target);
   }
 
   private void divu(int instruction) {
@@ -1501,11 +1491,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = (int) (Integer.toUnsignedLong(source) / Integer.toUnsignedLong(target));
 
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void modu(int instruction) {
@@ -1513,11 +1503,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = Integer.remainderUnsigned(source, target);
 
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void mod(int instruction) {
@@ -1525,9 +1515,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write(String.valueOf(rd), source % target);
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(rd).writeWord(source % target);
   }
 
   private void mul(int instruction) {
@@ -1535,11 +1525,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source * target;
 
-    cpuRegisterFile.write(String.valueOf(rd), (int) result);
+    gprFileArray.getFile(rd).writeWord((int) result);
   }
 
   private void muh(int instruction) {
@@ -1547,11 +1537,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source * target;
 
-    cpuRegisterFile.write(String.valueOf(rd), (int) (result >> 32));
+    gprFileArray.getFile(rd).writeWord((int) (result >> 32));
   }
 
   private void mulu(int instruction) {
@@ -1559,11 +1549,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     long result = source * target;
 
-    cpuRegisterFile.write(String.valueOf(rd), (int) result);
+    gprFileArray.getFile(rd).writeWord((int) result);
   }
 
   private void muhu(int instruction) {
@@ -1571,94 +1561,96 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     long result = source * target;
 
-    cpuRegisterFile.write(String.valueOf(rd), (int) (result >> 32));
+    gprFileArray.getFile(rd).writeWord((int) (result >> 32));
   }
 
   private void madd(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source * target;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void maddu(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     long result = source * target;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void msub(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
-    long result = cpuRegisterFile.getAccumulator() - source * target;
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
+    long acc = ((long) hi) << 32 | lo;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    long result = acc - source * target;
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void msubu(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
-    long result = cpuRegisterFile.getAccumulator() - source * target;
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
+    long acc = ((long) hi) << 32 | lo;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    long result = acc - source * target;
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void mult(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source * target;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void multu(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     long result = source * target;
 
-    cpuRegisterFile.accSetHI((int) (result >> 32));
-    cpuRegisterFile.accSetLO((int) result);
+    hi = (int) (result >> 32);
+    lo = (int) result;
   }
 
   private void bal(int instruction) {
     short offset = (short) (instruction & 0xffff);
-    cpuRegisterFile.write("31", pc + 4);
+    gprFileArray.getFile(31).writeWord(pc + 4);
     pc += (offset << 2);
   }
 
   private void balc(int instruction) {
     int offset = instruction & 0x3ffffff;
-    cpuRegisterFile.write("31", pc);
+    gprFileArray.getFile(31).writeWord(pc);
     pc += signExtend(offset << 2, 28);
   }
 
@@ -1671,7 +1663,7 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    int target = fpuRegisterFileArray.getFile(ft).readWord();
     if ((target & 1) == 0) {
       pc += (offset << 2);
     }
@@ -1681,7 +1673,7 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    int target = fpuRegisterFileArray.getFile(ft).readWord();
     if ((target & 1) == 1) {
       pc += (offset << 2);
     }
@@ -1712,8 +1704,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source == target) {
       pc += (offset << 2);
     }
@@ -1724,8 +1716,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source == target) {
       pc += (offset << 2);
     }
@@ -1735,9 +1727,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target == 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1747,8 +1739,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source != target) {
       pc += (offset << 2);
     }
@@ -1759,8 +1751,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source != target) {
       pc += (offset << 2);
     }
@@ -1770,7 +1762,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int offset = signExtend(instruction & 0x1fffff, 21);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source != 0) {
       pc += (offset << 2);
     }
@@ -1781,8 +1773,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source + target;
     if (result != (int) result) {
       pc += offset << 2;
@@ -1794,8 +1786,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    long source = cpuRegisterFile.read(String.valueOf(rs));
-    long target = cpuRegisterFile.read(String.valueOf(rt));
+    long source = gprFileArray.getFile(rs).readWord();
+    long target = gprFileArray.getFile(rt).readWord();
     long result = source + target;
     if (result == (int) result) {
       pc += offset << 2;
@@ -1806,7 +1798,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int offset = instruction & 0x1fffff;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source == 0) {
       pc += signExtend(offset << 2, 23);
     }
@@ -1816,7 +1808,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source >= 0) {
       pc += (offset << 2);
     }
@@ -1826,7 +1818,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source > 0) {
       pc += (offset << 2);
     }
@@ -1836,9 +1828,9 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source >= 0) {
-      cpuRegisterFile.write("31", pc); // no delay slot implementation
+      gprFileArray.getFile(31).writeWord(pc); // no delay slot implementation
       pc += (offset << 2);
     }
   }
@@ -1847,9 +1839,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target <= 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1858,9 +1850,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target >= 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1869,9 +1861,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target > 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1880,9 +1872,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target < 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1891,9 +1883,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target != 0) {
-      cpuRegisterFile.write("31", pc);
+      gprFileArray.getFile(31).writeWord(pc);
       pc += offset << 2;
     }
   }
@@ -1902,7 +1894,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target <= 0) {
       pc += offset << 2;
     }
@@ -1912,7 +1904,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target >= 0) {
       pc += offset << 2;
     }
@@ -1923,8 +1915,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source >= target) {
       pc += offset << 2;
     }
@@ -1934,7 +1926,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target > 0) {
       pc += offset << 2;
     }
@@ -1944,7 +1936,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     if (target < 0) {
       pc += offset << 2;
     }
@@ -1955,8 +1947,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source < target) {
       pc += offset << 2;
     }
@@ -1967,8 +1959,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    long source = cpuRegisterFile.read(String.valueOf(rs)) & 0xffffffffL;
-    long target = cpuRegisterFile.read(String.valueOf(rt)) & 0xffffffffL;
+    long source = gprFileArray.getFile(rs).readWord() & 0xffffffffL;
+    long target = gprFileArray.getFile(rt).readWord() & 0xffffffffL;
     if (source >= target) {
       pc += offset << 2;
     }
@@ -1979,8 +1971,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    long source = cpuRegisterFile.read(String.valueOf(rs)) & 0xffffffffL;
-    long target = cpuRegisterFile.read(String.valueOf(rt)) & 0xffffffffL;
+    long source = gprFileArray.getFile(rs).readWord() & 0xffffffffL;
+    long target = gprFileArray.getFile(rt).readWord() & 0xffffffffL;
     if (source < target) {
       pc += offset << 2;
     }
@@ -1990,7 +1982,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source <= 0) {
       pc += offset << 2;
     }
@@ -2000,7 +1992,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source < 0) {
       pc += offset << 2;
     }
@@ -2010,15 +2002,15 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
+    int source = gprFileArray.getFile(rs).readWord();
     if (source < 0) {
-      cpuRegisterFile.write("31", pc); // no delay slot implementation
+      gprFileArray.getFile(31).writeWord(pc); // no delay slot implementation
       pc += offset << 2;
     }
   }
 
   private void nal(int instruction) {
-    cpuRegisterFile.write("31", pc); // no delay slot implementation
+    gprFileArray.getFile(31).writeWord(pc); // no delay slot implementation
   }
 
   private void break_(int instruction) {
@@ -2032,7 +2024,7 @@ public class CentralProcessor {
 
   private void jal(int instruction) {
     int instr_index = instruction & 0x3ffffff;
-    cpuRegisterFile.write("31", pc + 4);
+    gprFileArray.getFile(31).writeWord(pc + 4);
     pc = (pc & 0xf0000000) | (instr_index << 2);
   }
 
@@ -2040,8 +2032,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rd), pc);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rd).writeWord(pc);
     pc = source;
   }
 
@@ -2049,7 +2041,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     pc = target + offset;
   }
 
@@ -2057,27 +2049,27 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.write(String.valueOf(rd), pc);
+    int source = gprFileArray.getFile(rs).readWord();
+    gprFileArray.getFile(rd).writeWord(pc);
     pc = source;
   }
 
   private void jr(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    pc = cpuRegisterFile.read(String.valueOf(rs));
+    pc = gprFileArray.getFile(rs).readWord();
   }
 
   private void jr_hb(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    pc = cpuRegisterFile.read(String.valueOf(rs));
+    pc = gprFileArray.getFile(rs).readWord();
   }
 
   private void jialc(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    cpuRegisterFile.write("31", pc);
+    int target = gprFileArray.getFile(rt).readWord();
+    gprFileArray.getFile(31).writeWord(pc);
     pc = target + offset;
   }
 
@@ -2086,10 +2078,10 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = (target == 0) ? source : 0;
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void selnez(int instruction) {
@@ -2097,18 +2089,18 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = (target != 0) ? source : 0;
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void teq(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source == target) {
       throw new TrapException();
     }
@@ -2118,8 +2110,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source >= target) {
       throw new TrapException();
     }
@@ -2129,8 +2121,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     if (source >= target) {
       throw new TrapException();
     }
@@ -2140,8 +2132,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source < target) {
       throw new TrapException();
     }
@@ -2151,8 +2143,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    long source = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rs)));
-    long target = Integer.toUnsignedLong(cpuRegisterFile.read(String.valueOf(rt)));
+    long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
+    long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
     if (source < target) {
       throw new TrapException();
     }
@@ -2162,8 +2154,8 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     if (source != target) {
       throw new TrapException();
     }
@@ -2174,9 +2166,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int word = memory.readWord(address);
-    cpuRegisterFile.write(String.valueOf(rt), word);
+    gprFileArray.getFile(rt).writeWord(word);
   }
 
   private void lwe(int instruction) {
@@ -2184,9 +2176,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int word = memory.readWord(address);
-    cpuRegisterFile.write(String.valueOf(rt), word);
+    gprFileArray.getFile(rt).writeWord(word);
   }
 
   private void sw(int instruction) {
@@ -2194,8 +2186,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeWord(target, address);
   }
 
@@ -2204,8 +2196,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeWord(target, address);
   }
 
@@ -2214,9 +2206,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int bite = memory.read(address);
-    cpuRegisterFile.write(String.valueOf(rt), bite);
+    gprFileArray.getFile(rt).writeWord(bite);
   }
 
   private void lbe(int instruction) {
@@ -2224,9 +2216,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int bite = memory.read(address);
-    cpuRegisterFile.write(String.valueOf(rt), bite);
+    gprFileArray.getFile(rt).writeWord(bite);
   }
 
   private void lbu(int instruction) {
@@ -2234,9 +2226,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int ubite = memory.read(address) & 0xff;
-    cpuRegisterFile.write(String.valueOf(rt), ubite);
+    gprFileArray.getFile(rt).writeWord(ubite);
   }
 
   private void lbue(int instruction) {
@@ -2244,9 +2236,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int ubite = memory.read(address) & 0xff;
-    cpuRegisterFile.write(String.valueOf(rt), ubite);
+    gprFileArray.getFile(rt).writeWord(ubite);
   }
 
   private void lh(int instruction) {
@@ -2254,9 +2246,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int half = memory.readHalf(address);
-    cpuRegisterFile.write(String.valueOf(rt), half);
+    gprFileArray.getFile(rt).writeWord(half);
   }
 
   private void lhe(int instruction) {
@@ -2264,9 +2256,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int half = memory.readHalf(address);
-    cpuRegisterFile.write(String.valueOf(rt), half);
+    gprFileArray.getFile(rt).writeWord(half);
   }
 
   private void lhu(int instruction) {
@@ -2274,9 +2266,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int uhalf = memory.readHalf(address) & 0xffff;
-    cpuRegisterFile.write(String.valueOf(rt), uhalf);
+    gprFileArray.getFile(rt).writeWord(uhalf);
   }
 
   private void lhue(int instruction) {
@@ -2284,9 +2276,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int uhalf = memory.readHalf(address) & 0xffff;
-    cpuRegisterFile.write(String.valueOf(rt), uhalf);
+    gprFileArray.getFile(rt).writeWord(uhalf);
   }
 
   private void lsa(int instruction) {
@@ -2295,10 +2287,10 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
     int sa = ((instruction >> 6) & 0x3) + 1;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int result = (source << sa) + target;
-    cpuRegisterFile.write(String.valueOf(rd), result);
+    gprFileArray.getFile(rd).writeWord(result);
   }
 
   private void lwl(int instruction) {
@@ -2306,13 +2298,13 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     int mem = memory.readHalf(address);
 
     target &= 0xffff;
     target |= (mem << 16);
-    cpuRegisterFile.write(String.valueOf(rt), target);
+    gprFileArray.getFile(rt).writeWord(target);
   }
 
   private void lwpc(int instruction) {
@@ -2321,7 +2313,7 @@ public class CentralProcessor {
 
     int address = pc + signExtend(offset << 2, 21);
     int result = memory.readWord(address);
-    cpuRegisterFile.write(String.valueOf(rs), result);
+    gprFileArray.getFile(rs).writeWord(result);
   }
 
   private void lwr(int instruction) {
@@ -2329,13 +2321,13 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     int mem = memory.readHalf(address - 1);
 
     target &= 0xffff0000;
     target |= mem;
-    cpuRegisterFile.write(String.valueOf(rt), target);
+    gprFileArray.getFile(rt).writeWord(target);
   }
 
   private void sb(int instruction) {
@@ -2343,8 +2335,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.store((byte) target, address);
   }
 
@@ -2353,8 +2345,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.store((byte) target, address);
   }
 
@@ -2363,8 +2355,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeHalf((short) target, address);
   }
 
@@ -2373,8 +2365,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeHalf((short) target, address);
   }
 
@@ -2383,8 +2375,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeHalf((short) (target >> 16), address);
   }
 
@@ -2393,9 +2385,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    memory.storeHalf((short) target , address - 1);
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
+    memory.storeHalf((short) target, address - 1);
   }
 
   private void cache(int instruction) {
@@ -2408,26 +2400,26 @@ public class CentralProcessor {
 
   private void mfhi(int instruction) {
     int rd = (instruction >> 11) & 0x1f;
-    int hi = cpuRegisterFile.accHI();
-    cpuRegisterFile.write(String.valueOf(rd), hi);
+    int hi = this.hi;
+    gprFileArray.getFile(rd).writeWord(hi);
   }
 
   private void mflo(int instruction) {
     int rd = (instruction >> 11) & 0x1f;
-    int lo = cpuRegisterFile.accLO();
-    cpuRegisterFile.write(String.valueOf(rd), lo);
+    int lo = this.lo;
+    gprFileArray.getFile(rd).writeWord(lo);
   }
 
   private void mthi(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.accSetHI(source);
+    int source = gprFileArray.getFile(rs).readWord();
+    hi = source;
   }
 
   private void mtlo(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    cpuRegisterFile.accSetLO(source);
+    int source = gprFileArray.getFile(rs).readWord();
+    lo = source;
   }
 
   //Note: atomic instructions always succeeds because we're not really going try to simulate synchronization
@@ -2436,9 +2428,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int mem = memory.readWord(address);
-    cpuRegisterFile.write(String.valueOf(rt), mem);
+    gprFileArray.getFile(rt).writeWord(mem);
   }
 
   private void lle(int instruction) {
@@ -2446,9 +2438,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int result = memory.readWord(address);
-    cpuRegisterFile.write(String.valueOf(rt), result);
+    gprFileArray.getFile(rt).writeWord(result);
   }
 
   private void llwp(int instruction) {
@@ -2456,9 +2448,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int address = cpuRegisterFile.read(String.valueOf(base));
-    cpuRegisterFile.write(String.valueOf(rd), memory.readWord(address));
-    cpuRegisterFile.write(String.valueOf(rt), memory.readWord(address + 4));
+    int address = gprFileArray.getFile(base).readWord();
+    gprFileArray.getFile(rd).writeWord(memory.readWord(address));
+    gprFileArray.getFile(rt).writeWord(memory.readWord(address + 4));
   }
 
   private void llwpe(int instruction) {
@@ -2466,9 +2458,9 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int address = cpuRegisterFile.read(String.valueOf(base));
-    cpuRegisterFile.write(String.valueOf(rd), memory.readWord(address));
-    cpuRegisterFile.write(String.valueOf(rt), memory.readWord(address + 4));
+    int address = gprFileArray.getFile(base).readWord();
+    gprFileArray.getFile(rd).writeWord(memory.readWord(address));
+    gprFileArray.getFile(rt).writeWord(memory.readWord(address + 4));
   }
 
   private void sc(int instruction) {
@@ -2476,11 +2468,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = gprFileArray.getFile(rt).readWord();
     memory.storeWord(target, address);
 
-    cpuRegisterFile.write(String.valueOf(rt), 1);
+    gprFileArray.getFile(rt).writeWord(1);
   }
 
   private void sce(int instruction) {
@@ -2488,11 +2480,11 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     short offset = (short) ((instruction & 0x1ff) << 7 >> 7);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int value = cpuRegisterFile.read(String.valueOf(rt));
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int value = gprFileArray.getFile(rt).readWord();
     memory.storeWord(value, address);
 
-    cpuRegisterFile.write(String.valueOf(rt), 1);
+    gprFileArray.getFile(rt).writeWord(1);
   }
 
   private void scwp(int instruction) {
@@ -2500,13 +2492,13 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int address = cpuRegisterFile.read(String.valueOf(base));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    int dest = cpuRegisterFile.read(String.valueOf(rd));
+    int address = gprFileArray.getFile(base).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    int dest = gprFileArray.getFile(rd).readWord();
 
     memory.storeWord(dest, address);
     memory.storeWord(target, address + 4);
-    cpuRegisterFile.write(String.valueOf(rt), 1);
+    gprFileArray.getFile(rt).writeWord(1);
   }
 
   private void scwpe(int instruction) {
@@ -2514,13 +2506,13 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int address = cpuRegisterFile.read(String.valueOf(base));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    int dest = cpuRegisterFile.read(String.valueOf(rd));
+    int address = gprFileArray.getFile(base).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
+    int dest = gprFileArray.getFile(rd).readWord();
 
     memory.storeWord(dest, address);
     memory.storeWord(target, address + 4);
-    cpuRegisterFile.write(String.valueOf(rt), 1);
+    gprFileArray.getFile(rt).writeWord(1);
   }
 
   private void pref(int instruction) {
@@ -2540,7 +2532,7 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int dest = shadowRegisterFileArray.getFile(rd).readWord();
-    cpuRegisterFile.write(String.valueOf(rt), dest);
+    gprFileArray.getFile(rt).writeWord(dest);
   }
 
   private void deret(int instruction) {
@@ -2635,7 +2627,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
-    int value = cpuRegisterFile.read(String.valueOf(rt));
+    int value = gprFileArray.getFile(rt).readWord();
     shadowRegisterFileArray.getFile(rd).writeWord(value);
   }
 
@@ -2648,8 +2640,8 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    int target = fpuRegisterFileArray.getFile(ft).readWord();
     memory.storeWord(target, address);
   }
 
@@ -2658,7 +2650,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0x7ff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int target = cop2RegisterFileArray.getFile(ct).readWord();
     memory.storeWord(target, address);
   }
@@ -2668,9 +2660,9 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     long mem = memory.readDWord(address);
-    fpuRegisterFileArray.getFile(String.valueOf(ft)).writeDword(mem);
+    fpuRegisterFileArray.getFile(ft).writeDword(mem);
   }
 
   private void ldc2(int instruction) {
@@ -2678,7 +2670,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0x7ff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     long mem = memory.readDWord(address);
     cop2RegisterFileArray.getFile(ct).writeDword(mem);
   }
@@ -2688,9 +2680,9 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int mem = memory.readWord(address);
-    fpuRegisterFileArray.getFile(String.valueOf(ft)).writeWord(mem);
+    fpuRegisterFileArray.getFile(ft).writeWord(mem);
   }
 
   private void lwc2(int instruction) {
@@ -2698,7 +2690,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0x7ff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     int mem = memory.readWord(address);
     cop2RegisterFileArray.getFile(ct).writeWord(mem);
   }
@@ -2708,8 +2700,8 @@ public class CentralProcessor {
     int ft = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
-    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
+    int address = gprFileArray.getFile(base).readWord() + offset;
+    long target = fpuRegisterFileArray.getFile(ft).readDword();
     memory.storeDword(target, address);
   }
 
@@ -2718,7 +2710,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0x7ff);
 
-    int address = cpuRegisterFile.read(String.valueOf(base)) + offset;
+    int address = gprFileArray.getFile(base).readWord() + offset;
     long target = cop2RegisterFileArray.getFile(ct).readDword();
     memory.storeDword(target, address);
   }
@@ -2728,7 +2720,7 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
 
     int source = fpcRegisterFileArray.getFile(fs).readWord();
-    cpuRegisterFile.write(String.valueOf(rt), source);
+    gprFileArray.getFile(rt).writeWord(source);
   }
 
   private void cfc2(int instruction) {
@@ -2736,14 +2728,14 @@ public class CentralProcessor {
     int cs = instruction & 0x1f;
 
     int source = cop2ControlRegisterFileArray.getFile(cs).readWord();
-    cpuRegisterFile.write(String.valueOf(rt), source);
+    gprFileArray.getFile(rt).writeWord(source);
   }
 
   private void ctc1(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int fs = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     fpcRegisterFileArray.getFile(fs).writeWord(target);
   }
 
@@ -2751,7 +2743,7 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int cs = instruction & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     cop2ControlRegisterFileArray.getFile(cs).writeWord(target);
   }
 
@@ -2763,8 +2755,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int fs = (instruction >> 11) & 0x1f;
 
-    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
-    cpuRegisterFile.write(String.valueOf(rt), source);
+    int source = fpuRegisterFileArray.getFile(fs).readWord();
+    gprFileArray.getFile(rt).writeWord(source);
   }
 
   private void mfc2(int instruction) {
@@ -2772,7 +2764,7 @@ public class CentralProcessor {
     int cs = instruction & 0x1f;
 
     int source = cop2RegisterFileArray.getFile(cs).readWord();
-    cpuRegisterFile.write(String.valueOf(rt), source);
+    gprFileArray.getFile(rt).writeWord(source);
   }
 
   private void mfhc0(int instruction) {
@@ -2783,8 +2775,8 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int fs = (instruction >> 11) & 0x1f;
 
-    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
-    cpuRegisterFile.write(String.valueOf(rt), (int) (source >> 32));
+    long source = fpuRegisterFileArray.getFile(fs).readDword();
+    gprFileArray.getFile(rt).writeWord((int) (source >> 32));
   }
 
   private void mfhc2(int instruction) {
@@ -2792,7 +2784,7 @@ public class CentralProcessor {
     int cs = (instruction >> 11) & 0x1f;
 
     long source = cop2RegisterFileArray.getFile(cs).readDword();
-    cpuRegisterFile.write(String.valueOf(rt), (int) (source >> 32));
+    gprFileArray.getFile(rt).writeWord((int) (source >> 32));
   }
 
   private void mtc0(int instruction) {// noop
@@ -2802,15 +2794,15 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int fs = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    fpuRegisterFileArray.getFile(String.valueOf(fs)).writeWord(target);
+    int target = gprFileArray.getFile(rt).readWord();
+    fpuRegisterFileArray.getFile(fs).writeWord(target);
   }
 
   private void mtc2(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int cs = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     cop2RegisterFileArray.getFile(cs).writeWord(target);
   }
 
@@ -2822,16 +2814,16 @@ public class CentralProcessor {
     int rt = (instruction >> 16) & 0x1f;
     int fs = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
-    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
-    fpuRegisterFileArray.getFile(String.valueOf(fs)).writeDword((source & 0xffffffffL) | ((long) target << 32));
+    int target = gprFileArray.getFile(rt).readWord();
+    long source = fpuRegisterFileArray.getFile(fs).readDword();
+    fpuRegisterFileArray.getFile(fs).writeDword((source & 0xffffffffL) | ((long) target << 32));
   }
 
   private void mthc2(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
     int cs = (instruction >> 11) & 0x1f;
 
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int target = gprFileArray.getFile(rt).readWord();
     long source = cop2RegisterFileArray.getFile(cs).readDword();
     cop2RegisterFileArray.getFile(cs).writeDword((source & 0xffffffffL) | ((long) target << 32));
   }
@@ -2840,16 +2832,16 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.abs(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(Math.abs(source));
   }
 
   private void abs_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.abs(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(Math.abs(source));
   }
 
   private void add_s(int instruction) {
@@ -2857,9 +2849,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source + target);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(source + target);
   }
 
   private void add_d(int instruction) {
@@ -2867,9 +2859,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source + target);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source + target);
   }
 
   private void div_s(int instruction) {
@@ -2877,9 +2869,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source / target);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(source / target);
   }
 
   private void div_d(int instruction) {
@@ -2887,9 +2879,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source / target);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source / target);
   }
 
   private void mul_s(int instruction) {
@@ -2897,9 +2889,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source * target);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(source * target);
   }
 
   private void mul_d(int instruction) {
@@ -2907,41 +2899,41 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source * target);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source * target);
   }
 
   private void neg_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(-source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(-source);
   }
 
   private void neg_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(-source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(-source);
   }
 
   private void sqrt_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) Math.sqrt(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle((float) Math.sqrt(source));
   }
 
   private void sqrt_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.sqrt(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(Math.sqrt(source));
   }
 
   private void sub_s(int instruction) {
@@ -2949,9 +2941,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source - target);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(source - target);
   }
 
   private void sub_d(int instruction) {
@@ -2959,41 +2951,41 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source - target);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source - target);
   }
 
   private void recip_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(1.0f / source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(1.0f / source);
   }
 
   private void recip_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(1.0 / source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(1.0 / source);
   }
 
   private void rsqrt_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(1.0f / (float) Math.sqrt(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(1.0f / (float) Math.sqrt(source));
   }
 
   private void rsqrt_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(1.0 / Math.sqrt(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(1.0 / Math.sqrt(source));
   }
 
   private void maddf_s(int instruction) {
@@ -3001,10 +2993,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    float dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(dest + (source * target));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    float dest = fpuRegisterFileArray.getFile(fd).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(dest + (source * target));
   }
 
   private void maddf_d(int instruction) {
@@ -3012,10 +3004,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    double dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(dest + (source * target));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    double dest = fpuRegisterFileArray.getFile(fd).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(dest + (source * target));
   }
 
   private void msubf_s(int instruction) {
@@ -3023,10 +3015,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    float dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(dest - (source * target));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    float dest = fpuRegisterFileArray.getFile(fd).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(dest - (source * target));
   }
 
   private void msubf_d(int instruction) {
@@ -3034,10 +3026,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    double dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(dest - (source * target));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    double dest = fpuRegisterFileArray.getFile(fd).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(dest - (source * target));
   }
 
   //TODO: verify
@@ -3045,7 +3037,7 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
     int result = 0;
     if (Float.isNaN(source)) {
       int bits = Float.floatToRawIntBits(source);
@@ -3068,7 +3060,7 @@ public class CentralProcessor {
         result = source < 0 ? 0x20/*-0*/ : 0x80/*+norm*/;
       }
     }
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   //TODO: verify
@@ -3076,7 +3068,7 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
     int result = 0;
     if (Double.isNaN(source)) {
       long bits = Double.doubleToRawLongBits(source);
@@ -3099,7 +3091,7 @@ public class CentralProcessor {
         result = source < 0 ? 0x20 : 0x80;
       }
     }
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void max_s(int instruction) {
@@ -3107,9 +3099,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.max(source, target));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(Math.max(source, target));
   }
 
   private void max_d(int instruction) {
@@ -3117,9 +3109,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.max(source, target));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(Math.max(source, target));
   }
 
   private void maxa_s(int instruction) {
@@ -3127,10 +3119,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     float result = Math.abs(source) > Math.abs(target) ? source : target;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(result);
+    fpuRegisterFileArray.getFile(fd).writeSingle(result);
   }
 
   private void maxa_d(int instruction) {
@@ -3138,10 +3130,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     double result = Math.abs(source) > Math.abs(target) ? source : target;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(result);
+    fpuRegisterFileArray.getFile(fd).writeDouble(result);
   }
 
   private void min_s(int instruction) {
@@ -3149,9 +3141,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(Math.min(source, target));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(Math.min(source, target));
   }
 
   private void min_d(int instruction) {
@@ -3159,9 +3151,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.min(source, target));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(Math.min(source, target));
   }
 
   private void mina_s(int instruction) {
@@ -3169,10 +3161,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     float result = Math.abs(source) < Math.abs(target) ? source : target;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(result);
+    fpuRegisterFileArray.getFile(fd).writeSingle(result);
   }
 
   private void mina_d(int instruction) {
@@ -3180,42 +3172,42 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     double result = Math.abs(source) < Math.abs(target) ? source : target;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(result);
+    fpuRegisterFileArray.getFile(fd).writeDouble(result);
   }
 
   private void rint_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) Math.rint(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle((float) Math.rint(source));
   }
 
   private void rint_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(Math.rint(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(Math.rint(source));
   }
 
   private void mov_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle(source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle(source);
   }
 
   private void mov_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source);
   }
 
   private void sel_s(int instruction) {
@@ -3223,10 +3215,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    int dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readWord();
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((dest & 1) == 0 ? source : target);
+    int dest = fpuRegisterFileArray.getFile(fd).readWord();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeSingle((dest & 1) == 0 ? source : target);
   }
 
   private void sel_d(int instruction) {
@@ -3234,10 +3226,10 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    long dest = fpuRegisterFileArray.getFile(String.valueOf(fd)).readDword();
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((dest & 1) == 0 ? source : target);
+    long dest = fpuRegisterFileArray.getFile(fd).readDword();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDouble((dest & 1) == 0 ? source : target);
   }
 
   private void seleqz_s(int instruction) {
@@ -3245,9 +3237,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((target & 1) == 0 ? source : 0.0f);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    int target = fpuRegisterFileArray.getFile(ft).readWord();
+    fpuRegisterFileArray.getFile(fd).writeSingle((target & 1) == 0 ? source : 0.0f);
   }
 
   private void seleqz_d(int instruction) {
@@ -3255,9 +3247,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((target & 1) == 0 ? source : 0.0);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    long target = fpuRegisterFileArray.getFile(ft).readDword();
+    fpuRegisterFileArray.getFile(fd).writeDouble((target & 1) == 0 ? source : 0.0);
   }
 
   private void selnez_s(int instruction) {
@@ -3265,9 +3257,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    int target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readWord();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((target & 1) != 0 ? source : 0.0f);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    int target = fpuRegisterFileArray.getFile(ft).readWord();
+    fpuRegisterFileArray.getFile(fd).writeSingle((target & 1) != 0 ? source : 0.0f);
   }
 
   private void selnez_d(int instruction) {
@@ -3275,19 +3267,19 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    long target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDword();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((target & 1) != 0 ? source : 0.0);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    long target = fpuRegisterFileArray.getFile(ft).readDword();
+    fpuRegisterFileArray.getFile(fd).writeDouble((target & 1) != 0 ? source : 0.0);
   }
 
   private void cmp_af_s(int instruction) {
     int fd = (instruction >> 6) & 0x1f;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0);
+    fpuRegisterFileArray.getFile(fd).writeWord(0);
   }
 
   private void cmp_af_d(int instruction) {
     int fd = (instruction >> 6) & 0x1f;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0);
+    fpuRegisterFileArray.getFile(fd).writeDword(0);
   }
 
   private void cmp_un_s(int instruction) {
@@ -3295,11 +3287,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (Float.isNaN(source) || Float.isNaN(target)) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_un_d(int instruction) {
@@ -3307,11 +3299,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (Double.isNaN(source) || Double.isNaN(target)) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_eq_s(int instruction) {
@@ -3319,11 +3311,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source == target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_eq_d(int instruction) {
@@ -3331,11 +3323,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source == target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ueq_s(int instruction) {
@@ -3343,12 +3335,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source == target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ueq_d(int instruction) {
@@ -3356,12 +3348,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source == target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_lt_s(int instruction) {
@@ -3369,11 +3361,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source < target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_lt_d(int instruction) {
@@ -3381,11 +3373,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source < target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ult_s(int instruction) {
@@ -3393,12 +3385,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source < target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ult_d(int instruction) {
@@ -3406,12 +3398,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source < target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_le_s(int instruction) {
@@ -3419,11 +3411,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source <= target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_le_d(int instruction) {
@@ -3431,11 +3423,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source <= target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ule_s(int instruction) {
@@ -3443,12 +3435,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source <= target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ule_d(int instruction) {
@@ -3456,12 +3448,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source <= target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   // No distinction for qNAN or sNAN for all signaling operation here
@@ -3470,9 +3462,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord(0);
 
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
@@ -3484,9 +3476,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword(0);
 
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
@@ -3498,11 +3490,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(unordered ? 0xffffffff : 0);
+    fpuRegisterFileArray.getFile(fd).writeWord(unordered ? 0xffffffff : 0);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3513,11 +3505,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(unordered ? 0xffffffffffffffffL : 0);
+    fpuRegisterFileArray.getFile(fd).writeDword(unordered ? 0xffffffffffffffffL : 0);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3528,11 +3520,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source == target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3543,11 +3535,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source == target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3558,12 +3550,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source == target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3574,12 +3566,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source == target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3590,11 +3582,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source < target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3605,11 +3597,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source < target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3620,12 +3612,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source < target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3637,12 +3629,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source < target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3653,11 +3645,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source <= target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3668,11 +3660,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source <= target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -3683,12 +3675,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source <= target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3699,12 +3691,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source <= target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3712,12 +3704,12 @@ public class CentralProcessor {
 
   private void cmp_at_s(int instruction) {
     int fd = (instruction >> 6) & 0x1f;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0xffffffff);
+    fpuRegisterFileArray.getFile(fd).writeWord(0xffffffff);
   }
 
   private void cmp_at_d(int instruction) {
     int fd = (instruction >> 6) & 0x1f;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0xffffffffffffffffL);
+    fpuRegisterFileArray.getFile(fd).writeDword(0xffffffffffffffffL);
   }
 
   private void cmp_or_s(int instruction) {
@@ -3725,12 +3717,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean ordered = !Float.isNaN(source) && !Float.isNaN(target);
 
     int result = ordered ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_or_d(int instruction) {
@@ -3738,12 +3730,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean ordered = !Double.isNaN(source) && !Double.isNaN(target);
 
     long result = ordered ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_une_s(int instruction) {
@@ -3751,12 +3743,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source != target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_une_d(int instruction) {
@@ -3764,12 +3756,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source != target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ne_s(int instruction) {
@@ -3777,11 +3769,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source != target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ne_d(int instruction) {
@@ -3789,11 +3781,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source != target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_uge_s(int instruction) {
@@ -3801,12 +3793,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source >= target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_uge_d(int instruction) {
@@ -3814,12 +3806,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source >= target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_oge_s(int instruction) {
@@ -3827,11 +3819,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source >= target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_oge_d(int instruction) {
@@ -3839,11 +3831,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source >= target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ugt_s(int instruction) {
@@ -3851,12 +3843,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source > target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ugt_d(int instruction) {
@@ -3864,12 +3856,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source > target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_ogt_s(int instruction) {
@@ -3877,11 +3869,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source > target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
   }
 
   private void cmp_ogt_d(int instruction) {
@@ -3889,11 +3881,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source > target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
   }
 
   private void cmp_sat_s(int instruction) {
@@ -3901,9 +3893,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(0xffffffff);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord(0xffffffff);
 
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
@@ -3915,9 +3907,9 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(0xffffffffffffffffL);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword(0xffffffffffffffffL);
 
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
@@ -3929,12 +3921,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = !unordered ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3945,12 +3937,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = !unordered ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3961,12 +3953,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source != target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3977,12 +3969,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source != target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -3993,11 +3985,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source != target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4008,11 +4000,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source != target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4023,12 +4015,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source >= target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -4039,12 +4031,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source >= target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -4055,11 +4047,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source >= target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4070,11 +4062,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source >= target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4085,12 +4077,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     boolean unordered = Float.isNaN(source) || Float.isNaN(target);
 
     int result = (unordered || source > target) ? 0xffffffff : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -4101,12 +4093,12 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     boolean unordered = Double.isNaN(source) || Double.isNaN(target);
 
     long result = (unordered || source > target) ? 0xffffffffffffffffL : 0;
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (unordered) {
       throw new InvalidOperationException();
     }
@@ -4117,11 +4109,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    float target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readSingle();
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    float target = fpuRegisterFileArray.getFile(ft).readSingle();
     int result = (source > target) ? 0xffffffff : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(result);
+    fpuRegisterFileArray.getFile(fd).writeWord(result);
     if (Float.isNaN(source) || Float.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4132,11 +4124,11 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    double target = fpuRegisterFileArray.getFile(String.valueOf(ft)).readDouble();
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    double target = fpuRegisterFileArray.getFile(ft).readDouble();
     long result = (source > target) ? 0xffffffffffffffffL : 0;
 
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(result);
+    fpuRegisterFileArray.getFile(fd).writeDword(result);
     if (Double.isNaN(source) || Double.isNaN(target)) {
       throw new InvalidOperationException();
     }
@@ -4146,268 +4138,268 @@ public class CentralProcessor {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source);
   }
 
   private void cvt_d_w(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble(source);
+    int source = fpuRegisterFileArray.getFile(fs).readWord();
+    fpuRegisterFileArray.getFile(fd).writeDouble(source);
   }
 
   private void cvt_d_l(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDouble((double) source);
+    long source = fpuRegisterFileArray.getFile(fs).readDword();
+    fpuRegisterFileArray.getFile(fd).writeDouble((double) source);
   }
 
   private void cvt_l_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) source);
   }
 
   private void cvt_l_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) source);
   }
 
   private void cvt_s_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeSingle((float) source);
   }
 
   private void cvt_s_w(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    int source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readWord();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+    int source = fpuRegisterFileArray.getFile(fs).readWord();
+    fpuRegisterFileArray.getFile(fd).writeSingle((float) source);
   }
 
   private void cvt_s_l(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    long source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDword();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeSingle((float) source);
+    long source = fpuRegisterFileArray.getFile(fs).readDword();
+    fpuRegisterFileArray.getFile(fd).writeSingle((float) source);
   }
 
   private void cvt_w_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) source);
   }
 
   private void cvt_w_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) source);
   }
 
   private void ceil_l_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.ceil(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) Math.ceil(source));
   }
 
   private void ceil_l_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.ceil(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) Math.ceil(source));
   }
 
   private void ceil_w_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.ceil(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) Math.ceil(source));
   }
 
   private void ceil_w_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.ceil(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) Math.ceil(source));
   }
 
   private void floor_l_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.floor(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) Math.floor(source));
   }
 
   private void floor_l_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) Math.floor(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) Math.floor(source));
   }
 
   private void floor_w_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.floor(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) Math.floor(source));
   }
 
   private void floor_w_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.floor(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) Math.floor(source));
   }
 
   private void round_l_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(Math.round((double) source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDword(Math.round((double) source));
   }
 
   private void round_l_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword(Math.round(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword(Math.round(source));
   }
 
   private void round_w_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord(Math.round(source));
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord(Math.round(source));
   }
 
   private void round_w_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) Math.round(source));
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) Math.round(source));
   }
 
   private void trunc_l_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) source);
   }
 
   private void trunc_l_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeDword((long) source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeDword((long) source);
   }
 
   private void trunc_w_s(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    float source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readSingle();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+    float source = fpuRegisterFileArray.getFile(fs).readSingle();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) source);
   }
 
   private void trunc_w_d(int instruction) {
     int fs = (instruction >> 11) & 0x1f;
     int fd = (instruction >> 6) & 0x1f;
 
-    double source = fpuRegisterFileArray.getFile(String.valueOf(fs)).readDouble();
-    fpuRegisterFileArray.getFile(String.valueOf(fd)).writeWord((int) source);
+    double source = fpuRegisterFileArray.getFile(fs).readDouble();
+    fpuRegisterFileArray.getFile(fd).writeWord((int) source);
   }
 
   private void crc32b(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32(target, source & 0xff, 8);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private void crc32h(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32(target, source & 0xffff, 16);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private void crc32w(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32(target, source, 32);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private void crc32cb(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32c(target, source & 0xff, 8);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private void crc32ch(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32c(target, source & 0xffff, 16);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private void crc32cw(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 
-    int source = cpuRegisterFile.read(String.valueOf(rs));
-    int target = cpuRegisterFile.read(String.valueOf(rt));
+    int source = gprFileArray.getFile(rs).readWord();
+    int target = gprFileArray.getFile(rt).readWord();
     int crc = crc32c(target, source, 32);
-    cpuRegisterFile.write(String.valueOf(rt), crc);
+    gprFileArray.getFile(rt).writeWord(crc);
   }
 
   private int crc32(int crc, int data, int bits) {
@@ -4460,4 +4452,3 @@ public class CentralProcessor {
     return target;
   }
 }
-
