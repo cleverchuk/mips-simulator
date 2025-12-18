@@ -1153,7 +1153,7 @@ public class CentralProcessor {
     int target = gprFileArray.getFile(rt).readWord();
     gprFileArray
         .getFile(rd)
-        .writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x8));
+        .writeWord(signExtend(extractBits(target, 0x0, 0x8), 8));
   }
 
   private void seh(int instruction) {
@@ -1163,7 +1163,7 @@ public class CentralProcessor {
     int target = gprFileArray.getFile(rt).readWord();
     gprFileArray
         .getFile(rd)
-        .writeWord((target < 0 ? -1 : 0) & 0xffff_ff00 | extractBits(target, 0x0, 0x10));
+        .writeWord(signExtend(extractBits(target, 0x0, 0x10), 0x10));
   }
 
   private void align(int instruction) {
@@ -1181,9 +1181,7 @@ public class CentralProcessor {
   private void aluipc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     short imm = (short) (instruction & 0xffff);
-
-    int immv = imm << 16;
-    gprFileArray.getFile(rs).writeWord(~0x0ffff & (pc - 4 + immv));
+    gprFileArray.getFile(rs).writeWord(~0x0ffff & (pc - 4 + (imm << 16)));
   }
 
   private void clo(int instruction) {
@@ -1192,7 +1190,7 @@ public class CentralProcessor {
     int source = gprFileArray.getFile(rs).readWord();
 
     int i = 32, mask = 0x80000000;
-    for (; (source & mask) == 0 && i > 0; i--, mask >>>= 1)
+    for (; (source & mask) != 0 && i > 0; i--, mask >>>= 1)
       ;
     gprFileArray.getFile(rd).writeWord(32 - i);
   }
@@ -4466,7 +4464,7 @@ public class CentralProcessor {
   }
 
   private int signExtend(int target, int size) {
-    int mask = 1 << size;
+    int mask = 1 << (size - 1);
     if ((target & mask) != 0) {
       return target | -mask;
     }

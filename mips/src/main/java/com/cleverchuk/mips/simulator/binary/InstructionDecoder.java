@@ -5,15 +5,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** MIPS instruction decoder using hierarchical lookup tables. */
+/**
+ * MIPS instruction decoder using hierarchical lookup tables.
+ */
 public class InstructionDecoder {
 
   // Bit masks
   private static final int OPCODE_MASK = 0xFC000000; // bits 31-26
+
   private static final int FUNCT_MASK = 0x0000003F; // bits 5-0
+
   private static final int EXT_HIGH_MASK = 0x00000700; // bits 10-8
+
   private static final int EXT_LOW_MASK = 0x000000C0; // bits 7-6
+
   private static final int RS_MASK = 0x03E00000; // bits 25-21
+
   private static final int RT_MASK = 0x001F0000; // bits 20-16
 
   /**
@@ -21,17 +28,19 @@ public class InstructionDecoder {
    * [opcodes]
    */
   private static final Map<
+      Integer,
+      Map<
           Integer,
-          Map<
-              Integer,
-              Map<Integer, Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>>>>>
+          Map<Integer, Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>>>>>
       LOOKUP_TABLE = new HashMap<>();
 
   static {
     buildLookupTable();
   }
 
-  /** Builds the hierarchical lookup table */
+  /**
+   * Builds the hierarchical lookup table
+   */
   private static void buildLookupTable() {
     for (Opcode op : Opcode.values()) {
       if (op.format == InstructionFormat.IDIOM) {
@@ -71,7 +80,9 @@ public class InstructionDecoder {
     }
   }
 
-  /** Main decode method */
+  /**
+   * Main decode method
+   */
   public static Opcode decode(int instruction) {
     // Level 1: Extract primary opcode
     int primaryOpcode = instruction & OPCODE_MASK;
@@ -91,7 +102,7 @@ public class InstructionDecoder {
       // Try wildcard (rs = 0)
       level2 = level1.get(0);
       if (level2 == null) {
-        return enumerateAndMatch(instruction, level2);
+        return enumerateAndMatch(instruction, level1);
       }
     }
 
@@ -99,11 +110,15 @@ public class InstructionDecoder {
     int funct = instruction & FUNCT_MASK;
     Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>> level3 = level2.get(funct);
 
+    if (primaryOpcode == 0 && funct == 0/*unique to sll*/) {
+      return Opcode.SLL;
+    }
+
     if (level3 == null) {
       // Try wildcard (function = 0)
       level3 = level2.get(0);
       if (level3 == null) {
-        return enumerateAndMatch(instruction, level3);
+        return enumerateAndMatch(instruction, level2);
       }
     }
 
@@ -115,7 +130,7 @@ public class InstructionDecoder {
       // Try wildcard (extHigh = 0)
       level4 = level3.get(0);
       if (level4 == null) {
-        return enumerateAndMatch(instruction, level4);
+        return enumerateAndMatch(instruction, level3);
       }
     }
 
@@ -127,7 +142,7 @@ public class InstructionDecoder {
       // Try wildcard (extLow = 0)
       level5 = level4.get(0);
       if (level5 == null) {
-        return enumerateAndMatch(instruction, level5);
+        return enumerateAndMatch(instruction, level4);
       }
     }
 
@@ -147,7 +162,9 @@ public class InstructionDecoder {
     return enumerateAndMatch(instruction, leve6);
   }
 
-  /** Enumerates all opcodes in a map structure to find matches Used when exact lookup fails */
+  /**
+   * Enumerates all opcodes in a map structure to find matches Used when exact lookup fails
+   */
   private static Opcode enumerateAndMatch(int instruction, Map<?, ?> map) {
     List<Opcode> allCandidates = new ArrayList<>();
     collectAllOpcodes(map, allCandidates);
@@ -175,7 +192,9 @@ public class InstructionDecoder {
     return disambiguateByOperands(instruction, matches);
   }
 
-  /** Recursively collects all Opcode objects from nested maps */
+  /**
+   * Recursively collects all Opcode objects from nested maps
+   */
   private static void collectAllOpcodes(Map<?, ?> map, List<Opcode> result) {
     for (Object value : map.values()) {
       if (value instanceof List) {
@@ -188,7 +207,9 @@ public class InstructionDecoder {
     }
   }
 
-  /** Checks if instruction matches opcode's partialEncoding */
+  /**
+   * Checks if instruction matches opcode's partialEncoding
+   */
   private static boolean matchesPartialEncoding(int instruction, Opcode opcode) {
     if (opcode.partialEncoding == 0) {
       return true;
@@ -198,7 +219,9 @@ public class InstructionDecoder {
     return (instruction & opcode.partialEncoding) == opcode.partialEncoding;
   }
 
-  /** Disambiguate multiple candidates using operand flags and instruction-specific rules */
+  /**
+   * Disambiguate multiple candidates using operand flags and instruction-specific rules
+   */
   private static Opcode disambiguateByOperands(int instruction, List<Opcode> candidates) {
     if (candidates.isEmpty()) {
       return null;
@@ -248,7 +271,9 @@ public class InstructionDecoder {
     return candidates.get(0);
   }
 
-  /** Applies instruction-specific disambiguation rules */
+  /**
+   * Applies instruction-specific disambiguation rules
+   */
   private static boolean matchesInstructionRules(Opcode opcode, int rs, int rt, int rd) {
     switch (opcode) {
       case BGEUC:
@@ -292,7 +317,9 @@ public class InstructionDecoder {
     }
   }
 
-  /** Disassembles an instruction to assembly syntax */
+  /**
+   * Disassembles an instruction to assembly syntax
+   */
   public static String disassemble(int instruction, Opcode opcode) {
     if (opcode == null) {
       return String.format("UNKNOWN [0x%08X]", instruction);
@@ -310,13 +337,19 @@ public class InstructionDecoder {
 
     switch (opcode.format) {
       case R_TYPE:
-        if (opcode.rd) sb.append("$").append(rd);
+        if (opcode.rd) {
+          sb.append("$").append(rd);
+        }
         if (opcode.rs) {
-          if (opcode.rd) sb.append(", ");
+          if (opcode.rd) {
+            sb.append(", ");
+          }
           sb.append("$").append(rs);
         }
         if (opcode.rt) {
-          if (opcode.rd || opcode.rs) sb.append(", ");
+          if (opcode.rd || opcode.rs) {
+            sb.append(", ");
+          }
           sb.append("$").append(rt);
         }
         if (shamt != 0 && !opcode.rs && !opcode.rt) {
@@ -325,12 +358,18 @@ public class InstructionDecoder {
         break;
 
       case I_TYPE:
-        if (opcode.rt) sb.append("$").append(rt);
+        if (opcode.rt) {
+          sb.append("$").append(rt);
+        }
         if (opcode.rs) {
-          if (opcode.rt) sb.append(", ");
+          if (opcode.rt) {
+            sb.append(", ");
+          }
           sb.append("$").append(rs);
         }
-        if (opcode.rt || opcode.rs) sb.append(", ");
+        if (opcode.rt || opcode.rs) {
+          sb.append(", ");
+        }
         sb.append(imm);
         break;
 

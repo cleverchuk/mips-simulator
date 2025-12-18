@@ -48,6 +48,13 @@ public class FourOpAnalyzer implements Analyzer {
             && Construct.EXPR == children.get(3).getConstruct()
             && Construct.EXPR == children.get(4).getConstruct();
       }
+
+      if (Opcode.ALIGN.same((String) opcode.getValue())) {
+        return Construct.REGISTER == children.get(1).getConstruct()
+            && Construct.REGISTER == children.get(2).getConstruct()
+            && Construct.OPERAND == children.get(3).getConstruct()
+            && Construct.EXPR == children.get(4).getConstruct();
+      }
     }
     return false;
   }

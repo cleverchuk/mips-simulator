@@ -132,6 +132,8 @@ public class TwoOpAnalyzer implements Analyzer {
         default:
           return false;
         case LA:
+        case CLO:
+        case SEB:
           return true;
         case LB:
         case LBU:
