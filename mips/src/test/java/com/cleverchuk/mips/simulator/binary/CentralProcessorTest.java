@@ -299,6 +299,41 @@ public class CentralProcessorTest {
     assertEquals(0x10000000, result);
   }
 
+  @Test
+  public void testRotrv() throws Exception {
+    String[] instructions = {
+        ".data",
+        "data: .word 0x1, 0x4",
+        ".text",
+        "la $t0, data",
+        "lw $t1, 0($t0)",
+        "lw $t2, 4($t0)",
+        "rotrv $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
+    assertEquals(0x10000000, result);
+  }
+
+  @Test
+  public void testAui() throws Exception {
+    String[] instructions = {
+        ".data",
+        "data: .word 0x1, 0x4",
+        ".text",
+        "la $t0, data",
+        "lw $t1, 0($t0)",
+        "aui $t0, $t1, 5"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
+    assertEquals((5 << 16) + 1, result);
+  }
+
 
   // ===== Multiplication and Division =====
 
