@@ -86,13 +86,20 @@ public class Assembler implements NodeVisitor {
 
   private InstructionIR.Builder irBuilder = null;
 
+  private int sourceOffset = 0;
+
+  private byte cLayout = 0; // inst = 01, data = 10
+
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
     textOffset = index;
     currentDataMode = "";
+    sourceOffset = text.getLine();
+    cLayout = 1;
   }
 
   @Override
@@ -107,7 +114,13 @@ public class Assembler implements NodeVisitor {
               .build());
 
     } else {
-      symbolTable.put(label, index);
+      if ((cLayout & 1) > 0) {
+        symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset - 1) * 4);
+      }
+
+      if ((cLayout & 2) > 0) {
+        symbolTable.put(label, index);
+      }
     }
   }
 
@@ -216,6 +229,7 @@ public class Assembler implements NodeVisitor {
   @Override
   public void visitDataSegment(Node data) {
     dataOffset = index;
+    cLayout = 2;
   }
 
   @Override
@@ -379,13 +393,19 @@ public class Assembler implements NodeVisitor {
         break;
       case BALC:
       case BC:
+        address = symbolTable.get(currentLabel);
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0x3ffffff;
+        break;
       case J:
       case JAL:
         address = symbolTable.get(currentLabel);
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | (address != null ? computePcRelativeOffset(address) : currentImme) & 0x3ffffff;
+                | (address != null ? address / 4: currentImme) & 0x3ffffff;
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));
@@ -1021,6 +1041,6 @@ public class Assembler implements NodeVisitor {
   }
 
   private int computePcRelativeOffset(int address) {
-    return (address - index + 4) / 4;
+    return (address - index - 4) / 4;
   }
 }

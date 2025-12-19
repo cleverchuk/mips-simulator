@@ -104,7 +104,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x10000001;
+    int expectedEncoding = 0x10000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -118,7 +118,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x11000001;
+    int expectedEncoding = 0x11000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -200,7 +200,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x15000001;
+    int expectedEncoding = 0x15000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -214,7 +214,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset() + 8);
-    int expectedEncoding = 0x0411ffff;
+    int expectedEncoding = 0x0411fffd;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -423,7 +423,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset() + 4);
-    int expectedEncoding = 0xe8000000;
+    int expectedEncoding = 0xebfffffe;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -434,7 +434,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset() + 4);
-    int expectedEncoding = 0xc8000000;
+    int expectedEncoding = 0xcbfffffe;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -447,7 +447,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x45210001;
+    int expectedEncoding = 0x45210000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -458,7 +458,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x45a10001;
+    int expectedEncoding = 0x45a10000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -471,7 +471,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x49210001;
+    int expectedEncoding = 0x49210000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -482,7 +482,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x49a10001;
+    int expectedEncoding = 0x49a10000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -493,7 +493,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x11090001;
+    int expectedEncoding = 0x11090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -504,7 +504,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x21090001;
+    int expectedEncoding = 0x21090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -515,7 +515,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x20080001;
+    int expectedEncoding = 0x20080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -526,7 +526,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0xd9000001;
+    int expectedEncoding = 0xd9000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -537,7 +537,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x59090001;
+    int expectedEncoding = 0x59090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -548,7 +548,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x19080001;
+    int expectedEncoding = 0x19080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -559,7 +559,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x05110001;
+    int expectedEncoding = 0x05110000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -570,7 +570,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x59080001;
+    int expectedEncoding = 0x59080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -581,7 +581,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x05010001;
+    int expectedEncoding = 0x05010000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -592,7 +592,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x19090001;
+    int expectedEncoding = 0x19090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -603,7 +603,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x1c080001;
+    int expectedEncoding = 0x1c080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -614,7 +614,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x5c080001;
+    int expectedEncoding = 0x5c080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -625,7 +625,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x1d000001;
+    int expectedEncoding = 0x1d000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -647,7 +647,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x18080001;
+    int expectedEncoding = 0x18080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -658,7 +658,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x58080001;
+    int expectedEncoding = 0x58080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -669,7 +669,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x19000001;
+    int expectedEncoding = 0x19000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -680,7 +680,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x5d090001;
+    int expectedEncoding = 0x5d090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -691,7 +691,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x1d090001;
+    int expectedEncoding = 0x1d090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -702,7 +702,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x1d080001;
+    int expectedEncoding = 0x1d080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -713,7 +713,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x05100001;
+    int expectedEncoding = 0x05100000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -724,7 +724,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x5d080001;
+    int expectedEncoding = 0x5d080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -735,7 +735,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x05000001;
+    int expectedEncoding = 0x05000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -746,7 +746,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x15090001;
+    int expectedEncoding = 0x15090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -757,7 +757,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x61090001;
+    int expectedEncoding = 0x61090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -768,7 +768,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x60080001;
+    int expectedEncoding = 0x60080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -779,7 +779,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0xf9000001;
+    int expectedEncoding = 0xf9000000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -790,7 +790,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x61090001;
+    int expectedEncoding = 0x61090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -801,7 +801,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0x21090001;
+    int expectedEncoding = 0x21090000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -2121,7 +2121,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0xd8080001;
+    int expectedEncoding = 0xd8080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
@@ -2132,7 +2132,7 @@ public class AssemblerTest {
     Memory layout = tested.getLayout();
 
     int actualEncoding = layout.readWord(tested.getTextOffset());
-    int expectedEncoding = 0xf8080001;
+    int expectedEncoding = 0xf8080000;
     assertEquals(expectedEncoding, actualEncoding);
   }
 
