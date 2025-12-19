@@ -69,6 +69,14 @@ public class CentralProcessor {
     this.pc = pc;
   }
 
+  public int getHi() {
+    return hi;
+  }
+
+  public int getLo() {
+    return lo;
+  }
+
   public FpuRegisterFileArray getFpuRegisterFileArray() {
     return fpuRegisterFileArray;
   }
