@@ -756,8 +756,24 @@ public class CentralProcessorTest {
   }
 
   // ===== Jump Instructions =====
-  // Note: Jump tests have complex interactions with PC calculations
-  // These tests verify basic functionality
+
+  @Test
+  public void testJ() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t0, $zero, 1",
+      "j target",
+      "addiu $t0, $zero, 2",  // should be skipped
+      "target: addiu $t1, $zero, 3"
+    };
+    assemble(instructions);
+    executeInstructions(3);  // addiu, j, addiu at target
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(1, t0);  // first addiu executed
+    assertEquals(3, t1);  // jumped to target
+  }
 
   @Test
   public void testJalReturnAddress() throws Exception {
@@ -777,18 +793,6 @@ public class CentralProcessorTest {
     assertEquals(true, ra > 0); // At minimum, ra should be set to some positive value
   }
 
-  @Test
-  public void testJrReturn() throws Exception {
-    // Test sequential execution - jr should jump to address in register
-    String[] instructions = {".text", "addiu $t0, $zero, 42", "addiu $t1, $zero, 99"};
-    assemble(instructions);
-    executeInstructions(2);
-
-    int t0 = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    int t1 = cpu.getGprFileArray().getFile(9).readWord(); // $t1
-    assertEquals(42, t0);
-    assertEquals(99, t1);
-  }
 
   // ===== Bit Manipulation Instructions =====
 
@@ -1165,8 +1169,8 @@ public class CentralProcessorTest {
   }
 
   // ===== Jump Instructions =====
-  // Note: Jump tests are complex due to PC-relative calculations
-  // These simplified tests verify sequential execution
+  // Note: j and jr tests are failing - need debugging
+  // The loop test with bne works, so branches work, but j/jr have issues
 
   @Test
   public void testSequentialJump() throws Exception {
@@ -1472,7 +1476,7 @@ public class CentralProcessorTest {
   */
 
   // ===== MADD/MSUB Instructions =====
-  // Note: MADD/MSUB tests commented out - require specific HI/LO setup that may not work
+  // Note: MADD/MSUB tests have issues - may need different instruction format
   /*
   @Test
   public void testMadd() throws Exception {
@@ -1590,8 +1594,104 @@ public class CentralProcessorTest {
   }
 
   // ===== Additional Branch Tests =====
-  // Note: Branch-taken tests are complex due to PC/offset calculations
-  // These tests verify non-branching behavior which is more reliable
+
+  @Test
+  public void testBeqTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 5",
+      "beq $t1, $t2, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
+
+  @Test
+  public void testBneTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "bne $t1, $t2, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
+
+  @Test
+  public void testBgezTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",  // positive
+      "bgez $t1, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
+
+  @Test
+  public void testBgtzTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",  // positive
+      "bgtz $t1, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
+
+  @Test
+  public void testBlezTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 0",  // zero
+      "blez $t1, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
+
+  @Test
+  public void testBltzTaken() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, -5",  // negative
+      "bltz $t1, target",
+      "addiu $t0, $zero, 1",  // skipped
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, result);
+  }
 
   @Test
   public void testBeqNotTaken() throws Exception {
@@ -1630,8 +1730,7 @@ public class CentralProcessorTest {
   }
 
   // ===== Loop Test =====
-  // Note: Loop test commented out - relies on branch-taken behavior
-  /*
+
   @Test
   public void testSimpleLoop() throws Exception {
     String[] instructions = {
@@ -1647,7 +1746,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(5, result);
   }
-  */
 
   // ===== FPU Instructions =====
   // Note: FPU tests commented out - they have issues with the binary processor
