@@ -51,7 +51,13 @@ public class OpcodeTest {
   @Test
   public void testName() {
     List<Opcode> opcodeNames =
-        Arrays.stream(Opcode.values()).filter(opcode -> opcode.opcode == 0 && opcode.format != InstructionFormat.IDIOM && opcode.partialEncoding == 0).collect(Collectors.toList());
+        Arrays.stream(Opcode.values())
+            .filter(
+                opcode ->
+                    opcode.opcode == 0
+                        && opcode.format != InstructionFormat.IDIOM
+                        && opcode.partialEncoding == 0)
+            .collect(Collectors.toList());
 
     opcodeNames.forEach(opcode -> System.out.println(opcode.name + " " + opcode.partialEncoding));
     System.out.println("Total: " + opcodeNames.size());

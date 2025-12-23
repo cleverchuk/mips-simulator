@@ -5,9 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * MIPS instruction decoder using hierarchical lookup tables.
- */
+/** MIPS instruction decoder using hierarchical lookup tables. */
 public class InstructionDecoder {
 
   // Bit masks
@@ -28,19 +26,17 @@ public class InstructionDecoder {
    * [opcodes]
    */
   private static final Map<
-      Integer,
-      Map<
           Integer,
-          Map<Integer, Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>>>>>
+          Map<
+              Integer,
+              Map<Integer, Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>>>>>
       LOOKUP_TABLE = new HashMap<>();
 
   static {
     buildLookupTable();
   }
 
-  /**
-   * Builds the hierarchical lookup table
-   */
+  /** Builds the hierarchical lookup table */
   private static void buildLookupTable() {
     for (Opcode op : Opcode.values()) {
       if (op.format == InstructionFormat.IDIOM) {
@@ -80,9 +76,7 @@ public class InstructionDecoder {
     }
   }
 
-  /**
-   * Main decode method
-   */
+  /** Main decode method */
   public static Opcode decode(int instruction) {
     // Level 1: Extract primary opcode
     int primaryOpcode = instruction & OPCODE_MASK;
@@ -110,7 +104,7 @@ public class InstructionDecoder {
     int funct = instruction & FUNCT_MASK;
     Map<Integer, Map<Integer, Map<Integer, Map<Integer, List<Opcode>>>>> level3 = level2.get(funct);
 
-    if (primaryOpcode == 0 && funct == 0/*unique to sll*/) {
+    if (primaryOpcode == 0 && funct == 0 /*unique to sll*/) {
       return Opcode.SLL;
     }
 
@@ -162,9 +156,7 @@ public class InstructionDecoder {
     return enumerateAndMatch(instruction, leve6);
   }
 
-  /**
-   * Enumerates all opcodes in a map structure to find matches Used when exact lookup fails
-   */
+  /** Enumerates all opcodes in a map structure to find matches Used when exact lookup fails */
   private static Opcode enumerateAndMatch(int instruction, Map<?, ?> map) {
     List<Opcode> allCandidates = new ArrayList<>();
     collectAllOpcodes(map, allCandidates);
@@ -192,9 +184,7 @@ public class InstructionDecoder {
     return disambiguateByOperands(instruction, matches);
   }
 
-  /**
-   * Recursively collects all Opcode objects from nested maps
-   */
+  /** Recursively collects all Opcode objects from nested maps */
   private static void collectAllOpcodes(Map<?, ?> map, List<Opcode> result) {
     for (Object value : map.values()) {
       if (value instanceof List) {
@@ -207,9 +197,7 @@ public class InstructionDecoder {
     }
   }
 
-  /**
-   * Checks if instruction matches opcode's partialEncoding
-   */
+  /** Checks if instruction matches opcode's partialEncoding */
   private static boolean matchesPartialEncoding(int instruction, Opcode opcode) {
     if (opcode.partialEncoding == 0) {
       return true;
@@ -219,9 +207,7 @@ public class InstructionDecoder {
     return (instruction & opcode.partialEncoding) == opcode.partialEncoding;
   }
 
-  /**
-   * Disambiguate multiple candidates using operand flags and instruction-specific rules
-   */
+  /** Disambiguate multiple candidates using operand flags and instruction-specific rules */
   private static Opcode disambiguateByOperands(int instruction, List<Opcode> candidates) {
     if (candidates.isEmpty()) {
       return null;
@@ -271,9 +257,7 @@ public class InstructionDecoder {
     return candidates.get(0);
   }
 
-  /**
-   * Applies instruction-specific disambiguation rules
-   */
+  /** Applies instruction-specific disambiguation rules */
   private static boolean matchesInstructionRules(Opcode opcode, int rs, int rt, int rd) {
     switch (opcode) {
       case BGEUC:
@@ -317,9 +301,7 @@ public class InstructionDecoder {
     }
   }
 
-  /**
-   * Disassembles an instruction to assembly syntax
-   */
+  /** Disassembles an instruction to assembly syntax */
   public static String disassemble(int instruction, Opcode opcode) {
     if (opcode == null) {
       return String.format("UNKNOWN [0x%08X]", instruction);

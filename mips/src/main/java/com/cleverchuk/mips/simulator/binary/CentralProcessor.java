@@ -1159,9 +1159,7 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray
-        .getFile(rd)
-        .writeWord(signExtend(extractBits(target, 0x0, 0x8), 8));
+    gprFileArray.getFile(rd).writeWord(signExtend(extractBits(target, 0x0, 0x8), 8));
   }
 
   private void seh(int instruction) {
@@ -1169,9 +1167,7 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
-    gprFileArray
-        .getFile(rd)
-        .writeWord(signExtend(extractBits(target, 0x0, 0x10), 0x10));
+    gprFileArray.getFile(rd).writeWord(signExtend(extractBits(target, 0x0, 0x10), 0x10));
   }
 
   private void align(int instruction) {
@@ -1399,7 +1395,7 @@ public class CentralProcessor {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
     int pos = (instruction >> 6) & 0x1f;
-    int size = ((instruction >> 11) & 0x1f) + 1;
+    int size = ((instruction >> 11) & 0x1f);
 
     int source = gprFileArray.getFile(rs).readWord();
     int extracted = extractBits(source, pos, size);
@@ -1601,7 +1597,7 @@ public class CentralProcessor {
 
     long source = gprFileArray.getFile(rs).readWord();
     long target = gprFileArray.getFile(rt).readWord();
-    long result = source * target;
+    long result = ((((long) hi) << 32) | lo) + source * target;
 
     hi = (int) (result >> 32);
     lo = (int) result;
@@ -1613,7 +1609,7 @@ public class CentralProcessor {
 
     long source = Integer.toUnsignedLong(gprFileArray.getFile(rs).readWord());
     long target = Integer.toUnsignedLong(gprFileArray.getFile(rt).readWord());
-    long result = source * target;
+    long result = ((((long) hi) << 32) | lo) + source * target;
 
     hi = (int) (result >> 32);
     lo = (int) result;
@@ -1669,9 +1665,10 @@ public class CentralProcessor {
     lo = (int) result;
   }
 
-  private void bal(int instruction) {
+  private void bal(int instruction) throws Exception {
     short offset = (short) (instruction & 0xffff);
     gprFileArray.getFile(31).writeWord(pc + 4);
+    execute(); // delay slot
     pc += (offset << 2);
   }
 
@@ -2049,18 +2046,20 @@ public class CentralProcessor {
     pc = (pc & 0xf0000000) | (instr_index << 2);
   }
 
-  private void jal(int instruction) {
+  private void jal(int instruction) throws Exception {
     int instr_index = instruction & 0x3ffffff;
     gprFileArray.getFile(31).writeWord(pc + 4);
+    execute(); // delay slot implementation
     pc = (pc & 0xf0000000) | (instr_index << 2);
   }
 
-  private void jalr(int instruction) {
+  private void jalr(int instruction) throws Exception {
     int rs = (instruction >> 21) & 0x1f;
     int rd = (instruction >> 11) & 0x1f;
 
     int source = gprFileArray.getFile(rs).readWord();
-    gprFileArray.getFile(rd).writeWord(pc);
+    gprFileArray.getFile(rd).writeWord(pc + 4);
+    execute(); // delay slot
     pc = source;
   }
 

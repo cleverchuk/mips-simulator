@@ -91,8 +91,7 @@ public class Assembler implements NodeVisitor {
   private byte cLayout = 0; // inst = 01, data = 10
 
   @Override
-  public void visit(Node node) {
-  }
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {
@@ -405,7 +404,7 @@ public class Assembler implements NodeVisitor {
         encoding =
             opcode.partialEncoding
                 | opcode.opcode
-                | (address != null ? address / 4: currentImme) & 0x3ffffff;
+                | (address != null ? address / 4 : currentImme) & 0x3ffffff;
         break;
       case ULW:
         lookupOpcode = Objects.requireNonNull(opcodesMap.get("lwl"));

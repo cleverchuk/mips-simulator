@@ -95,7 +95,9 @@ public class OneOpAnalyzer implements Analyzer {
     Node node = children.get(1);
     Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-    return Opcode.JR.same((String) opcode.getValue()) && Construct.REGISTER == construct;
+    return (Opcode.JR.same((String) opcode.getValue())
+            || Opcode.JALR.same((String) opcode.getValue()))
+        && Construct.REGISTER == construct;
   }
 
   private boolean isJvalid(Node opcode, List<Node> children) {

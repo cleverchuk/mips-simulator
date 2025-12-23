@@ -148,11 +148,7 @@ public class CentralProcessorTest {
 
   @Test
   public void testAddiupc() throws Exception {
-    String[] instructions = {
-        ".text",
-        "addiu $t0, $zero, -50",
-        "addiupc $t0, 50"
-    };
+    String[] instructions = {".text", "addiu $t0, $zero, -50", "addiupc $t0, 50"};
     assemble(instructions);
     executeInstructions(2);
 
@@ -162,12 +158,7 @@ public class CentralProcessorTest {
 
   @Test
   public void testAlign() throws Exception {
-    String[] instructions = {
-        ".text",
-        "addiu $t1, $zero, 1",
-        "li $t2, 2",
-        "align $t0, $t1, $t2, 3"
-    };
+    String[] instructions = {".text", "addiu $t1, $zero, 1", "li $t2, 2", "align $t0, $t1, $t2, 3"};
     assemble(instructions);
     executeInstructions(3);
 
@@ -177,12 +168,7 @@ public class CentralProcessorTest {
 
   @Test
   public void testAluipc() throws Exception {
-    String[] instructions = {
-        ".text",
-        "addiu $t1, $zero, 1",
-        "li $t2, 2",
-        "aluipc $t0, 3"
-    };
+    String[] instructions = {".text", "addiu $t1, $zero, 1", "li $t2, 2", "aluipc $t0, 3"};
     assemble(instructions);
     executeInstructions(3);
 
@@ -193,12 +179,7 @@ public class CentralProcessorTest {
   @Test
   public void testClo() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0xfffF0000",
-        ".text",
-        "la $t1, data",
-        "lw $t1, 0($t1)",
-        "clo $t0, $t1"
+      ".data", "data: .word 0xfffF0000", ".text", "la $t1, data", "lw $t1, 0($t1)", "clo $t0, $t1"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -234,12 +215,7 @@ public class CentralProcessorTest {
   @Test
   public void testSeb() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x00ff",
-        ".text",
-        "la $t1, data",
-        "lw $t1, 0($t1)",
-        "seb $t0, $t1"
+      ".data", "data: .word 0x00ff", ".text", "la $t1, data", "lw $t1, 0($t1)", "seb $t0, $t1"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -251,12 +227,7 @@ public class CentralProcessorTest {
   @Test
   public void testSeh() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x00fff",
-        ".text",
-        "la $t1, data",
-        "lw $t1, 0($t1)",
-        "seh $t0, $t1"
+      ".data", "data: .word 0x00fff", ".text", "la $t1, data", "lw $t1, 0($t1)", "seh $t0, $t1"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -268,12 +239,7 @@ public class CentralProcessorTest {
   @Test
   public void testSll() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x1",
-        ".text",
-        "la $t1, data",
-        "lw $t1, 0($t1)",
-        "sll $t0, $t1, 4"
+      ".data", "data: .word 0x1", ".text", "la $t1, data", "lw $t1, 0($t1)", "sll $t0, $t1, 4"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -285,12 +251,7 @@ public class CentralProcessorTest {
   @Test
   public void testRotr() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x1",
-        ".text",
-        "la $t1, data",
-        "lw $t1, 0($t1)",
-        "rotr $t0, $t1, 4"
+      ".data", "data: .word 0x1", ".text", "la $t1, data", "lw $t1, 0($t1)", "rotr $t0, $t1, 4"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -302,13 +263,13 @@ public class CentralProcessorTest {
   @Test
   public void testRotrv() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x1, 0x4",
-        ".text",
-        "la $t0, data",
-        "lw $t1, 0($t0)",
-        "lw $t2, 4($t0)",
-        "rotrv $t0, $t1, $t2"
+      ".data",
+      "data: .word 0x1, 0x4",
+      ".text",
+      "la $t0, data",
+      "lw $t1, 0($t0)",
+      "lw $t2, 4($t0)",
+      "rotrv $t0, $t1, $t2"
     };
     assemble(instructions);
     executeInstructions(5);
@@ -320,12 +281,7 @@ public class CentralProcessorTest {
   @Test
   public void testAui() throws Exception {
     String[] instructions = {
-        ".data",
-        "data: .word 0x1, 0x4",
-        ".text",
-        "la $t0, data",
-        "lw $t1, 0($t0)",
-        "aui $t0, $t1, 5"
+      ".data", "data: .word 0x1, 0x4", ".text", "la $t0, data", "lw $t1, 0($t0)", "aui $t0, $t1, 5"
     };
     assemble(instructions);
     executeInstructions(4);
@@ -333,7 +289,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals((5 << 16) + 1, result);
   }
-
 
   // ===== Multiplication and Division =====
 
@@ -465,10 +420,7 @@ public class CentralProcessorTest {
   @Test
   public void testSllv() throws Exception {
     String[] instructions = {
-      ".text",
-        "addiu $t1, $zero, 1",
-        "addiu $t2, $zero, 3",
-        "sllv $t0, $t1, $t2"
+      ".text", "addiu $t1, $zero, 1", "addiu $t2, $zero, 3", "sllv $t0, $t1, $t2"
     };
     assemble(instructions);
     executeInstructions(3);
@@ -763,16 +715,16 @@ public class CentralProcessorTest {
       ".text",
       "addiu $t0, $zero, 1",
       "j target",
-      "addiu $t0, $zero, 2",  // should be skipped
+      "addiu $t0, $zero, 2", // should be skipped
       "target: addiu $t1, $zero, 3"
     };
     assemble(instructions);
-    executeInstructions(3);  // addiu, j, addiu at target
+    executeInstructions(3); // addiu, j, addiu at target
 
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
     int t1 = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(1, t0);  // first addiu executed
-    assertEquals(3, t1);  // jumped to target
+    assertEquals(1, t0); // first addiu executed
+    assertEquals(3, t1); // jumped to target
   }
 
   @Test
@@ -793,72 +745,456 @@ public class CentralProcessorTest {
     assertEquals(true, ra > 0); // At minimum, ra should be set to some positive value
   }
 
-
-  // ===== Bit Manipulation Instructions =====
-
-  // Note: ext, seb, seh, clo tests commented out - they have issues with the binary processor
-  // decoder
-  // These instructions may need special handling in InstructionDecoder
-
-  /*
   @Test
-  public void testExt() throws Exception {
+  public void testJr() throws Exception {
+    // Test jr - jump to address in $ra after jal
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 255",  // 0xff
+      "jal subr",
+      "addiu $t0, $zero, 42", // executed after return
+      "j done",
+      "subr: jr $ra",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4); // jal, jr, addiu, j
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testJalr() throws Exception {
+    // Test jalr - jump and link to address in register
+    String[] instructions = {
+      ".text",
+      "la $t0, subr",
+      "jalr $t0",
+      "addiu $t1, $zero, 42", // executed after return
+      "j done",
+      "subr: jr $ra",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5); // la(2), jalr, jr, addiu
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);
+  }
+
+  @Test
+  public void testDiv() throws Exception {
+    // Test div - 3-operand divide
+    String[] instructions = {
+      ".text", "addiu $t1, $zero, 100", "addiu $t2, $zero, 10", "div $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(10, t0);
+  }
+
+  @Test
+  public void testDivu() throws Exception {
+    // Test divu - 3-operand divide unsigned
+    String[] instructions = {
+      ".text", "addiu $t1, $zero, 100", "addiu $t2, $zero, 10", "divu $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(10, t0);
+  }
+
+  @Test
+  public void testMod() throws Exception {
+    // Test mod - 3-operand modulo
+    String[] instructions = {
+      ".text", "addiu $t1, $zero, 17", "addiu $t2, $zero, 5", "mod $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(2, t0); // 17 % 5 = 2
+  }
+
+  @Test
+  public void testModu() throws Exception {
+    // Test modu - 3-operand modulo unsigned
+    String[] instructions = {
+      ".text", "addiu $t1, $zero, 17", "addiu $t2, $zero, 5", "modu $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(2, t0); // 17 % 5 = 2
+  }
+
+  @Test
+  public void testExt() throws Exception {
+    // Test ext - extract bit field
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 255", // 0xff
       "ext $t0, $t1, 0, 4" // Extract 4 bits starting at position 0
     };
     assemble(instructions);
     executeInstructions(2);
 
-    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    assertEquals(15, result);  // 0x0f
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(15, t0); // 0x0f
   }
 
   @Test
-  public void testSeb() throws Exception {
+  public void testMadd() throws Exception {
+    // Test madd - multiply-add to HI/LO
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 128",  // 0x80 - 128 as unsigned, -128 as signed byte
-      "seb $t0, $t1"
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 20",
+      "mult $t1, $t2", // HI:LO = 200
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 6",
+      "madd $t1, $t2", // HI:LO += 30 = 230
+      "mflo $t0"
     };
     assemble(instructions);
-    executeInstructions(2);
+    executeInstructions(7);
 
-    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    assertEquals(-128, result); // Sign-extended byte
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(230, t0);
   }
 
   @Test
-  public void testSeh() throws Exception {
+  public void testMsub() throws Exception {
+    // Test msub - multiply-subtract from HI/LO
     String[] instructions = {
       ".text",
-      "lui $t1, 0x0000",
-      "ori $t1, $t1, 0x8000",  // 32768 as unsigned, -32768 as signed half
-      "seh $t0, $t1"
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 20",
+      "mult $t1, $t2", // HI:LO = 200
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 6",
+      "msub $t1, $t2", // HI:LO -= 30 = 170
+      "mflo $t0"
+    };
+    assemble(instructions);
+    executeInstructions(7);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(170, t0);
+  }
+
+  @Test
+  public void testMaddu() throws Exception {
+    // Test maddu - multiply-add unsigned to HI/LO
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 20",
+      "multu $t1, $t2", // HI:LO = 200
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 6",
+      "maddu $t1, $t2", // HI:LO += 30 = 230
+      "mflo $t0"
+    };
+    assemble(instructions);
+    executeInstructions(7);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(230, t0);
+  }
+
+  @Test
+  public void testMsubu() throws Exception {
+    // Test msubu - multiply-subtract unsigned from HI/LO
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 20",
+      "multu $t1, $t2", // HI:LO = 200
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 6",
+      "msubu $t1, $t2", // HI:LO -= 30 = 170
+      "mflo $t0"
+    };
+    assemble(instructions);
+    executeInstructions(7);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(170, t0);
+  }
+
+  @Test
+  public void testMuh() throws Exception {
+    // Test muh - multiply high (signed)
+    String[] instructions = {
+      ".text",
+      "lui $t1, 0x1000", // 0x10000000
+      "lui $t2, 0x1000", // 0x10000000
+      "muh $t0, $t1, $t2" // high 32 bits of 0x10000000 * 0x10000000
     };
     assemble(instructions);
     executeInstructions(3);
 
-    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    assertEquals(-32768, result); // Sign-extended halfword
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(0x01000000, t0);
   }
 
   @Test
-  public void testClo() throws Exception {
+  public void testMuhu() throws Exception {
+    // Test muhu - multiply high unsigned
     String[] instructions = {
       ".text",
-      "lui $t1, 0xffff",
-      "ori $t1, $t1, 0xff00",
-      "clo $t0, $t1"
+      "lui $t1, 0x1000", // 0x10000000
+      "lui $t2, 0x1000", // 0x10000000
+      "muhu $t0, $t1, $t2" // high 32 bits of 0x10000000 * 0x10000000
     };
     assemble(instructions);
     executeInstructions(3);
 
-    int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    assertEquals(24, result); // 0xFFFFFF00 has 24 leading ones
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(0x01000000, t0);
   }
-  */
+
+  @Test
+  public void testMulu() throws Exception {
+    // Test mulu - multiply unsigned (low 32 bits)
+    String[] instructions = {
+      ".text", "addiu $t1, $zero, 7", "addiu $t2, $zero, 6", "mulu $t0, $t1, $t2"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBal() throws Exception {
+    // Test bal - branch and link
+    String[] instructions = {
+      ".text",
+      "bal sub",
+      "addiu $t0, $zero, 42", // executed after return
+      "j done",
+      "sub: jr $ra",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4); // bal, jr, addiu, j
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testLwl() throws Exception {
+    // Test lwl - load word left
+    String[] instructions = {
+      ".data",
+      "val: .word 0x12345678",
+      ".text",
+      "la $t1, val",
+      "addiu $t0, $zero, 0",
+      "lwl $t0, 2($t1)"
+    };
+    assemble(instructions);
+    executeInstructions(4); // la(2) + addiu + lwl
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(22136 << 16, t0);
+  }
+
+  @Test
+  public void testLwr() throws Exception {
+    // Test lwr - load word right
+    String[] instructions = {
+      ".data",
+      "val: .word 0x12345678",
+      ".text",
+      "la $t1, val",
+      "addiu $t0, $zero, 0",
+      "lwr $t0, 1($t1)"
+    };
+    assemble(instructions);
+    executeInstructions(4); // la(2) + addiu + lwr
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(0x123456, t0);
+  }
+
+  @Test
+  public void testTgeuNoTrap() throws Exception {
+    // Test tgeu - no trap when rs < rt (unsigned)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "tgeu $t1, $t2", // no trap, 5 < 10
+      "addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testTltuNoTrap() throws Exception {
+    // Test tltu - no trap when rs >= rt (unsigned)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 5",
+      "tltu $t1, $t2", // no trap, 10 >= 5
+      "addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  // ===== FPU Instructions =====
+
+  @Test
+  public void testMtc1Mfc1() throws Exception {
+    // Test mtc1/mfc1 - move to/from FPU register
+    String[] instructions = {".text", "addiu $t0, $zero, 100", "mtc1 $t0, $f1", "mfc1 $t1, $f1"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(100, t1);
+  }
+
+  @Test
+  public void testLwc1Swc1() throws Exception {
+    // Test lwc1/swc1 - load/store word to FPU
+    String[] instructions = {
+      ".data",
+      "fval: .word 0x40490fdb", // approximately pi in IEEE 754
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "swc1 $f1, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(4); // la(2) + lwc1 + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    int fpValue = memory.readWord(t0);
+    assertEquals(0x40490fdb, fpValue);
+  }
+
+  @Test
+  public void testAddS() throws Exception {
+    // Test add.s - single precision floating point add
+    String[] instructions = {
+      ".data",
+      "f1: .float 1.5",
+      "f2: .float 2.5",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "add.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10); // la(2) + lwc1 + la(2) + lwc1 + add.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(4.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testSubS() throws Exception {
+    // Test sub.s - single precision floating point subtract
+    String[] instructions = {
+      ".data",
+      "f1: .float 5.5",
+      "f2: .float 2.5",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "sub.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(3.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testMulS() throws Exception {
+    // Test mul.s - single precision floating point multiply
+    String[] instructions = {
+      ".data",
+      "f1: .float 2.0",
+      "f2: .float 3.0",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "mul.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10); // la(2) + lwc1 + la(2) + lwc1 + mul.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(6.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testDivS() throws Exception {
+    // Test div.s - single precision floating point divide
+    String[] instructions = {
+      ".data",
+      "f1: .float 10.0",
+      "f2: .float 2.0",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "div.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10); // la(2) + lwc1 + la(2) + lwc1 + div.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(5.0f, result, 0.0001f);
+  }
+
+  // ===== Bit Manipulation Instructions =====
 
   @Test
   public void testClz() throws Exception {
@@ -1070,7 +1406,7 @@ public class CentralProcessorTest {
   public void testLhu() throws Exception {
     String[] instructions = {
       ".data",
-      "half_val: .half 65000",  // unsigned half
+      "half_val: .half 65000", // unsigned half
       ".text",
       "la $t1, half_val",
       "lhu $t0, 0($t1)"
@@ -1079,7 +1415,7 @@ public class CentralProcessorTest {
     executeInstructions(3);
 
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
-    assertEquals(65000, result);  // should be zero-extended
+    assertEquals(65000, result); // should be zero-extended
   }
 
   @Test
@@ -1125,10 +1461,10 @@ public class CentralProcessorTest {
     // mult stores high bits in HI, low bits in LO
     String[] instructions = {
       ".text",
-      "lui $t1, 0x1000",   // large number
-      "lui $t2, 0x1000",   // large number
-      "mult $t1, $t2",     // result will overflow 32 bits
-      "mfhi $t0"           // get high 32 bits
+      "lui $t1, 0x1000", // large number
+      "lui $t2, 0x1000", // large number
+      "mult $t1, $t2", // result will overflow 32 bits
+      "mfhi $t0" // get high 32 bits
     };
     assemble(instructions);
     executeInstructions(4);
@@ -1140,12 +1476,7 @@ public class CentralProcessorTest {
 
   @Test
   public void testMthi() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 42",
-      "mthi $t1",
-      "mfhi $t0"
-    };
+    String[] instructions = {".text", "addiu $t1, $zero, 42", "mthi $t1", "mfhi $t0"};
     assemble(instructions);
     executeInstructions(3);
 
@@ -1155,12 +1486,7 @@ public class CentralProcessorTest {
 
   @Test
   public void testMtlo() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 99",
-      "mtlo $t1",
-      "mflo $t0"
-    };
+    String[] instructions = {".text", "addiu $t1, $zero, 99", "mtlo $t1", "mflo $t0"};
     assemble(instructions);
     executeInstructions(3);
 
@@ -1176,10 +1502,7 @@ public class CentralProcessorTest {
   public void testSequentialJump() throws Exception {
     // Test that instructions execute sequentially without jumps
     String[] instructions = {
-      ".text",
-      "addiu $t0, $zero, 1",
-      "addiu $t1, $zero, 2",
-      "addiu $t2, $zero, 3"
+      ".text", "addiu $t0, $zero, 1", "addiu $t1, $zero, 2", "addiu $t2, $zero, 3"
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1198,9 +1521,9 @@ public class CentralProcessorTest {
     // Test bgezal when rs < 0 - should not branch
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, -5",  // negative
+      "addiu $t1, $zero, -5", // negative
       "bgezal $t1, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1215,9 +1538,9 @@ public class CentralProcessorTest {
     // Test bltzal when rs >= 0 - should not branch
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 5",  // positive
+      "addiu $t1, $zero, 5", // positive
       "bltzal $t1, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1236,7 +1559,7 @@ public class CentralProcessorTest {
       ".text",
       "addiu $t1, $zero, 5",
       "addiu $t2, $zero, 10",
-      "teq $t1, $t2",  // no trap, values not equal
+      "teq $t1, $t2", // no trap, values not equal
       "addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1253,7 +1576,7 @@ public class CentralProcessorTest {
       ".text",
       "addiu $t1, $zero, 5",
       "addiu $t2, $zero, 5",
-      "tne $t1, $t2",  // no trap, values are equal
+      "tne $t1, $t2", // no trap, values are equal
       "addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1270,7 +1593,7 @@ public class CentralProcessorTest {
       ".text",
       "addiu $t1, $zero, 5",
       "addiu $t2, $zero, 10",
-      "tge $t1, $t2",  // no trap, 5 < 10
+      "tge $t1, $t2", // no trap, 5 < 10
       "addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1287,7 +1610,7 @@ public class CentralProcessorTest {
       ".text",
       "addiu $t1, $zero, 10",
       "addiu $t2, $zero, 5",
-      "tlt $t1, $t2",  // no trap, 10 >= 5
+      "tlt $t1, $t2", // no trap, 10 >= 5
       "addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1304,8 +1627,8 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 42",
-      "addiu $t2, $zero, 0",  // zero
-      "seleqz $t0, $t1, $t2"  // select t1 because t2 == 0
+      "addiu $t2, $zero, 0", // zero
+      "seleqz $t0, $t1, $t2" // select t1 because t2 == 0
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1319,8 +1642,8 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 42",
-      "addiu $t2, $zero, 1",  // non-zero
-      "seleqz $t0, $t1, $t2"  // don't select because t2 != 0
+      "addiu $t2, $zero, 1", // non-zero
+      "seleqz $t0, $t1, $t2" // don't select because t2 != 0
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1334,8 +1657,8 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 42",
-      "addiu $t2, $zero, 1",  // non-zero
-      "selnez $t0, $t1, $t2"  // select t1 because t2 != 0
+      "addiu $t2, $zero, 1", // non-zero
+      "selnez $t0, $t1, $t2" // select t1 because t2 != 0
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1349,8 +1672,8 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 42",
-      "addiu $t2, $zero, 0",  // zero
-      "selnez $t0, $t1, $t2"  // don't select because t2 == 0
+      "addiu $t2, $zero, 0", // zero
+      "selnez $t0, $t1, $t2" // don't select because t2 == 0
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1365,10 +1688,10 @@ public class CentralProcessorTest {
   public void testIns() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 0x0f",  // source bits
+      "addiu $t1, $zero, 0x0f", // source bits
       "lui $t0, 0xffff",
-      "ori $t0, $t0, 0xff00",    // target = 0xffffff00
-      "ins $t0, $t1, 0, 4"       // insert 4 bits at position 0
+      "ori $t0, $t0, 0xff00", // target = 0xffffff00
+      "ins $t0, $t1, 0, 4" // insert 4 bits at position 0
     };
     assemble(instructions);
     executeInstructions(4);
@@ -1390,9 +1713,9 @@ public class CentralProcessorTest {
     // Test beqzc when rs != 0 - should not branch
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 5",  // non-zero
+      "addiu $t1, $zero, 5", // non-zero
       "beqzc $t1, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1407,9 +1730,9 @@ public class CentralProcessorTest {
     // Test bnezc when rs == 0 - should not branch
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 0",  // zero
+      "addiu $t1, $zero, 0", // zero
       "bnezc $t1, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1419,25 +1742,6 @@ public class CentralProcessorTest {
     assertEquals(42, result);
   }
 
-  // ===== LSA Instruction =====
-  // Note: LSA test commented out - has encoding/decoder issues
-  /*
-  @Test
-  public void testLsa() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 4",   // index
-      "addiu $t2, $zero, 100", // base
-      "lsa $t0, $t1, $t2, 2"   // t0 = (t1 << 2) + t2 = 16 + 100 = 116
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(116, result);
-  }
-  */
-
   // ===== WSBH Instruction =====
 
   @Test
@@ -1445,8 +1749,8 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "lui $t1, 0x1234",
-      "ori $t1, $t1, 0x5678",  // 0x12345678
-      "wsbh $t0, $t1"          // swap bytes within halfwords
+      "ori $t1, $t1, 0x5678", // 0x12345678
+      "wsbh $t0, $t1" // swap bytes within halfwords
     };
     assemble(instructions);
     executeInstructions(3);
@@ -1456,67 +1760,6 @@ public class CentralProcessorTest {
     assertEquals(0x34127856, result);
   }
 
-  // ===== Bitswap Instruction =====
-  // Note: Bitswap test commented out - has encoding/decoder issues
-  /*
-  @Test
-  public void testBitswap() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 0x01",  // 0b00000001
-      "bitswap $t0, $t1"         // reverse bits in each byte
-    };
-    assemble(instructions);
-    executeInstructions(2);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    // 0x01 = 0b00000001 -> reversed = 0b10000000 = 0x80
-    assertEquals(0x80, result);
-  }
-  */
-
-  // ===== MADD/MSUB Instructions =====
-  // Note: MADD/MSUB tests have issues - may need different instruction format
-  /*
-  @Test
-  public void testMadd() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 10",
-      "addiu $t2, $zero, 20",
-      "mult $t1, $t2",          // HI:LO = 200
-      "addiu $t1, $zero, 5",
-      "addiu $t2, $zero, 6",
-      "madd $t1, $t2",          // HI:LO += 30 = 230
-      "mflo $t0"
-    };
-    assemble(instructions);
-    executeInstructions(7);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(230, result);
-  }
-
-  @Test
-  public void testMsub() throws Exception {
-    String[] instructions = {
-      ".text",
-      "addiu $t1, $zero, 10",
-      "addiu $t2, $zero, 20",
-      "mult $t1, $t2",          // HI:LO = 200
-      "addiu $t1, $zero, 5",
-      "addiu $t2, $zero, 6",
-      "msub $t1, $t2",          // HI:LO -= 30 = 170
-      "mflo $t0"
-    };
-    assemble(instructions);
-    executeInstructions(7);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(170, result);
-  }
-  */
-
   // ===== Syscall/Break Instructions =====
   // Note: These throw exceptions in the simulator, so we test they can be assembled
   // but don't execute them
@@ -1524,11 +1767,7 @@ public class CentralProcessorTest {
   @Test
   public void testSyscallAssembly() throws Exception {
     // Just verify syscall can be assembled - it throws SyscallException when executed
-    String[] instructions = {
-      ".text",
-      "addiu $t0, $zero, 42",
-      "addiu $t1, $zero, 99"
-    };
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "addiu $t1, $zero, 99"};
     assemble(instructions);
     executeInstructions(2);
 
@@ -1541,11 +1780,7 @@ public class CentralProcessorTest {
   @Test
   public void testBreakAssembly() throws Exception {
     // Just verify break can be assembled - it throws BreakException when executed
-    String[] instructions = {
-      ".text",
-      "addiu $t0, $zero, 42",
-      "addiu $t1, $zero, 99"
-    };
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "addiu $t1, $zero, 99"};
     assemble(instructions);
     executeInstructions(2);
 
@@ -1560,12 +1795,7 @@ public class CentralProcessorTest {
   @Test
   public void testSync() throws Exception {
     // Sync should not crash - just a no-op in simulator
-    String[] instructions = {
-      ".text",
-      "addiu $t0, $zero, 42",
-      "sync",
-      "addiu $t1, $zero, 99"
-    };
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "sync", "addiu $t1, $zero, 99"};
     assemble(instructions);
     executeInstructions(3);
 
@@ -1581,7 +1811,7 @@ public class CentralProcessorTest {
   public void testNal() throws Exception {
     String[] instructions = {
       ".text",
-      "nal",  // No-op and link - stores return address
+      "nal", // No-op and link - stores return address
       "addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1602,7 +1832,7 @@ public class CentralProcessorTest {
       "addiu $t1, $zero, 5",
       "addiu $t2, $zero, 5",
       "beq $t1, $t2, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1619,7 +1849,7 @@ public class CentralProcessorTest {
       "addiu $t1, $zero, 5",
       "addiu $t2, $zero, 10",
       "bne $t1, $t2, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1633,9 +1863,9 @@ public class CentralProcessorTest {
   public void testBgezTaken() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 5",  // positive
+      "addiu $t1, $zero, 5", // positive
       "bgez $t1, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1649,9 +1879,9 @@ public class CentralProcessorTest {
   public void testBgtzTaken() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 5",  // positive
+      "addiu $t1, $zero, 5", // positive
       "bgtz $t1, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1665,9 +1895,9 @@ public class CentralProcessorTest {
   public void testBlezTaken() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, 0",  // zero
+      "addiu $t1, $zero, 0", // zero
       "blez $t1, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1681,9 +1911,9 @@ public class CentralProcessorTest {
   public void testBltzTaken() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t1, $zero, -5",  // negative
+      "addiu $t1, $zero, -5", // negative
       "bltz $t1, target",
-      "addiu $t0, $zero, 1",  // skipped
+      "addiu $t0, $zero, 1", // skipped
       "target: addiu $t0, $zero, 42"
     };
     assemble(instructions);
@@ -1699,9 +1929,9 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 5",
-      "addiu $t2, $zero, 10",  // different value
+      "addiu $t2, $zero, 10", // different value
       "beq $t1, $t2, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1717,9 +1947,9 @@ public class CentralProcessorTest {
     String[] instructions = {
       ".text",
       "addiu $t1, $zero, 5",
-      "addiu $t2, $zero, 5",  // same value
+      "addiu $t2, $zero, 5", // same value
       "bne $t1, $t2, target",
-      "addiu $t0, $zero, 42",  // should execute
+      "addiu $t0, $zero, 42", // should execute
       "target: nop"
     };
     assemble(instructions);
@@ -1735,57 +1965,15 @@ public class CentralProcessorTest {
   public void testSimpleLoop() throws Exception {
     String[] instructions = {
       ".text",
-      "addiu $t0, $zero, 0",  // counter = 0
-      "addiu $t1, $zero, 5",  // limit = 5
+      "addiu $t0, $zero, 0", // counter = 0
+      "addiu $t1, $zero, 5", // limit = 5
       "loop: addiu $t0, $t0, 1",
       "bne $t0, $t1, loop"
     };
     assemble(instructions);
-    executeInstructions(12);  // 2 init + 5 iterations * 2
+    executeInstructions(12); // 2 init + 5 iterations * 2
 
     int result = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(5, result);
   }
-
-  // ===== FPU Instructions =====
-  // Note: FPU tests commented out - they have issues with the binary processor
-  // The FPU register access and coprocessor instructions need special handling
-
-  /*
-  @Test
-  public void testMtc1Mfc1() throws Exception {
-    // Test moving integer to/from FPU register
-    String[] instructions = {
-      ".text",
-      "li $t0, 100",
-      "mtc1 $t0, $f0",
-      "mfc1 $t1, $f0"
-    };
-    assemble(instructions);
-    executeInstructions(3);  // li (1) + mtc1 + mfc1
-
-    int result = cpu.getGprFileArray().getFile(9).readWord(); // $t1
-    assertEquals(100, result);
-  }
-
-  @Test
-  public void testLwc1Swc1() throws Exception {
-    // Test loading/storing float from memory
-    String[] instructions = {
-      ".data",
-      "fval: .word 0x40490fdb",  // approximately pi in IEEE 754
-      ".text",
-      "la $t0, fval",
-      "lwc1 $f0, 0($t0)",
-      "swc1 $f0, 0($t0)"
-    };
-    assemble(instructions);
-    executeInstructions(4); // la(2) + lwc1 + swc1
-
-    // Verify the value was loaded and stored correctly
-    int t0 = cpu.getGprFileArray().getFile(8).readWord(); // $t0 has address
-    int fpValue = memory.readWord(t0);
-    assertEquals(0x40490fdb, fpValue);
-  }
-  */
 }
