@@ -1419,11 +1419,10 @@ public class CentralProcessor {
   private void aui(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    short imm = (short) (instruction & 0xffff);
-    int immv = imm << 16;
+    int imm = (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
-    gprFileArray.getFile(rt).writeWord(source + immv);
+    gprFileArray.getFile(rt).writeWord(source + (imm << 16));
   }
 
   private void auipc(int instruction) {

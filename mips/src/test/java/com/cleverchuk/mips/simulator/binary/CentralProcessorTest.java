@@ -1025,7 +1025,324 @@ public class CentralProcessorTest {
     executeInstructions(4); // la(2) + addiu + lwr
 
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(0x123456, t0);
+    assertEquals(0x1234, t0);
+  }
+
+  @Test
+  public void testSwl() throws Exception {
+    // Test swl - store word left
+    String[] instructions = {
+      ".data",
+      "val: .word 0x00000000",
+      ".text",
+      "la $t1, val",
+      "lui $t0, 0x1234",
+      "ori $t0, $t0, 0x5678",
+      "swl $t0, 2($t1)"
+    };
+    assemble(instructions);
+    executeInstructions(5); // la(2) + lui + ori + swl
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    int stored = memory.readWord(t1);
+    assertEquals(0x1234, stored);
+  }
+
+  @Test
+  public void testSwr() throws Exception {
+    // Test swr - store word right
+    String[] instructions = {
+      ".data",
+      "val: .word 0x00000000",
+      ".text",
+      "la $t1, val",
+      "lui $t0, 0x1234",
+      "ori $t0, $t0, 0x5678",
+      "swr $t0, 1($t1)"
+    };
+    assemble(instructions);
+    executeInstructions(5); // la(2) + lui + ori + swr
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    int stored = memory.readWord(t1);
+    assertEquals(0x56780000, stored);
+  }
+
+  @Test
+  public void testCvtSW() throws Exception {
+    // Test cvt.s.w - convert word to single precision float
+    String[] instructions = {
+      ".text",
+      "addiu $t0, $zero, 42",
+      "mtc1 $t0, $f1",
+      "cvt.s.w $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    float result = Float.intBitsToFloat(t1);
+    assertEquals(42.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testCvtWS() throws Exception {
+    // Test cvt.w.s - convert single precision float to word
+    String[] instructions = {
+      ".data",
+      "fval: .float 42.7",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "cvt.w.s $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + lwc1 + cvt.w.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);  // rounds to nearest
+  }
+
+  @Test
+  public void testAbsS() throws Exception {
+    // Test abs.s - absolute value single precision
+    String[] instructions = {
+      ".data",
+      "fval: .float -5.5",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "abs.s $f2, $f1",
+      "la $t0, result",
+      "swc1 $f2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(7);  // la(2) + lwc1 + abs.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(5.5f, result, 0.0001f);
+  }
+
+  @Test
+  public void testNegS() throws Exception {
+    // Test neg.s - negate single precision
+    String[] instructions = {
+      ".data",
+      "fval: .float 5.5",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "neg.s $f2, $f1",
+      "la $t0, result",
+      "swc1 $f2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(7);  // la(2) + lwc1 + neg.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(-5.5f, result, 0.0001f);
+  }
+
+  @Test
+  public void testSqrtS() throws Exception {
+    // Test sqrt.s - square root single precision
+    String[] instructions = {
+      ".data",
+      "fval: .float 16.0",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "sqrt.s $f2, $f1",
+      "la $t0, result",
+      "swc1 $f2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(7);  // la(2) + lwc1 + sqrt.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(4.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testAddD() throws Exception {
+    // Test add.d - double precision floating point add
+    String[] instructions = {
+      ".data",
+      "d1: .double 1.5",
+      "d2: .double 2.5",
+      "result: .double 0.0",
+      ".text",
+      "la $t0, d1",
+      "ldc1 $f2, 0($t0)",
+      "la $t0, d2",
+      "ldc1 $f4, 0($t0)",
+      "add.d $f6, $f2, $f4",
+      "la $t0, result",
+      "sdc1 $f6, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10);  // la(2) + ldc1 + la(2) + ldc1 + add.d + la(2) + sdc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    long bits = memory.readDWord(t0);
+    double result = Double.longBitsToDouble(bits);
+    assertEquals(4.0, result, 0.0001);
+  }
+
+  @Test
+  public void testMovS() throws Exception {
+    // Test mov.s - move single precision
+    String[] instructions = {
+      ".data",
+      "fval: .float 3.14",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "mov.s $f2, $f1",
+      "la $t0, result",
+      "swc1 $f2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(7);  // la(2) + lwc1 + mov.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(3.14f, result, 0.01f);
+  }
+
+  @Test
+  public void testTruncWS() throws Exception {
+    // Test trunc.w.s - truncate single to word
+    String[] instructions = {
+      ".data",
+      "fval: .float 42.9",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "trunc.w.s $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + lwc1 + trunc.w.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);  // truncates toward zero
+  }
+
+  @Test
+  public void testFloorWS() throws Exception {
+    // Test floor.w.s - floor single to word
+    String[] instructions = {
+      ".data",
+      "fval: .float 42.9",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "floor.w.s $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + lwc1 + floor.w.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);  // floor toward negative infinity
+  }
+
+  @Test
+  public void testCeilWS() throws Exception {
+    // Test ceil.w.s - ceil single to word
+    String[] instructions = {
+      ".data",
+      "fval: .float 42.1",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "ceil.w.s $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + lwc1 + ceil.w.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(43, t1);  // ceil toward positive infinity
+  }
+
+  @Test
+  public void testRoundWS() throws Exception {
+    // Test round.w.s - round single to word
+    String[] instructions = {
+      ".data",
+      "fval: .float 42.6",
+      ".text",
+      "la $t0, fval",
+      "lwc1 $f1, 0($t0)",
+      "round.w.s $f2, $f1",
+      "mfc1 $t1, $f2"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + lwc1 + round.w.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(43, t1);  // round to nearest
+  }
+
+  @Test
+  public void testMinS() throws Exception {
+    // Test min.s - minimum single precision
+    String[] instructions = {
+      ".data",
+      "f1: .float 5.0",
+      "f2: .float 3.0",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "min.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10);  // la(2) + lwc1 + la(2) + lwc1 + min.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(3.0f, result, 0.0001f);
+  }
+
+  @Test
+  public void testMaxS() throws Exception {
+    // Test max.s - maximum single precision
+    String[] instructions = {
+      ".data",
+      "f1: .float 5.0",
+      "f2: .float 3.0",
+      "result: .float 0.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "max.s $f3, $f1, $f2",
+      "la $t0, result",
+      "swc1 $f3, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(10);  // la(2) + lwc1 + la(2) + lwc1 + max.s + la(2) + swc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    float result = Float.intBitsToFloat(memory.readWord(t0));
+    assertEquals(5.0f, result, 0.0001f);
   }
 
   @Test

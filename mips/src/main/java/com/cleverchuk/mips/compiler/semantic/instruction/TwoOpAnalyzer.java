@@ -139,6 +139,7 @@ public class TwoOpAnalyzer implements Analyzer {
         case MULTU:
         case MADDU:
         case MSUBU:
+        case LUI:
           return true;
         case LB:
         case LBU:
