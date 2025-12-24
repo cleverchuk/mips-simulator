@@ -80,12 +80,14 @@ public class TwoOpAnalyzer implements Analyzer {
      * */
     List<Node> children = opcodeKind.getChildren();
     return children.size() == 3
-        && (loadStoreAnalyzer.analyze(opcodeKind)
+        && (
+        loadStoreAnalyzer.analyze(opcodeKind)
             || twoRegOpcodeAnalyzer.analyze(opcodeKind)
             || branchOpcodeAnalyzer.analyze(opcodeKind)
             || isLaValid(children)
             || isLiValid(children)
-            || isLuiValid(children));
+            || isLuiValid(children)
+    );
   }
 
   private boolean isLaValid(List<Node> children) {
@@ -120,7 +122,8 @@ public class TwoOpAnalyzer implements Analyzer {
   public static class LoadStoreAnalyzer implements Analyzer {
 
     @Inject
-    public LoadStoreAnalyzer() {}
+    public LoadStoreAnalyzer() {
+    }
 
     @Override
     public boolean analyze(Node opcodeKind) {
@@ -143,6 +146,16 @@ public class TwoOpAnalyzer implements Analyzer {
         case JIC:
         case JIALC:
         case BITSWAP:
+        case LBE:
+        case CRC32B:
+        case CRC32CB:
+        case CRC32H:
+        case CRC32CH:
+        case CRC32W:
+        case CRC32CW:
+        case SCE:
+        case LLE:
+        case JALR_HB:
           return true;
         case LB:
         case LBU:
@@ -176,7 +189,8 @@ public class TwoOpAnalyzer implements Analyzer {
   public static class TwoRegOpcodeAnalyzer implements Analyzer {
 
     @Inject
-    public TwoRegOpcodeAnalyzer() {}
+    public TwoRegOpcodeAnalyzer() {
+    }
 
     @Override
     public boolean analyze(Node opcodeKind) {
@@ -213,7 +227,8 @@ public class TwoOpAnalyzer implements Analyzer {
   public static class BranchOpcodeAnalyzer implements Analyzer {
 
     @Inject
-    public BranchOpcodeAnalyzer() {}
+    public BranchOpcodeAnalyzer() {
+    }
 
     @Override
     public boolean analyze(Node opcodeKind) {
@@ -239,9 +254,11 @@ public class TwoOpAnalyzer implements Analyzer {
         case BLTZAL:
         case BNEZ:
           return Construct.REGISTER == children.get(1).getConstruct()
-              && (Construct.CONSTANT == construct
+              && (
+              Construct.CONSTANT == construct
                   || Construct.NEGCONSTANT == construct
-                  || Construct.LABEL == construct);
+                  || Construct.LABEL == construct
+          );
       }
     }
   }

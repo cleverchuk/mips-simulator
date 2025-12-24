@@ -41,13 +41,13 @@ public class BigEndianMainMemory implements Memory {
   }
 
   @Override
-  public int read(int offset) {
+  public byte read(int offset) {
     ensureCap(offset);
-    return (0x00ff & backingStore[offset]);
+    return backingStore[offset];
   }
 
   @Override
-  public int readHalf(int offset) {
+  public short readHalf(int offset) {
     ensureCap(offset);
     int out = 0x0;
     out |= backingStore[offset];
@@ -56,7 +56,7 @@ public class BigEndianMainMemory implements Memory {
     out <<= 0x8;
     out |= (0x00ff & backingStore[offset + 1]);
 
-    return out;
+    return (short) out;
   }
 
   @Override

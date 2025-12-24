@@ -832,9 +832,11 @@ public class Assembler implements NodeVisitor {
         break;
       case JALR:
       case JALR_HB:
-        if (currentRd == 0) {
+        if (currentRs == 0){ // swap for single operand
+          currentRs = currentRd;
           currentRd = 31;
         }
+
         encoding = opcode.partialEncoding | opcode.opcode | currentRs << 21 | currentRd << 11;
         break;
       case ADD:

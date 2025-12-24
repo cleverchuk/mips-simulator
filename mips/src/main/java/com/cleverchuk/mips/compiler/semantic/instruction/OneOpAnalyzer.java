@@ -34,7 +34,8 @@ import javax.inject.Inject;
 public class OneOpAnalyzer implements Analyzer {
 
   @Inject
-  public OneOpAnalyzer() {}
+  public OneOpAnalyzer() {
+  }
 
   @Override
   public boolean analyze(Node opcodeKind) {
@@ -52,7 +53,8 @@ public class OneOpAnalyzer implements Analyzer {
     List<Node> children = opcodeKind.getChildren();
     Node opcode = children.get(0);
     return children.size() == 2
-        && (isBvalid(opcode, children)
+        && (
+        isBvalid(opcode, children)
             || isBalValid(opcode, children)
             || isJvalid(opcode, children)
             || isJalValid(opcode, children)
@@ -60,7 +62,8 @@ public class OneOpAnalyzer implements Analyzer {
             || isMfhiValid(opcode, children)
             || isMfloValid(opcode, children)
             || isMthiValid(opcode, children)
-            || isMtloValid(opcode, children));
+            || isMtloValid(opcode, children)
+    );
   }
 
   private boolean isMthiValid(Node opcode, List<Node> children) {
@@ -95,8 +98,11 @@ public class OneOpAnalyzer implements Analyzer {
     Node node = children.get(1);
     Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
-    return (Opcode.JR.same((String) opcode.getValue())
-            || Opcode.JALR.same((String) opcode.getValue()))
+    return (
+        Opcode.JR.same((String) opcode.getValue())
+            || Opcode.JALR_HB.same((String) opcode.getValue())
+            || Opcode.JALR.same((String) opcode.getValue())
+    )
         && Construct.REGISTER == construct;
   }
 
@@ -124,9 +130,11 @@ public class OneOpAnalyzer implements Analyzer {
             .getConstruct();
 
     return Opcode.BAL.same((String) opcode.getValue())
-        && (Construct.CONSTANT == construct
+        && (
+        Construct.CONSTANT == construct
             || Construct.NEGCONSTANT == construct
-            || Construct.LABEL == construct);
+            || Construct.LABEL == construct
+    );
   }
 
   private boolean isBvalid(Node opcode, List<Node> children) {
@@ -139,8 +147,10 @@ public class OneOpAnalyzer implements Analyzer {
             .getConstruct();
 
     return Opcode.B.same((String) opcode.getValue())
-        && (Construct.CONSTANT == construct
+        && (
+        Construct.CONSTANT == construct
             || Construct.NEGCONSTANT == construct
-            || Construct.LABEL == construct);
+            || Construct.LABEL == construct
+    );
   }
 }

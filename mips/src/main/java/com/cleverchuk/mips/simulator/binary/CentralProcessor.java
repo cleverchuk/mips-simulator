@@ -2242,7 +2242,7 @@ public class CentralProcessor {
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
     int address = gprFileArray.getFile(base).readWord() + offset;
-    int bite = memory.read(address);
+    byte bite = (byte) memory.read(address);
     gprFileArray.getFile(rt).writeWord(bite);
   }
 
@@ -2282,7 +2282,7 @@ public class CentralProcessor {
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
     int address = gprFileArray.getFile(base).readWord() + offset;
-    int half = memory.readHalf(address);
+    short half = (short) memory.readHalf(address);
     gprFileArray.getFile(rt).writeWord(half);
   }
 
@@ -2504,7 +2504,7 @@ public class CentralProcessor {
   private void sce(int instruction) {
     int base = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    short offset = (short) ((instruction & 0x1ff) << 7 >> 7);
+    short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
     int address = gprFileArray.getFile(base).readWord() + offset;
     int value = gprFileArray.getFile(rt).readWord();
@@ -4368,6 +4368,7 @@ public class CentralProcessor {
   }
 
   private void crc32b(int instruction) {
+    int rd = (instruction >> 21) & 0x1f;
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
 

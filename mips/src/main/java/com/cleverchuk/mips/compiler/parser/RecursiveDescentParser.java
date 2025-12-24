@@ -466,7 +466,7 @@ public final class RecursiveDescentParser {
         visit(constant);
         return constant;
       case FLOATING_POINT:
-        node.setValue(Float.parseFloat(node.getValue().toString()));
+        node.setValue(Double.parseDouble(node.getValue().toString()));
         visit(constant, NodeVisitor::visitConstant);
         visit(constant);
         return constant;

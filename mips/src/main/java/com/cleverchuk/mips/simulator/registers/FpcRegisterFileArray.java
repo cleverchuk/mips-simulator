@@ -47,6 +47,9 @@ public class FpcRegisterFileArray {
   }
 
   private RegisterFile createReg(int id) {
-    return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
+    if (id == 0) {
+      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 4);
+    }
+    return new DefaultRegisterFile(id);
   }
 }
