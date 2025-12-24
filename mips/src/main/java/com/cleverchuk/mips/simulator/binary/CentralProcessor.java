@@ -1318,10 +1318,10 @@ public class CentralProcessor {
     gprFileArray
         .getFile(rd)
         .writeWord(
-            (reverseByte(extractBits(target, 0x18, 0x8)) << 0x18)
-                | (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10)
-                | (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8)
-                | reverseByte(extractBits(target, 0x0, 0x8)));
+            (0x0ff & reverseByte(extractBits(target, 0x18, 0x8)) << 0x18)
+                | 0x0ff & (reverseByte(extractBits(target, 0x10, 0x8)) << 0x10)
+                | 0x0ff & (reverseByte(extractBits(target, 0x8, 0x8)) << 0x8)
+                | 0x0ff & reverseByte(extractBits(target, 0x0, 0x8)));
   }
 
   private void and_(int instruction) {

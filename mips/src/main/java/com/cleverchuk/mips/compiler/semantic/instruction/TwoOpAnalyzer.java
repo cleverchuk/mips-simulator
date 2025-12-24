@@ -140,6 +140,9 @@ public class TwoOpAnalyzer implements Analyzer {
         case MADDU:
         case MSUBU:
         case LUI:
+        case JIC:
+        case JIALC:
+        case BITSWAP:
           return true;
         case LB:
         case LBU:

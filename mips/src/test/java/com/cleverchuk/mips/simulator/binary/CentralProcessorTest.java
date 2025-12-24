@@ -1345,6 +1345,537 @@ public class CentralProcessorTest {
     assertEquals(5.0f, result, 0.0001f);
   }
 
+  // ===== Compact Branch Instructions =====
+
+  @Test
+  public void testBeqc() throws Exception {
+    // Test beqc - branch if equal compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "beqc $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBnec() throws Exception {
+    // Test bnec - branch if not equal compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 5",
+      "bnec $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgec() throws Exception {
+    // Test bgec - branch if >= compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "bgec $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBltc() throws Exception {
+    // Test bltc - branch if < compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 5",
+      "bltc $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgeuc() throws Exception {
+    // Test bgeuc - branch if >= unsigned compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "bgeuc $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBltuc() throws Exception {
+    // Test bltuc - branch if < unsigned compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 10",
+      "addiu $t2, $zero, 5",
+      "bltuc $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgezc() throws Exception {
+    // Test bgezc - branch if >= 0 compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, -5",
+      "bgezc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBltzc() throws Exception {
+    // Test bltzc - branch if < 0 compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "bltzc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgtzc() throws Exception {
+    // Test bgtzc - branch if > 0 compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 0",
+      "bgtzc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBlezc() throws Exception {
+    // Test blezc - branch if <= 0 compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "blezc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBovc() throws Exception {
+    // Test bovc - branch on overflow compact (no overflow case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "bovc $t1, $t2, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBnvc() throws Exception {
+    // Test bnvc - branch on no overflow compact (no overflow case - should branch)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "addiu $t2, $zero, 10",
+      "bnvc $t1, $t2, target",
+      "addiu $t0, $zero, 1",
+      "j done",
+      "target: addiu $t0, $zero, 42",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBalc() throws Exception {
+    // Test balc - branch and link compact
+    String[] instructions = {
+      ".text",
+      "balc sub",
+      "addiu $t0, $zero, 42",
+      "j done",
+      "sub: jr $ra",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBc() throws Exception {
+    // Test bc - branch compact
+    String[] instructions = {
+      ".text",
+      "bc target",
+      "addiu $t0, $zero, 1",
+      "target: addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBeqzalc() throws Exception {
+    // Test beqzalc - branch if == 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "beqzalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBnezalc() throws Exception {
+    // Test bnezalc - branch if != 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 0",
+      "bnezalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgezalc() throws Exception {
+    // Test bgezalc - branch if >= 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, -5",
+      "bgezalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBltzalc() throws Exception {
+    // Test bltzalc - branch if < 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "bltzalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBgtzalc() throws Exception {
+    // Test bgtzalc - branch if > 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 0",
+      "bgtzalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  @Test
+  public void testBlezalc() throws Exception {
+    // Test blezalc - branch if <= 0 and link compact (no branch case)
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 5",
+      "blezalc $t1, target",
+      "addiu $t0, $zero, 42",
+      "target: nop"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(42, t0);
+  }
+
+  // ===== FPU Comparison Instructions =====
+
+  @Test
+  public void testCmpEqS() throws Exception {
+    // Test cmp.eq.s - compare equal single (equal case)
+    String[] instructions = {
+      ".data",
+      "f1: .float 5.0",
+      "f2: .float 5.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "cmp.eq.s $f3, $f1, $f2",
+      "mfc1 $t1, $f3"
+    };
+    assemble(instructions);
+    executeInstructions(8);  // la(2) + lwc1 + la(2) + lwc1 + cmp.eq.s + mfc1
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(-1, t1);  // all 1s when true
+  }
+
+  @Test
+  public void testCmpLtS() throws Exception {
+    // Test cmp.lt.s - compare less than single (true case)
+    String[] instructions = {
+      ".data",
+      "f1: .float 3.0",
+      "f2: .float 5.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "cmp.lt.s $f3, $f1, $f2",
+      "mfc1 $t1, $f3"
+    };
+    assemble(instructions);
+    executeInstructions(8);
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(-1, t1);  // all 1s when true
+  }
+
+  @Test
+  public void testCmpLeS() throws Exception {
+    // Test cmp.le.s - compare less than or equal single (true case)
+    String[] instructions = {
+      ".data",
+      "f1: .float 5.0",
+      "f2: .float 5.0",
+      ".text",
+      "la $t0, f1",
+      "lwc1 $f1, 0($t0)",
+      "la $t0, f2",
+      "lwc1 $f2, 0($t0)",
+      "cmp.le.s $f3, $f1, $f2",
+      "mfc1 $t1, $f3"
+    };
+    assemble(instructions);
+    executeInstructions(8);
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(-1, t1);  // all 1s when true
+  }
+
+  @Test
+  public void testJic() throws Exception {
+    // Test jic - jump indexed compact
+    String[] instructions = {
+      ".text",
+      "la $t0, target",
+      "jic $t0, 0",
+      "addiu $t1, $zero, 1",
+      "target: addiu $t1, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(4);  // la(2) + jic
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);
+  }
+
+  @Test
+  public void testJialc() throws Exception {
+    // Test jialc - jump indexed and link compact
+    String[] instructions = {
+      ".text",
+      "la $t0, subr",
+      "jialc $t0, 0",
+      "addiu $t1, $zero, 42",
+      "j done",
+      "subr: jr $ra",
+      "done: nop"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + jialc + jr + addiu
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);
+  }
+
+  @Test
+  public void testLl() throws Exception {
+    // Test ll - load linked
+    String[] instructions = {
+      ".data",
+      "val: .word 42",
+      ".text",
+      "la $t0, val",
+      "ll $t1, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(3);  // la(2) + ll
+
+    int t1 = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, t1);
+  }
+
+  @Test
+  public void testSc() throws Exception {
+    // Test sc - store conditional
+    String[] instructions = {
+      ".data",
+      "val: .word 0",
+      ".text",
+      "la $t0, val",
+      "ll $t1, 0($t0)",
+      "addiu $t1, $zero, 42",
+      "sc $t1, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(5);  // la(2) + ll + addiu + sc
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    int stored = memory.readWord(t0);
+    assertEquals(42, stored);
+  }
+
+  @Test
+  public void testBitswap() throws Exception {
+    // Test bitswap - reverse bits in each byte
+    String[] instructions = {
+      ".text",
+      "addiu $t1, $zero, 0x01",  // 0b00000001
+      "bitswap $t0, $t1"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    // 0x01 = 0b00000001 -> reversed = 0b10000000 = 0x80
+    assertEquals(0x80, t0);
+  }
+
+  @Test
+  public void testLdc1Sdc1() throws Exception {
+    // Test ldc1/sdc1 - load/store double to FPU
+    String[] instructions = {
+      ".data",
+      "dval: .double 3.14159",
+      "result: .double 0.0",
+      ".text",
+      "la $t0, dval",
+      "ldc1 $f2, 0($t0)",
+      "la $t0, result",
+      "sdc1 $f2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(6);  // la(2) + ldc1 + la(2) + sdc1
+
+    int t0 = cpu.getGprFileArray().getFile(8).readWord();
+    long bits = memory.readDWord(t0);
+    double result = Double.longBitsToDouble(bits);
+    assertEquals(3.14159, result, 0.00001);
+  }
+
   @Test
   public void testTgeuNoTrap() throws Exception {
     // Test tgeu - no trap when rs < rt (unsigned)

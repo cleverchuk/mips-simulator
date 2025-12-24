@@ -90,8 +90,11 @@ public class Assembler implements NodeVisitor {
 
   private byte cLayout = 0; // inst = 01, data = 10
 
+  private boolean laSeen = false;
+
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
@@ -113,11 +116,16 @@ public class Assembler implements NodeVisitor {
               .build());
 
     } else {
-      if ((cLayout & 1) > 0) {
+      if ((cLayout & 1/*instruction*/) > 0) {
         symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset - 1) * 4);
+        if (laSeen) {
+          // LA produces additional instruction
+          symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset) * 4);
+        }
+
       }
 
-      if ((cLayout & 2) > 0) {
+      if ((cLayout & 2/*data*/) > 0) {
         symbolTable.put(label, index);
       }
     }
@@ -131,6 +139,9 @@ public class Assembler implements NodeVisitor {
     opcode = newOpcode;
     regBitfield = opBitfield = posBitfield = 0;
     irBuilder = InstructionIR.builder().withOpcode(newOpcode);
+    if (newOpcode == Opcode.LA) {
+      laSeen = true;
+    }
   }
 
   @Override
@@ -256,6 +267,7 @@ public class Assembler implements NodeVisitor {
   @Override
   public void visitSegment(Node segment) {
     flush();
+    laSeen = false;
   }
 
   @Override
