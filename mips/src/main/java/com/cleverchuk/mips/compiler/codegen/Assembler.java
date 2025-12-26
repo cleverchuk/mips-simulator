@@ -683,13 +683,15 @@ public class Assembler implements NodeVisitor {
         break;
       case CFC2:
       case CTC2:
+      case MTC2:
+      case MFC2:
+      case MFHC2:
+      case MTHC2:
+        encoding = opcode.partialEncoding | opcode.opcode | currentRt << 11 | currentRs << 16;
+        break;
       case DVP:
       case EI:
       case EVP:
-      case MFC2:
-      case MFHC2:
-      case MTC2:
-      case MTHC2:
         encoding = opcode.partialEncoding | opcode.opcode | currentRt << 16 | currentImme & 0xffff;
         break;
       case COP2:

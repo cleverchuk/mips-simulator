@@ -1706,7 +1706,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cop2RegisterFileArray.getFile(ct).readWord();
+    int target = cop2ControlRegisterFileArray.getFile(ct).readWord();
     if (target == 0) {
       pc += (offset << 2);
     }
@@ -1716,7 +1716,7 @@ public class CentralProcessor {
     int ct = (instruction >> 16) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
-    int target = cop2RegisterFileArray.getFile(ct).readWord();
+    int target = cop2ControlRegisterFileArray.getFile(ct).readWord();
     if (target != 0) {
       pc += (offset << 2);
     }
@@ -2751,7 +2751,7 @@ public class CentralProcessor {
 
   private void cfc2(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
-    int cs = instruction & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
 
     int source = cop2ControlRegisterFileArray.getFile(cs).readWord();
     gprFileArray.getFile(rt).writeWord(source);
@@ -2767,7 +2767,7 @@ public class CentralProcessor {
 
   private void ctc2(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
-    int cs = instruction & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
 
     int target = gprFileArray.getFile(rt).readWord();
     cop2ControlRegisterFileArray.getFile(cs).writeWord(target);
@@ -2787,7 +2787,7 @@ public class CentralProcessor {
 
   private void mfc2(int instruction) {
     int rt = (instruction >> 16) & 0x1f;
-    int cs = instruction & 0x1f;
+    int cs = (instruction >> 11) & 0x1f;
 
     int source = cop2RegisterFileArray.getFile(cs).readWord();
     gprFileArray.getFile(rt).writeWord(source);
@@ -2851,7 +2851,7 @@ public class CentralProcessor {
 
     int target = gprFileArray.getFile(rt).readWord();
     long source = cop2RegisterFileArray.getFile(cs).readDword();
-    cop2RegisterFileArray.getFile(cs).writeDword((source & 0xffffffffL) | ((long) target << 32));
+    cop2RegisterFileArray.getFile(cs).writeDword((source & 0xffffffffL) | ((long) target) << 32);
   }
 
   private void abs_s(int instruction) {

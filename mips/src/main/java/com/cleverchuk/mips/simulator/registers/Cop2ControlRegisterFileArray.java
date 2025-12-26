@@ -47,6 +47,6 @@ public class Cop2ControlRegisterFileArray {
   }
 
   private RegisterFile createReg(int id) {
-    return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
+    return new DefaultRegisterFile(id);
   }
 }
