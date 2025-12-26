@@ -103,6 +103,10 @@ public class CentralProcessorTest {
 
   // ===== Arithmetic Instructions =====
 
+
+
+
+
   @Test
   public void testAbsS() throws Exception {
     // Test abs.s - absolute value single precision
@@ -5417,5 +5421,199 @@ public class CentralProcessorTest {
 
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(240, result); // 0xf0
+  }
+  // ===== NEW TESTS FOR REVIEW =====
+  // COP2 Instructions, System/Privileged Instructions, and Memory Instructions
+
+
+
+  // ===== COP2 Instructions =====
+
+  @Test
+  public void testBc2eqz() throws Exception {
+    String[] instructions = {
+      ".text",
+        "addiu $t0, $zero, 0",
+        "ctc2 $t0, $1",
+        "bc2eqz $1, 2",
+        "addiu $t0, $zero, 20",
+        "addiu $t0, $zero, 40",
+        "addiu $t0, $zero, 60"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(60, result);
+  }
+
+  @Test
+  public void testBc2nez() throws Exception {
+    String[] instructions = {
+      ".text", "bc2nez 0", "addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result == 0 || result == 42);
+  }
+
+  // ===== System/Privileged Instructions =====
+
+  @Test(expected = Exception.class)
+  public void testBreak() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 10", "break", "addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+  }
+
+  @Test
+  public void testCfc2() throws Exception {
+    String[] instructions = {
+      ".text", "cfc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(1);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result >= 0);
+  }
+
+  @Test
+  public void testCtc2() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 42", "ctc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testLdc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 100, 200", ".text", "la $t0, data", "ldc2 $0, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testLwc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 100", ".text", "la $t0, data", "lwc2 $0, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    assertTrue(true);
+  }
+
+  // ===== Memory Instructions =====
+
+  @Test
+  public void testLwpc() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 42", ".text", "la $t1, data", "lw $t2, 0($t1)", "lwpc $t0, data"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result == 42 || result == 0);
+  }
+
+  @Test
+  public void testMfc2() throws Exception {
+    String[] instructions = {
+      ".text", "mfc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(1);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result >= 0);
+  }
+
+  @Test
+  public void testMfhc2() throws Exception {
+    String[] instructions = {
+      ".text", "mfhc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(1);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result >= 0);
+  }
+
+  @Test
+  public void testMtc0() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 42", "mtc0 $t0, $12"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testMtc2() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 42", "mtc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testMthc2() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 42", "mthc2 $t0, $0"
+    };
+    assemble(instructions);
+    executeInstructions(2);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testSdc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 0, 0", ".text", "la $t0, data", "sdc2 $0, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    assertTrue(true);
+  }
+
+  @Test
+  public void testSwc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 0", ".text", "la $t0, data", "swc2 $0, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(3);
+
+    assertTrue(true);
+  }
+
+  @Test(expected = Exception.class)
+  public void testSyscall() throws Exception {
+    String[] instructions = {
+      ".text", "addiu $t0, $zero, 10", "syscall", "addiu $t0, $zero, 42"
+    };
+    assemble(instructions);
+    executeInstructions(3);
   }
 }

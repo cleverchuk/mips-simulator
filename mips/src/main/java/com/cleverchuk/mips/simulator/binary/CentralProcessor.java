@@ -1707,7 +1707,7 @@ public class CentralProcessor {
     short offset = (short) (instruction & 0xffff);
 
     int target = cop2RegisterFileArray.getFile(ct).readWord();
-    if (target != 0) {
+    if (target == 0) {
       pc += (offset << 2);
     }
   }
@@ -1717,7 +1717,7 @@ public class CentralProcessor {
     short offset = (short) (instruction & 0xffff);
 
     int target = cop2RegisterFileArray.getFile(ct).readWord();
-    if (target == 0) {
+    if (target != 0) {
       pc += (offset << 2);
     }
   }
