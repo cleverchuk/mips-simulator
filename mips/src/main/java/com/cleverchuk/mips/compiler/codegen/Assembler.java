@@ -93,8 +93,7 @@ public class Assembler implements NodeVisitor {
   private boolean laSeen = false;
 
   @Override
-  public void visit(Node node) {
-  }
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {
@@ -116,16 +115,15 @@ public class Assembler implements NodeVisitor {
               .build());
 
     } else {
-      if ((cLayout & 1/*instruction*/) > 0) {
+      if ((cLayout & 1 /*instruction*/) > 0) {
         symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset - 1) * 4);
         if (laSeen) {
           // LA produces additional instruction
           symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset) * 4);
         }
-
       }
 
-      if ((cLayout & 2/*data*/) > 0) {
+      if ((cLayout & 2 /*data*/) > 0) {
         symbolTable.put(label, index);
       }
     }
@@ -832,7 +830,7 @@ public class Assembler implements NodeVisitor {
         break;
       case JALR:
       case JALR_HB:
-        if (currentRs == 0){ // swap for single operand
+        if (currentRs == 0) { // swap for single operand
           currentRs = currentRd;
           currentRd = 31;
         }

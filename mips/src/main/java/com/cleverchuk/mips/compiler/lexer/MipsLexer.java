@@ -49,7 +49,8 @@ public final class MipsLexer {
 
   private static final Pattern DECI = Pattern.compile("[0-9]+");
 
-  private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*([eE][+-]?[0-9]*)?");
+  private static final Pattern FLOATING_POINT =
+      Pattern.compile("[0-9]+\\.[0-9]*([eE][+-]?[0-9]*)?");
 
   private static final Pattern HEX = Pattern.compile("0[xX][Aa-fF0-9]+");
 
@@ -513,7 +514,8 @@ public final class MipsLexer {
         }
       }
 
-      if ((isLiteral(source[sourcePos]) && !((c == 'e' || c == 'E') && state == LEX_FLOATING_POINT) || isDelimiter(source[sourcePos]))
+      if ((isLiteral(source[sourcePos]) && !((c == 'e' || c == 'E') && state == LEX_FLOATING_POINT)
+              || isDelimiter(source[sourcePos]))
           && state != LEX_STRING
           && state != LEX_COMMENT) {
         return buildToken(stringBuilder.toString());
