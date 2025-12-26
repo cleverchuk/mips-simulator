@@ -101,12 +101,6 @@ public class CentralProcessorTest {
     return String.join("\n", instructions);
   }
 
-  // ===== Arithmetic Instructions =====
-
-
-
-
-
   @Test
   public void testAbsS() throws Exception {
     // Test abs.s - absolute value single precision
@@ -128,8 +122,6 @@ public class CentralProcessorTest {
     float result = Float.intBitsToFloat(memory.readWord(t0));
     assertEquals(5.5f, result, 0.0001f);
   }
-
-  // ===== Missing Double-Precision FP Operations =====
 
   @Test
   public void testAbsD() throws Exception {
@@ -286,8 +278,6 @@ public class CentralProcessorTest {
     assertEquals((~0x0ffff) & (8 + (3 << 16)), result);
   }
 
-  // ===== Logical Instructions =====
-
   @Test
   public void testAnd() throws Exception {
     String[] instructions = {
@@ -328,8 +318,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals((5 << 16) + 1, result);
   }
-
-  // ===== Additional Instruction Handlers =====
 
   @Test
   public void testAuipc() throws Exception {
@@ -430,7 +418,41 @@ public class CentralProcessorTest {
     assertEquals(42, result);
   }
 
-  // ===== Compact Branch Instructions =====
+  @Test
+  public void testBc2eqz() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t0, $zero, 0",
+      "ctc2 $t0, $1",
+      "bc2eqz $1, 2",
+      "addiu $t0, $zero, 20",
+      "addiu $t0, $zero, 40",
+      "addiu $t0, $zero, 60"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(60, result);
+  }
+
+  @Test
+  public void testBc2nez() throws Exception {
+    String[] instructions = {
+      ".text",
+      "addiu $t0, $zero, 5",
+      "ctc2 $t0, $1",
+      "bc2nez $1, 2",
+      "addiu $t0, $zero, 20",
+      "addiu $t0, $zero, 40",
+      "addiu $t0, $zero, 60"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertEquals(60, result);
+  }
 
   @Test
   public void testBeqc() throws Exception {
@@ -468,8 +490,6 @@ public class CentralProcessorTest {
     assertEquals(42, result);
   }
 
-  // The branch offset is PC-relative and calculated differently
-
   @Test
   public void testBeqSimple() throws Exception {
     // Test that beq doesn't branch when registers are not equal
@@ -487,8 +507,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(42, result); // Should not have branched, so $t0 = 42
   }
-
-  // ===== Additional Branch Tests =====
 
   @Test
   public void testBeqTaken() throws Exception {
@@ -537,8 +555,6 @@ public class CentralProcessorTest {
     assertEquals(0, skipped);
     assertEquals(42, result);
   }
-
-  // Note: Compact branches have complex encoding - testing non-branching cases
 
   @Test
   public void testBeqzcNoBranch() throws Exception {
@@ -605,8 +621,6 @@ public class CentralProcessorTest {
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(42, t0);
   }
-
-  // Simplified to test non-branching cases
 
   @Test
   public void testBgezalNoBranch() throws Exception {
@@ -1074,6 +1088,13 @@ public class CentralProcessorTest {
     assertEquals(42, t0);
   }
 
+  @Test(expected = Exception.class)
+  public void testBreak() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 10", "break", "addiu $t0, $zero, 42"};
+    assemble(instructions);
+    executeInstructions(3);
+  }
+
   @Test
   public void testBreakAssembly() throws Exception {
     // Just verify break can be assembled - it throws BreakException when executed
@@ -1159,7 +1180,15 @@ public class CentralProcessorTest {
     assertTrue(result >= 0); // Just verify it doesn't crash
   }
 
-  // ===== Final Coverage: FP Classification and Long Conversions =====
+  @Test
+  public void testCfc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 100", "ctc2 $t0, $1", "cfc2 $t1, $1"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(100, result);
+  }
 
   @Test
   public void testClassS() throws Exception {
@@ -1199,8 +1228,6 @@ public class CentralProcessorTest {
     assertEquals(16, result);
   }
 
-  // ===== Bit Manipulation Instructions =====
-
   @Test
   public void testClz() throws Exception {
     String[] instructions = {
@@ -1214,8 +1241,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(23, result); // 0x00000100 has 23 leading zeros
   }
-
-  // ===== FPU Comparison Instructions (Untested Variants) =====
 
   @Test
   public void testCmpAfS() throws Exception {
@@ -1289,8 +1314,6 @@ public class CentralProcessorTest {
     assertEquals(Double.longBitsToDouble(-1L), result, 0); // Always true (signaling)
   }
 
-  // ===== FPU Comparison Instructions =====
-
   @Test
   public void testCmpEqS() throws Exception {
     // Test cmp.eq.s - compare equal single (equal case)
@@ -1312,8 +1335,6 @@ public class CentralProcessorTest {
     int t1 = cpu.getGprFileArray().getFile(9).readWord();
     assertEquals(-1, t1); // all 1s when true
   }
-
-  // ===== Priority 4: Floating Point Comparison Instructions =====
 
   @Test
   public void testCmpEqD() throws Exception {
@@ -2329,8 +2350,6 @@ public class CentralProcessorTest {
     assertEquals(Double.longBitsToDouble(-1L), result, 0); // Less than or unordered = true
   }
 
-  // ===== Representative FP Comparisons (Sample of Key Variants) =====
-
   @Test
   public void testCmpUnS() throws Exception {
     String[] instructions = {
@@ -2402,8 +2421,6 @@ public class CentralProcessorTest {
     double result = cpu.getFpuRegisterFileArray().getFile(6).readDouble();
     assertEquals(Double.longBitsToDouble(-1L), result, 0); // Not equal, so all bits set
   }
-
-  // ===== Priority 5: CRC Instructions =====
 
   @Test
   public void testCrc32b() throws Exception {
@@ -2504,7 +2521,15 @@ public class CentralProcessorTest {
     assertEquals(0, result); // Should read back the value we wrote
   }
 
-  // ===== FP Conversions =====
+  @Test
+  public void testCtc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "ctc2 $t0, $2", "cfc2 $t1, $2"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, result);
+  }
 
   @Test
   public void testCvtDS() throws Exception {
@@ -2797,8 +2822,6 @@ public class CentralProcessorTest {
     assertEquals(3, result); // floor(3.9) = 3
   }
 
-  // ===== Bit Field Instructions =====
-
   @Test
   public void testIns() throws Exception {
     String[] instructions = {
@@ -2815,8 +2838,6 @@ public class CentralProcessorTest {
     // Insert lower 4 bits of t1 (0xf) into t0 at position 0
     assertEquals(0xffffff0f, result);
   }
-
-  // ===== Jump Instructions =====
 
   @Test
   public void testJ() throws Exception {
@@ -2941,8 +2962,6 @@ public class CentralProcessorTest {
     assertEquals(42, t0);
   }
 
-  // ===== Priority 9: Jump with Hazard Barrier =====
-
   @Test
   public void testJrHb() throws Exception {
     String[] instructions = {
@@ -3030,6 +3049,18 @@ public class CentralProcessorTest {
   }
 
   @Test
+  public void testLdc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 100, 200", ".text", "la $t0, data", "ldc2 $1, 0($t0)", "mfc2 $t1, $1"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(200, result);
+  }
+
+  @Test
   public void testLhe() throws Exception {
     String[] instructions = {
       ".data", "data: .half -1000", ".text", "la $t1, data", "lhe $t0, 0($t1)"
@@ -3052,8 +3083,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(1234, result);
   }
-
-  // ===== Additional Load/Store Instructions =====
 
   @Test
   public void testLhu() throws Exception {
@@ -3083,8 +3112,6 @@ public class CentralProcessorTest {
     assertEquals(50000, result); // Zero-extended halfword
   }
 
-  // ===== Pseudo Instructions =====
-
   @Test
   public void testLiSmallValue() throws Exception {
     String[] instructions = {".text", "li $t0, 1000"};
@@ -3105,8 +3132,6 @@ public class CentralProcessorTest {
     int t1 = cpu.getGprFileArray().getFile(9).readWord();
     assertEquals(42, t1);
   }
-
-  // ===== Priority 8: Synchronization & Atomic Operations =====
 
   @Test
   public void testLle() throws Exception {
@@ -3135,8 +3160,6 @@ public class CentralProcessorTest {
     assertEquals(10, first);
     assertEquals(20, second);
   }
-
-  // ===== Special Operations =====
 
   @Test
   public void testLlwpe() throws Exception {
@@ -3197,7 +3220,17 @@ public class CentralProcessorTest {
     assertEquals(0x40490fdb, fpValue);
   }
 
-  // ===== Priority 2: Enhanced Load/Store Instructions =====
+  @Test
+  public void testLwc2() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 100", ".text", "la $t0, data", "lwc2 $1, 0($t0)", "mfc2 $t1, $1"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(100, result);
+  }
 
   @Test
   public void testLwe() throws Exception {
@@ -3227,7 +3260,17 @@ public class CentralProcessorTest {
     assertEquals(22136 << 16, t0);
   }
 
-  // ===== Priority 10: PC-Relative Load =====
+  @Test
+  public void testLwpc() throws Exception {
+    String[] instructions = {
+      ".data", "data: .word 42", ".text", "la $t1, data", "lw $t2, 0($t1)", "lwpc $t0, data"
+    };
+    assemble(instructions);
+    executeInstructions(4);
+
+    int result = cpu.getGprFileArray().getFile(8).readWord();
+    assertTrue(result == 42 || result == 0);
+  }
 
   @Test
   public void testLwpcActual() throws Exception {
@@ -3262,8 +3305,6 @@ public class CentralProcessorTest {
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(0x1234, t0);
   }
-
-  // ===== Load/Store Instructions =====
 
   @Test
   public void testLwSw() throws Exception {
@@ -3434,8 +3475,6 @@ public class CentralProcessorTest {
     assertEquals(-3.5, result, 0.001);
   }
 
-  // ===== Priority 7: Coprocessor Register Operations =====
-
   @Test
   public void testMfc1Extended() throws Exception {
     String[] instructions = {
@@ -3447,6 +3486,16 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(9).readWord(); // $t1
     float expected = 3.14f;
     assertEquals(Float.floatToRawIntBits(expected), result);
+  }
+
+  @Test
+  public void testMfc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 75", "mtc2 $t0, $2", "mfc2 $t1, $2"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(75, result);
   }
 
   @Test
@@ -3468,7 +3517,15 @@ public class CentralProcessorTest {
     assertEquals(expectedHigh, result);
   }
 
-  // ===== HI/LO Register Instructions =====
+  @Test
+  public void testMfhc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 88", "mthc2 $t0, $3", "mfhc2 $t1, $3"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(88, result);
+  }
 
   @Test
   public void testMfhi() throws Exception {
@@ -3524,8 +3581,6 @@ public class CentralProcessorTest {
     float result = Float.intBitsToFloat(memory.readWord(t0));
     assertEquals(3.0f, result, 0.0001f);
   }
-
-  // ===== Priority 3: Floating Point Min/Max/Select Operations =====
 
   @Test
   public void testMinD() throws Exception {
@@ -3645,8 +3700,6 @@ public class CentralProcessorTest {
     double result = cpu.getFpuRegisterFileArray().getFile(4).readDouble();
     assertEquals(3.14159, result, 0.001);
   }
-
-  // ===== Conditional Move Instructions =====
 
   @Test
   public void testMovn() throws Exception {
@@ -3790,7 +3843,14 @@ public class CentralProcessorTest {
     assertEquals(170, t0);
   }
 
-  // ===== FPU Instructions =====
+  @Test
+  public void testMtc0() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "mtc0 $t0, $12"};
+    assemble(instructions);
+    executeInstructions(2);
+
+    assertTrue(true);
+  }
 
   @Test
   public void testMtc1Mfc1() throws Exception {
@@ -3801,6 +3861,16 @@ public class CentralProcessorTest {
 
     int t1 = cpu.getGprFileArray().getFile(9).readWord();
     assertEquals(100, t1);
+  }
+
+  @Test
+  public void testMtc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 42", "mtc2 $t0, $4", "mfc2 $t1, $4"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(42, result);
   }
 
   @Test
@@ -3819,6 +3889,16 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(9).readWord(); // $t1
     int expected = 0x400921FB;
     assertEquals(expected, result);
+  }
+
+  @Test
+  public void testMthc2() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 99", "mthc2 $t0, $5", "mfhc2 $t1, $5"};
+    assemble(instructions);
+    executeInstructions(3);
+
+    int result = cpu.getGprFileArray().getFile(9).readWord();
+    assertEquals(99, result);
   }
 
   @Test
@@ -3872,8 +3952,6 @@ public class CentralProcessorTest {
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(0x01000000, t0);
   }
-
-  // ===== Multiplication and Division =====
 
   @Test
   public void testMul() throws Exception {
@@ -3930,8 +4008,6 @@ public class CentralProcessorTest {
     assertEquals(10.0, result, 0.001);
   }
 
-  // ===== Hi/Lo Register Instructions =====
-
   @Test
   public void testMult() throws Exception {
     String[] instructions = {
@@ -3968,8 +4044,6 @@ public class CentralProcessorTest {
     int t0 = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(42, t0);
   }
-
-  // ===== NAL Instruction =====
 
   @Test
   public void testNal() throws Exception {
@@ -4082,8 +4156,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(9).readWord();
     assertTrue(result >= 0); // Result depends on shadow register state
   }
-
-  // ===== Priority 6: Additional Floating Point Operations =====
 
   @Test
   public void testRecipS() throws Exception {
@@ -4393,6 +4465,25 @@ public class CentralProcessorTest {
   }
 
   @Test
+  public void testSdc2() throws Exception {
+    String[] instructions = {
+      ".data",
+      "data: .word 0, 0",
+      ".text",
+      "la $t0, data",
+      "addiu $t1, $zero, 150",
+      "mtc2 $t1, $1",
+      "sdc2 $1, 0($t0)",
+      "lw $t2, 4($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(6);
+
+    int result = cpu.getGprFileArray().getFile(10).readWord();
+    assertEquals(150, result);
+  }
+
+  @Test
   public void testSeb() throws Exception {
     String[] instructions = {
       ".data", "data: .word 0x00ff", ".text", "la $t1, data", "lw $t1, 0($t1)", "seb $t0, $t1"
@@ -4454,8 +4545,6 @@ public class CentralProcessorTest {
     double result = cpu.getFpuRegisterFileArray().getFile(8).readDouble();
     assertEquals(2.0, result, 0.001);
   }
-
-  // ===== Select Instructions =====
 
   @Test
   public void testSeleqz() throws Exception {
@@ -4589,8 +4678,6 @@ public class CentralProcessorTest {
     assertEquals(2.5f, result, 0.001f); // ft != 0, so fs is selected
   }
 
-  // These simplified tests verify basic sequential execution
-
   @Test
   public void testSequentialExecution() throws Exception {
     // Test that instructions execute sequentially
@@ -4611,8 +4698,6 @@ public class CentralProcessorTest {
     assertEquals(4, cpu.getGprFileArray().getFile(11).readWord()); // $t3
     assertEquals(5, cpu.getGprFileArray().getFile(12).readWord()); // $t4
   }
-
-  // The loop test with bne works, so branches work, but j/jr have issues
 
   @Test
   public void testSequentialJump() throws Exception {
@@ -4680,8 +4765,6 @@ public class CentralProcessorTest {
     }
   }
 
-  // ===== Loop Test =====
-
   @Test
   public void testSimpleLoop() throws Exception {
     String[] instructions = {
@@ -4710,8 +4793,6 @@ public class CentralProcessorTest {
     assertEquals(0x10, result);
   }
 
-  // public void testSll() throws Exception { ... }
-
   @Test
   public void testSllv() throws Exception {
     String[] instructions = {
@@ -4723,8 +4804,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(8, result); // 1 << 3 = 8
   }
-
-  // ===== Set Less Than Instructions =====
 
   @Test
   public void testSlt() throws Exception {
@@ -4950,6 +5029,25 @@ public class CentralProcessorTest {
   }
 
   @Test
+  public void testSwc2() throws Exception {
+    String[] instructions = {
+      ".data",
+      "data: .word 0",
+      ".text",
+      "la $t0, data",
+      "addiu $t1, $zero, 125",
+      "mtc2 $t1, $1",
+      "swc2 $1, 0($t0)",
+      "lw $t2, 0($t0)"
+    };
+    assemble(instructions);
+    executeInstructions(6);
+
+    int result = cpu.getGprFileArray().getFile(10).readWord();
+    assertEquals(125, result);
+  }
+
+  @Test
   public void testSwe() throws Exception {
     String[] instructions = {
       ".data",
@@ -5025,8 +5123,6 @@ public class CentralProcessorTest {
     assertEquals(0x56780000, stored);
   }
 
-  // ===== Sync Instructions =====
-
   @Test
   public void testSync() throws Exception {
     // Sync should not crash - just a no-op in simulator
@@ -5040,7 +5136,12 @@ public class CentralProcessorTest {
     assertEquals(99, t1);
   }
 
-  // but don't execute them
+  @Test(expected = Exception.class)
+  public void testSyscall() throws Exception {
+    String[] instructions = {".text", "addiu $t0, $zero, 10", "syscall", "addiu $t0, $zero, 42"};
+    assemble(instructions);
+    executeInstructions(3);
+  }
 
   @Test
   public void testSyscallAssembly() throws Exception {
@@ -5055,8 +5156,6 @@ public class CentralProcessorTest {
     assertEquals(99, t1);
   }
 
-  // ===== Trap Instructions (Non-Trapped Cases) =====
-
   @Test
   public void testTeq() throws Exception {
     String[] instructions = {
@@ -5068,8 +5167,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(11).readWord();
     assertEquals(42, result); // Verify execution continued
   }
-
-  // ===== Trap Instructions =====
 
   @Test
   public void testTeqNoTrap() throws Exception {
@@ -5087,8 +5184,6 @@ public class CentralProcessorTest {
     int result = cpu.getGprFileArray().getFile(8).readWord();
     assertEquals(42, result);
   }
-
-  // ===== Priority 1: Trap Instructions - Actual Trap Conditions =====
 
   @Test(expected = Exception.class)
   public void testTeqTrap() throws Exception {
@@ -5376,8 +5471,6 @@ public class CentralProcessorTest {
     assertEquals(42, result); // Verify $t0 still has original value
   }
 
-  // ===== WSBH Instruction =====
-
   @Test
   public void testWsbh() throws Exception {
     String[] instructions = {
@@ -5421,212 +5514,5 @@ public class CentralProcessorTest {
 
     int result = cpu.getGprFileArray().getFile(8).readWord(); // $t0
     assertEquals(240, result); // 0xf0
-  }
-  // ===== NEW TESTS FOR REVIEW =====
-  // COP2 Instructions, System/Privileged Instructions, and Memory Instructions
-
-
-
-  // ===== COP2 Instructions =====
-
-  @Test
-  public void testBc2eqz() throws Exception {
-    String[] instructions = {
-      ".text",
-        "addiu $t0, $zero, 0",
-        "ctc2 $t0, $1",
-        "bc2eqz $1, 2",
-        "addiu $t0, $zero, 20",
-        "addiu $t0, $zero, 40",
-        "addiu $t0, $zero, 60"
-    };
-    assemble(instructions);
-    executeInstructions(4);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(60, result);
-  }
-
-  @Test
-  public void testBc2nez() throws Exception {
-    String[] instructions = {
-      ".text",
-        "addiu $t0, $zero, 5",
-        "ctc2 $t0, $1",
-        "bc2nez $1, 2",
-        "addiu $t0, $zero, 20",
-        "addiu $t0, $zero, 40",
-        "addiu $t0, $zero, 60"
-    };
-    assemble(instructions);
-    executeInstructions(4);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertEquals(60, result);
-  }
-
-  // ===== System/Privileged Instructions =====
-
-  @Test(expected = Exception.class)
-  public void testBreak() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 10", "break", "addiu $t0, $zero, 42"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-  }
-
-  @Test
-  public void testCfc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 100", "ctc2 $t0, $1", "cfc2 $t1, $1"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(100, result);
-  }
-
-  @Test
-  public void testCtc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 42", "ctc2 $t0, $2", "cfc2 $t1, $2"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(42, result);
-  }
-
-  @Test
-  public void testLdc2() throws Exception {
-    String[] instructions = {
-      ".data", "data: .word 100, 200", ".text", "la $t0, data", "ldc2 $1, 0($t0)", "mfc2 $t1, $1"
-    };
-    assemble(instructions);
-    executeInstructions(4);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(200, result);
-  }
-
-  @Test
-  public void testLwc2() throws Exception {
-    String[] instructions = {
-      ".data", "data: .word 100", ".text", "la $t0, data", "lwc2 $1, 0($t0)", "mfc2 $t1, $1"
-    };
-    assemble(instructions);
-    executeInstructions(4);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(100, result);
-  }
-
-  // ===== Memory Instructions =====
-
-  @Test
-  public void testLwpc() throws Exception {
-    String[] instructions = {
-      ".data", "data: .word 42", ".text", "la $t1, data", "lw $t2, 0($t1)", "lwpc $t0, data"
-    };
-    assemble(instructions);
-    executeInstructions(4);
-
-    int result = cpu.getGprFileArray().getFile(8).readWord();
-    assertTrue(result == 42 || result == 0);
-  }
-
-  @Test
-  public void testMfc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 75", "mtc2 $t0, $2", "mfc2 $t1, $2"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(75, result);
-  }
-
-  @Test
-  public void testMfhc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 88", "mthc2 $t0, $3", "mfhc2 $t1, $3"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(88, result);
-  }
-
-  @Test
-  public void testMtc0() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 42", "mtc0 $t0, $12"
-    };
-    assemble(instructions);
-    executeInstructions(2);
-
-    assertTrue(true);
-  }
-
-  @Test
-  public void testMtc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 42", "mtc2 $t0, $4", "mfc2 $t1, $4"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(42, result);
-  }
-
-  @Test
-  public void testMthc2() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 99", "mthc2 $t0, $5", "mfhc2 $t1, $5"
-    };
-    assemble(instructions);
-    executeInstructions(3);
-
-    int result = cpu.getGprFileArray().getFile(9).readWord();
-    assertEquals(99, result);
-  }
-
-  @Test
-  public void testSdc2() throws Exception {
-    String[] instructions = {
-      ".data", "data: .word 0, 0", ".text", "la $t0, data", "addiu $t1, $zero, 150", "mtc2 $t1, $1", "sdc2 $1, 0($t0)", "lw $t2, 4($t0)"
-    };
-    assemble(instructions);
-    executeInstructions(6);
-
-    int result = cpu.getGprFileArray().getFile(10).readWord();
-    assertEquals(150, result);
-  }
-
-  @Test
-  public void testSwc2() throws Exception {
-    String[] instructions = {
-      ".data", "data: .word 0", ".text", "la $t0, data", "addiu $t1, $zero, 125", "mtc2 $t1, $1", "swc2 $1, 0($t0)", "lw $t2, 0($t0)"
-    };
-    assemble(instructions);
-    executeInstructions(6);
-
-    int result = cpu.getGprFileArray().getFile(10).readWord();
-    assertEquals(125, result);
-  }
-
-  @Test(expected = Exception.class)
-  public void testSyscall() throws Exception {
-    String[] instructions = {
-      ".text", "addiu $t0, $zero, 10", "syscall", "addiu $t0, $zero, 42"
-    };
-    assemble(instructions);
-    executeInstructions(3);
   }
 }
