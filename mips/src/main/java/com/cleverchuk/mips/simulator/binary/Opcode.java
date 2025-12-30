@@ -73,7 +73,7 @@ public enum Opcode {
   SSNOP("ssnop", 0x0, 0x00000040, IDIOM, false, false, false),
 
   // LOGICAL AND BIT-FIELD OPERATIONS
-  AND("and", 0x0, 0x0000024, R_TYPE, true, true, true),
+  AND("and", 0x0, 0x00000024, R_TYPE, true, true, true),
   ANDI("andi", 0x30000000, 0x0, I_TYPE, true, true, false),
   AUI("aui", 0x3c000000, 0x0, I_TYPE, true, true, false),
   AUIPC("auipc", 0xec000000, 0x001e0000, I_TYPE, false, true, false),

@@ -24,70 +24,64 @@
 
 package com.cleverchuk.mips.compiler;
 
-import com.cleverchuk.mips.compiler.codegen.CodeGenerator;
+import com.cleverchuk.mips.compiler.codegen.Assembler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
-import com.cleverchuk.mips.simulator.VirtualInstruction;
 import com.cleverchuk.mips.simulator.mem.Memory;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import javax.inject.Inject;
 
 public final class MipsCompiler {
   private final RecursiveDescentParser parser;
 
-  private final CodeGenerator codeGenerator;
-
-  private int sourceHash = -1;
+  private final Assembler assembler;
 
   @Inject
-  public MipsCompiler(RecursiveDescentParser parser, CodeGenerator codeGenerator) {
+  public MipsCompiler(RecursiveDescentParser parser, Assembler assembler) {
     this.parser = parser;
-    this.codeGenerator = codeGenerator;
+    this.assembler = assembler;
+    parser.addVisitor(assembler);
   }
 
   public void compile(String source) {
-    if (sourceHash == source.hashCode() && !codeGenerator.getInstructions().isEmpty()) {
-      if (ErrorRecorder.hasErrors()) {
-        throw new SyntaxError(ErrorRecorder.printErrors());
-      }
-      return;
-    }
-
-    sourceHash = source.hashCode();
-    codeGenerator.flush();
-    Node program = parser.parse(source);
-
+    assembler.resetInternalState();
+    parser.parse(source);
     if (ErrorRecorder.hasErrors()) {
       throw new SyntaxError(ErrorRecorder.printErrors());
     }
+  }
 
-    codeGenerator.generate(Objects.requireNonNull(program, "incorrect program"));
-    if (ErrorRecorder.hasErrors()) {
-      throw new SyntaxError(ErrorRecorder.printErrors());
+  public Memory getLayout() {
+    return assembler.getLayout();
+  }
+
+  public List<Integer> getInstructions() {
+    int dataOffset = assembler.getDataOffset();
+    int textOffset = assembler.getTextOffset();
+
+    int start = Math.min(dataOffset, textOffset);
+    int end = Math.max(dataOffset, textOffset);
+
+    List<Integer> instructions = new ArrayList<>();
+    Memory layout = assembler.getLayout();
+
+    while(start < end) {
+      int instruction = layout.readWord(start);
+      instructions.add(instruction);
+      start += 4;
     }
-    codeGenerator.loadInstructions();
-  }
 
-  public Memory getDataSegment() {
-    return codeGenerator.getMemory();
-  }
-
-  public List<VirtualInstruction> getTextSegment() {
-    return codeGenerator.getInstructions();
+    return instructions;
   }
 
   public int dataSegmentOffset() {
-    return codeGenerator.getDataSegmentOffset();
+    return assembler.getDataOffset();
   }
 
   public int textSegmentOffset() {
-    return codeGenerator.getTextSegmentOffset();
-  }
-
-  public int memBoundary() {
-    return codeGenerator.getMemOffset();
+    return assembler.getTextOffset();
   }
 }

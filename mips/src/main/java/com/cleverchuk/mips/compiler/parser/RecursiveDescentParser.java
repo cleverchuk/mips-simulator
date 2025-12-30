@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.lexer.Token;
 import com.cleverchuk.mips.compiler.lexer.TokenType;
+import com.cleverchuk.mips.compiler.semantic.Analyzer;
 import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,17 +41,16 @@ import javax.inject.Inject;
 public final class RecursiveDescentParser {
   private final MipsLexer lexer;
 
-  private final SemanticAnalyzer semanticAnalyzer;
+  private final Analyzer semanticAnalyzer;
 
   private final List<NodeVisitor> nodeVisitors = new LinkedList<>();
 
   private Token ll1;
 
   @Inject
-  public RecursiveDescentParser(MipsLexer lexer, SemanticAnalyzer semanticAnalyzer) {
+  public RecursiveDescentParser(MipsLexer lexer, Analyzer semanticAnalyzer) {
     this.lexer = lexer;
     this.semanticAnalyzer = semanticAnalyzer;
-    nodeVisitors.add(new PseudoTransformer());
   }
 
   @NonNull public Node parse(String source) {
@@ -72,8 +72,8 @@ public final class RecursiveDescentParser {
     nodeVisitors.add(visitor);
   }
 
-  public boolean removeVisitor(NodeVisitor visitor) {
-    return nodeVisitors.remove(visitor);
+  public void removeVisitor(NodeVisitor visitor) {
+    nodeVisitors.remove(visitor);
   }
 
   private Node program() {

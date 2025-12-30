@@ -102,7 +102,8 @@ public class TwoOpAnalyzer implements Analyzer {
             .orElse(findNode(node, Construct.NEGCONSTANT).orElse(node))
             .getConstruct();
 
-    return children.get(1).getConstruct() == Construct.REGISTER
+    Construct construct1 = children.get(1).getConstruct();
+    return (construct1 == Construct.REGISTER || construct1 == Construct.OPERAND)
         && (construct == Construct.CONSTANT || construct == Construct.NEGCONSTANT);
   }
 

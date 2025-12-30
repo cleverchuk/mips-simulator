@@ -56,6 +56,10 @@ public class Assembler implements NodeVisitor {
 
   private int index = 0;
 
+  private int stackPointer = 0;
+
+  private int textBoundary = 0;
+
   private final Memory layout = new BigEndianMainMemory(1024);
 
   private final Map<String, Integer> symbolTable = new HashMap<>();
@@ -93,7 +97,8 @@ public class Assembler implements NodeVisitor {
   private boolean laSeen = false;
 
   @Override
-  public void visit(Node node) {}
+  public void visit(Node node) {
+  }
 
   @Override
   public void visitTextSegment(Node text) {
@@ -266,6 +271,12 @@ public class Assembler implements NodeVisitor {
   public void visitSegment(Node segment) {
     flush();
     laSeen = false;
+
+    if (textOffset > -1) { // set on text segment parsed
+      textBoundary = index;
+    }
+
+    stackPointer = Math.max(stackPointer, index * 128);
   }
 
   @Override
@@ -839,6 +850,44 @@ public class Assembler implements NodeVisitor {
 
         encoding = opcode.partialEncoding | opcode.opcode | currentRs << 21 | currentRd << 11;
         break;
+      case LW:
+        if (currentLabel != null) {
+          address = symbolTable.get(currentLabel);
+          lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
+          encoding =
+              lookupOpcode.partialEncoding
+                  | lookupOpcode.opcode
+                  | currentRt << 16
+                  | (address != null ? (address >> 16) : currentImme) & 0xffff;
+
+          layout.storeWord(encoding, index);
+          index += 4;
+          lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
+
+          encoding =
+              lookupOpcode.partialEncoding
+                  | lookupOpcode.opcode
+                  | currentRt << 21
+                  | currentRt << 16
+                  | (address != null ? address : currentImme) & 0xffff;
+
+          layout.storeWord(encoding, index);
+          index += 4;
+          if (currentRt == 0) {
+            currentRt = currentRs;
+          }
+        }
+
+        encoding =
+            opcode.partialEncoding
+                | opcode.opcode
+                | currentRs << 21
+                | currentRt << 16
+                | currentRd << 11
+                | currentShiftAmt << 6
+                | currentImme & 0xffff
+                | currentOffset & 0xffff;
+        break;
       case ADD:
       case ADDIUPC:
       case ADDU:
@@ -867,7 +916,6 @@ public class Assembler implements NodeVisitor {
       case LHU:
       case LSA:
       case LUI:
-      case LW:
       case LWC1:
       case MADD:
       case MADDU:
@@ -951,6 +999,18 @@ public class Assembler implements NodeVisitor {
 
   public Memory getLayout() {
     return layout;
+  }
+
+  public int getStackPointer() {
+    return stackPointer;
+  }
+
+  public int getSourceOffset() {
+    return sourceOffset;
+  }
+
+  public int getTextBoundary() {
+    return textBoundary;
   }
 
   public Map<String, Integer> getSymbolTable() {
@@ -1051,6 +1111,18 @@ public class Assembler implements NodeVisitor {
     for (InstructionIR ir : irs) {
       flushEncoding(ir);
     }
+  }
+
+  public void resetInternalState() {
+    irs.clear();
+    symbolTable.clear();
+    dataOffset = -1;
+
+    textOffset = -1;
+    index = 0;
+    stackPointer = 0;
+
+    textBoundary = 0;
   }
 
   private int computePcRelativeOffset(int address) {

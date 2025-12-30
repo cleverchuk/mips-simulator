@@ -66,13 +66,11 @@ public class CentralProcessorTest {
   private CentralProcessor cpu;
   private Memory memory;
   private int textOffset;
-  private int stackPointer;
 
   @Before
   public void setup() {
     assembler = new Assembler();
     parser.addVisitor(assembler);
-    stackPointer = 1000;
   }
 
   @After
@@ -84,7 +82,7 @@ public class CentralProcessorTest {
     parser.parse(toLineDelimited(instructions));
     memory = assembler.getLayout();
     textOffset = assembler.getTextOffset();
-    cpu = new CentralProcessor(memory, textOffset, stackPointer);
+    cpu = new CentralProcessor(memory, textOffset, assembler.getStackPointer(), (byte) 0x2);
   }
 
   private void executeInstructions(int count) throws Exception {

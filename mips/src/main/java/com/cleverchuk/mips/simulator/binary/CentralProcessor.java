@@ -55,9 +55,13 @@ public class CentralProcessor {
 
   private int lo = 0;
 
-  public CentralProcessor(Memory memory, int pc, int sp) {
+  private byte copBit = 2; // 10 = enabled
+
+  public CentralProcessor(Memory memory, int pc, int sp, byte copBit) {
     this.memory = memory;
     this.pc = pc;
+    this.copBit = copBit;
+
     gprFileArray.getFile(29).writeWord(sp);
   }
 
@@ -91,8 +95,13 @@ public class CentralProcessor {
 
   public void execute() throws Exception {
     int instruction = memory.readWord(pc);
-    pc += 4;
+    if (isCop(instruction)) {
+      if ((copBit & 2) != 2) {
+        return;
+      }
+    }
 
+    pc += 4;
     Opcode opcode = InstructionDecoder.decode(instruction);
     if (opcode == null) {
       throw new UnpredictableException("Unknown opcode: " + instruction);
@@ -1098,6 +1107,10 @@ public class CentralProcessor {
     }
   }
 
+  private boolean isCop(int instruction) {
+    return ((instruction >> 26) & 17) == 17;
+  }
+
   private void add(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
@@ -1185,7 +1198,7 @@ public class CentralProcessor {
   private void aluipc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     short imm = (short) (instruction & 0xffff);
-    gprFileArray.getFile(rs).writeWord(~0x0ffff & (pc - 4 + (imm << 16)));
+    gprFileArray.getFile(rs).writeWord(~0x0ffff & (pc - 4 + (signExtend(imm, 16) << 16)));
   }
 
   private void clo(int instruction) {
@@ -1337,7 +1350,7 @@ public class CentralProcessor {
   private void andi(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    int imm = instruction & 0xffff;
+    short imm = (short) (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
     gprFileArray.getFile(rt).writeWord(source & imm);
@@ -1366,7 +1379,7 @@ public class CentralProcessor {
   private void ori(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    int imm = instruction & 0xffff;
+    short imm = (short) (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
     gprFileArray.getFile(rt).writeWord(source | imm);
@@ -1385,7 +1398,7 @@ public class CentralProcessor {
   private void xori(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    int imm = instruction & 0xffff;
+    short imm = (short) (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
     gprFileArray.getFile(rt).writeWord(source ^ imm);
@@ -1419,15 +1432,15 @@ public class CentralProcessor {
   private void aui(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
     int rt = (instruction >> 16) & 0x1f;
-    int imm = (instruction & 0xffff);
+    short imm = (short) (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
-    gprFileArray.getFile(rt).writeWord(source + (imm << 16));
+    gprFileArray.getFile(rt).writeWord(source | (signExtend(imm, 16) << 16));
   }
 
   private void auipc(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    int imm = instruction & 0xffff;
+    short imm = (short) (instruction & 0xffff);
 
     gprFileArray.getFile(rs).writeWord(pc - 4 + (signExtend(imm, 16) << 16));
   }
@@ -2021,13 +2034,14 @@ public class CentralProcessor {
     }
   }
 
-  private void bltzal(int instruction) {
+  private void bltzal(int instruction) throws Exception {
     int rs = (instruction >> 21) & 0x1f;
     short offset = (short) (instruction & 0xffff);
 
     int source = gprFileArray.getFile(rs).readWord();
     if (source < 0) {
-      gprFileArray.getFile(31).writeWord(pc); // no delay slot implementation
+      gprFileArray.getFile(31).writeWord(pc + 4);
+      execute(); // delay slot implementation
       pc += offset << 2;
     }
   }
@@ -2057,8 +2071,12 @@ public class CentralProcessor {
     int rd = (instruction >> 11) & 0x1f;
 
     int source = gprFileArray.getFile(rs).readWord();
+    if (source % 4 != 0) {
+      throw new AddressErrorException("jalr: Effective address is not 4-byte aligned");
+    }
     gprFileArray.getFile(rd).writeWord(pc + 4);
     execute(); // delay slot
+
     pc = source;
   }
 
@@ -2348,7 +2366,12 @@ public class CentralProcessor {
 
     int address = gprFileArray.getFile(base).readWord() + offset;
     int target = gprFileArray.getFile(rt).readWord();
-    int mem = memory.readHalf(address - 1);
+    int mem = memory.read(address);
+
+    int eAddr = address - 1;
+    if (eAddr >= 0) {
+      mem = memory.readHalf(eAddr);
+    }
 
     target &= 0xffff0000;
     target |= mem;
@@ -2412,7 +2435,13 @@ public class CentralProcessor {
 
     int address = gprFileArray.getFile(base).readWord() + offset;
     int target = gprFileArray.getFile(rt).readWord();
-    memory.storeHalf((short) target, address - 1);
+    int eAddr = address - 1;
+
+    if (eAddr >= 0) {
+      memory.storeHalf((short) target, eAddr);
+    } else {
+      memory.store((byte) target, address);
+    }
   }
 
   private void cache(int instruction) {
@@ -2437,8 +2466,7 @@ public class CentralProcessor {
 
   private void mthi(int instruction) {
     int rs = (instruction >> 21) & 0x1f;
-    int source = gprFileArray.getFile(rs).readWord();
-    hi = source;
+    hi = gprFileArray.getFile(rs).readWord();
   }
 
   private void mtlo(int instruction) {
