@@ -26,7 +26,6 @@ package com.cleverchuk.mips.compiler;
 
 import com.cleverchuk.mips.compiler.codegen.Assembler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
-import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.simulator.mem.Memory;
@@ -54,10 +53,6 @@ public final class MipsCompiler {
     }
   }
 
-  public Memory getLayout() {
-    return assembler.getLayout();
-  }
-
   public List<Integer> getInstructions() {
     int dataOffset = assembler.getDataOffset();
     int textOffset = assembler.getTextOffset();
@@ -68,7 +63,7 @@ public final class MipsCompiler {
     List<Integer> instructions = new ArrayList<>();
     Memory layout = assembler.getLayout();
 
-    while(start < end) {
+    while (start < end) {
       int instruction = layout.readWord(start);
       instructions.add(instruction);
       start += 4;

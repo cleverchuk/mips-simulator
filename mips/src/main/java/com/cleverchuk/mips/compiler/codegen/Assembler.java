@@ -97,8 +97,7 @@ public class Assembler implements NodeVisitor {
   private boolean laSeen = false;
 
   @Override
-  public void visit(Node node) {
-  }
+  public void visit(Node node) {}
 
   @Override
   public void visitTextSegment(Node text) {

@@ -32,7 +32,6 @@ import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.lexer.Token;
 import com.cleverchuk.mips.compiler.lexer.TokenType;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;

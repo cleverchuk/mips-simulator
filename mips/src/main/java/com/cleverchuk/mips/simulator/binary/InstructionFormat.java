@@ -29,5 +29,4 @@ public enum InstructionFormat {
   R_TYPE,
   J_TYPE,
   IDIOM,
-  ;
 }

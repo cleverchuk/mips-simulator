@@ -27,13 +27,6 @@ package com.cleverchuk.mips.compiler.parser;
 import static org.junit.Assert.assertEquals;
 
 import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.FourOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.InstructionAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.OneOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.ThreeOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.Before;
@@ -47,10 +40,7 @@ public class InstructionVisitorTest {
   @Before
   public void setup() {
     visitor = new InstructionVisitor();
-    parser =
-        new RecursiveDescentParser(
-            new MipsLexer(),
-            (node) -> true);
+    parser = new RecursiveDescentParser(new MipsLexer(), (node) -> true);
     parser.addVisitor(visitor);
   }
 

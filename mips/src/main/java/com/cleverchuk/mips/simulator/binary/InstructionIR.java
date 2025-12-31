@@ -24,9 +24,7 @@
 
 package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.simulator.VirtualInstruction;
-
-public class InstructionIR implements VirtualInstruction {
+public class InstructionIR {
 
   private final Opcode opcode;
 
@@ -63,11 +61,6 @@ public class InstructionIR implements VirtualInstruction {
 
   public static Builder builder() {
     return new Builder();
-  }
-
-  @Override
-  public int line() {
-    return 0;
   }
 
   public Opcode getOpcode() {

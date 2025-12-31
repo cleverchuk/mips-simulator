@@ -34,7 +34,6 @@ import android.util.Log;
 import android.util.SparseIntArray;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
 import com.cleverchuk.mips.simulator.MipsSimulator;
 import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
 import com.cleverchuk.mips.simulator.registers.GprRegisterFileArray;
@@ -76,10 +75,7 @@ public class MipsSimulatorTest {
   @Before
   public void setup() throws Exception {
     context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    mipsSimulator =
-        new MipsSimulator(
-            new Handler(context.getMainLooper()),
-            (byte) 0x2);
+    mipsSimulator = new MipsSimulator(new Handler(context.getMainLooper()), (byte) 0x2);
 
     gprRegisterFileArray = mipsSimulator.getCpu().getGprFileArray();
     fpuRegisterFileArray = mipsSimulator.getCpu().getFpuRegisterFileArray();
@@ -1073,9 +1069,7 @@ public class MipsSimulatorTest {
 
     instructions =
         new String[] {
-          ".text",
-            "and $t0, $t0, $zero",
-            "li $t0, 10", "bltzal $t0, 10",
+          ".text", "and $t0, $t0, $zero", "li $t0, 10", "bltzal $t0, 10",
         };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
@@ -1120,7 +1114,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-4, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        -4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1132,7 +1129,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * 2, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        Integer.toUnsignedLong(-2) * 2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1144,7 +1144,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(4, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1156,7 +1159,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * -2, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        Integer.toUnsignedLong(-2) * -2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1168,7 +1174,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-4, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        -4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1180,7 +1189,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * 2, ((long)mipsSimulator.getCpu().getHi() << 32) | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
+    assertEquals(
+        Integer.toUnsignedLong(-2) * 2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1457,7 +1469,8 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(4/*$f0 is read-only with default value of 4*/, gprRegisterFileArray.getFile(8).readWord());
+    assertEquals(
+        4 /*$f0 is read-only with default value of 4*/, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test

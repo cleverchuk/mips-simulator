@@ -2260,7 +2260,7 @@ public class CentralProcessor {
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
     int address = gprFileArray.getFile(base).readWord() + offset;
-    byte bite = (byte) memory.read(address);
+    byte bite = memory.read(address);
     gprFileArray.getFile(rt).writeWord(bite);
   }
 
@@ -2300,7 +2300,7 @@ public class CentralProcessor {
     short offset = (short) ((instruction & (0x1ff << 7)) >> 7);
 
     int address = gprFileArray.getFile(base).readWord() + offset;
-    short half = (short) memory.readHalf(address);
+    short half = memory.readHalf(address);
     gprFileArray.getFile(rt).writeWord(half);
   }
 

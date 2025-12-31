@@ -27,8 +27,6 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.Opcode;
-import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import javax.inject.Inject;
 
 public class InstructionAnalyzer implements Analyzer {
@@ -60,11 +58,6 @@ public class InstructionAnalyzer implements Analyzer {
   public boolean analyze(Node instructionNode) {
     Node opcodeKind = instructionNode.getChildren().get(0);
     Construct construct = opcodeKind.getConstruct();
-
-    Opcode parse = parse((String) opcodeKind.getChildren().get(0).getValue());
-    if (parse instanceof FpuOpcode) {
-      return true;
-    }
 
     switch (construct) {
       case ZEROOP:

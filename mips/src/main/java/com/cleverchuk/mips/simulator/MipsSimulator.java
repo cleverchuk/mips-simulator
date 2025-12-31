@@ -49,7 +49,7 @@ import com.cleverchuk.mips.simulator.binary.CentralProcessor;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.Locale;
 
-public class MipsSimulator extends Thread implements TerminalInputListener, SystemServiceProvider {
+public class MipsSimulator extends Thread implements TerminalInputListener, InterruptHandler {
 
   private enum State {
     IDLE,
@@ -83,9 +83,15 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
   public MipsSimulator(Handler ioHandler, byte processorFlags) {
     super("MipsSimulatorThread");
     assembler = new Assembler();
-    compiler = new MipsCompiler(new RecursiveDescentParser(new MipsLexer(), (opcode) -> true), assembler);
+    compiler =
+        new MipsCompiler(new RecursiveDescentParser(new MipsLexer(), (opcode) -> true), assembler);
 
-    cpu = new CentralProcessor(assembler.getLayout(), assembler.getTextOffset(), assembler.getStackPointer(), processorFlags);
+    cpu =
+        new CentralProcessor(
+            assembler.getLayout(),
+            assembler.getTextOffset(),
+            assembler.getStackPointer(),
+            processorFlags);
     this.ioHandler = ioHandler;
   }
 
@@ -293,24 +299,27 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
   }
 
   @Override
-  public void requestService(int which) throws Exception {
-    SystemService systemService = SystemService.parse(which);
+  public void handle(int code) throws Exception {
+    SystemService systemService = SystemService.parse(code);
     switch (systemService) {
       case PRINT_INT:
-        ioHandler.obtainMessage(PRINT_INT.code, cpu.getGprFileArray().getFile(4).readWord()).sendToTarget();
+        ioHandler
+            .obtainMessage(PRINT_INT.code, cpu.getGprFileArray().getFile(4).readWord())
+            .sendToTarget();
         break;
 
-      case PRINT_STRING: {
-        int arg = cpu.getGprFileArray().getFile(4).readWord(), c;
-        StringBuilder builder = new StringBuilder();
-        Memory layout = assembler.getLayout();
+      case PRINT_STRING:
+        {
+          int arg = cpu.getGprFileArray().getFile(4).readWord(), c;
+          StringBuilder builder = new StringBuilder();
+          Memory layout = assembler.getLayout();
 
-        while ((c = layout.read(arg++)) != 0) {
-          builder.append((char) c);
+          while ((c = layout.read(arg++)) != 0) {
+            builder.append((char) c);
+          }
+          ioHandler.obtainMessage(PRINT_STRING.code, builder.toString()).sendToTarget();
+          break;
         }
-        ioHandler.obtainMessage(PRINT_STRING.code, builder.toString()).sendToTarget();
-        break;
-      }
 
       case PRINT_CHAR:
         int arg = cpu.getGprFileArray().getFile(4).readWord();
@@ -358,7 +367,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         break;
 
       default:
-        throw new Exception(String.format(Locale.getDefault(), "Service %d not supported!", which));
+        throw new Exception(String.format(Locale.getDefault(), "Service %d not supported!", code));
     }
   }
 
