@@ -96,6 +96,8 @@ public class Assembler implements NodeVisitor {
 
   private boolean laSeen = false;
 
+  private ArrayDeque<EncodingEmitObserver> observers = new ArrayDeque<>();
+
   @Override
   public void visit(Node node) {}
 
@@ -876,17 +878,6 @@ public class Assembler implements NodeVisitor {
             currentRt = currentRs;
           }
         }
-
-        encoding =
-            opcode.partialEncoding
-                | opcode.opcode
-                | currentRs << 21
-                | currentRt << 16
-                | currentRd << 11
-                | currentShiftAmt << 6
-                | currentImme & 0xffff
-                | currentOffset & 0xffff;
-        break;
       case ADD:
       case ADDIUPC:
       case ADDU:
@@ -986,6 +977,8 @@ public class Assembler implements NodeVisitor {
 
     layout.storeWord(encoding, index);
     index += 4;
+    int finalEncoding = encoding;
+    observers.forEach(observer -> observer.onEmit(finalEncoding));
   }
 
   public int getDataOffset() {
@@ -1126,5 +1119,13 @@ public class Assembler implements NodeVisitor {
 
   private int computePcRelativeOffset(int address) {
     return (address - index - 4) / 4;
+  }
+
+  public void addObserver(EncodingEmitObserver observer) {
+    observers.add(observer);
+  }
+
+  public void removeObserver(EncodingEmitObserver observer) {
+    observers.remove(observer);
   }
 }

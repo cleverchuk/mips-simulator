@@ -46,6 +46,7 @@ import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.dev.TerminalInputListener;
 import com.cleverchuk.mips.simulator.binary.CentralProcessor;
+import com.cleverchuk.mips.simulator.binary.SyscallException;
 import com.cleverchuk.mips.simulator.mem.Memory;
 import java.util.Locale;
 
@@ -164,6 +165,19 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Inte
     if (currentState == State.STEPPING || currentState == State.RUNNING) {
       try {
         cpu.execute();
+      } catch (SyscallException syscallException) {
+        try {
+          handle(syscallException.getCode());
+        } catch (Exception e) {
+          previousState = currentState;
+          currentState = State.HALTED;
+
+          int line = assembler.getSourceOffset() + (cpu.getPc() - 4) / 4;
+          String error =
+              String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
+          ioHandler.obtainMessage(PRINT_STRING.code, error).sendToTarget();
+          ioHandler.obtainMessage(HALT.code).sendToTarget();
+        }
       } catch (Exception e) {
         previousState = currentState;
         currentState = State.HALTED;

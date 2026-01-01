@@ -2638,7 +2638,8 @@ public class CentralProcessor {
   }
 
   private void syscall(int instruction) {
-    throw new SyscallException();
+    int code = getGprFileArray().getFile(2).readWord();
+    throw new SyscallException(code);
   }
 
   private void sync(int instruction) {

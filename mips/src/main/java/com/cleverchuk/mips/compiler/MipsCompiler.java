@@ -26,6 +26,7 @@ package com.cleverchuk.mips.compiler;
 
 import com.cleverchuk.mips.compiler.codegen.Assembler;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
+import com.cleverchuk.mips.compiler.parser.NodeVisitor;
 import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.simulator.mem.Memory;
@@ -78,5 +79,17 @@ public final class MipsCompiler {
 
   public int textSegmentOffset() {
     return assembler.getTextOffset();
+  }
+
+  public void addVisitor(NodeVisitor visitor) {
+    parser.addVisitor(visitor);
+  }
+
+  public Assembler getAssembler() {
+    return assembler;
+  }
+
+  public RecursiveDescentParser getParser() {
+    return parser;
   }
 }

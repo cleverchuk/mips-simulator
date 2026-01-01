@@ -22,16 +22,8 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.simulator.binary;
+package com.cleverchuk.mips.compiler.codegen;
 
-public class SyscallException extends RuntimeException {
-  private final int code;
-
-  public SyscallException(int code) {
-    this.code = code;
-  }
-
-  public int getCode() {
-    return code;
-  }
+public interface EncodingEmitObserver {
+  void onEmit(int encoding);
 }
