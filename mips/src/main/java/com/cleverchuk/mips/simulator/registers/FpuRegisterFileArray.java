@@ -41,7 +41,12 @@ public class FpuRegisterFileArray {
   public String regContents() {
     StringBuilder content = new StringBuilder();
     for (RegisterFile file : registerFile) {
-      content.append("$f").append(file.id()).append(": ").append(file.hexValue()).append("\n");
+      content
+          .append("$f")
+          .append(file.id())
+          .append(": ")
+          .append(String.format("0x%016x", file.readDword()))
+          .append("\n");
     }
 
     return content.toString();

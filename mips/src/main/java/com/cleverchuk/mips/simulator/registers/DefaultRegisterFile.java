@@ -24,6 +24,8 @@
 
 package com.cleverchuk.mips.simulator.registers;
 
+import androidx.annotation.NonNull;
+
 public class DefaultRegisterFile implements RegisterFile {
   private final byte[] dflops = new byte[8];
 
@@ -127,5 +129,10 @@ public class DefaultRegisterFile implements RegisterFile {
     }
 
     return Double.longBitsToDouble(doubly);
+  }
+
+  @NonNull @Override
+  public String toString() {
+    return String.format("0x%08x", readWord());
   }
 }

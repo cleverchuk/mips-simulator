@@ -24,6 +24,8 @@
 
 package com.cleverchuk.mips.simulator.registers;
 
+import androidx.annotation.NonNull;
+
 public class ReadOnlyRegisterFile implements RegisterFile {
   private final RegisterFile delegate;
 
@@ -60,5 +62,10 @@ public class ReadOnlyRegisterFile implements RegisterFile {
   @Override
   public double readDouble() {
     return delegate.readWord();
+  }
+
+  @NonNull @Override
+  public String toString() {
+    return delegate.toString();
   }
 }
