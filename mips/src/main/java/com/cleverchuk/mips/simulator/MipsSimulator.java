@@ -246,7 +246,15 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Inte
     }
   }
 
-  private boolean isPaused() {
+  public boolean isIdle() {
+    return currentState == State.IDLE;
+  }
+
+  public boolean isWaiting() {
+    return currentState == State.WAITING;
+  }
+
+  public boolean isPaused() {
     return currentState == State.PAUSED;
   }
 
