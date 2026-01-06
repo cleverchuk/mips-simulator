@@ -99,9 +99,6 @@ public class Assembler implements NodeVisitor {
   private ArrayDeque<EncodingEmitObserver> observers = new ArrayDeque<>();
 
   @Override
-  public void visit(Node node) {}
-
-  @Override
   public void visitTextSegment(Node text) {
     textOffset = index;
     currentDataMode = "";
@@ -253,7 +250,8 @@ public class Assembler implements NodeVisitor {
   }
 
   @Override
-  public void visitData(Node data) {
+  public void
+  visitData(Node data) {
     Node rightLeaf = getRightLeaf(data);
     switch (currentDataMode) {
       case "ascii":
