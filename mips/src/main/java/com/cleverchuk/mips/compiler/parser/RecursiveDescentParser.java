@@ -37,28 +37,28 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import javax.inject.Inject;
 
-
 /**
  * A recursive descent parser for MIPS assembly language.
- * <p>
- * This parser implements the visitor pattern via {@link NodeVisitor} to allow external
- * components to observe and react to parse tree construction. Note that visitors are
- * invoked in a <b>non-standard</b> way throughout the parsing process:
+ *
+ * <p>This parser implements the visitor pattern via {@link NodeVisitor} to allow external
+ * components to observe and react to parse tree construction. Note that visitors are invoked in a
+ * <b>non-standard</b> way throughout the parsing process:
+ *
  * <ul>
  *   <li>In most cases, visitors are called <b>after</b> a subtree has been fully constructed,
- *       allowing access to the complete node structure and all its children.</li>
- *   <li>In some cases (e.g., {@code visitOpcode}, {@code visitDataMode}, {@code visitReg},
- *       {@code visitTextSegment}, {@code visitDataSegment}), visitors are called <b>before</b>
- *       the parent subtree is fully built, enabling early processing of terminal nodes or
- *       intermediate results.</li>
+ *       allowing access to the complete node structure and all its children.
+ *   <li>In some cases (e.g., {@code visitOpcode}, {@code visitDataMode}, {@code visitReg}, {@code
+ *       visitTextSegment}, {@code visitDataSegment}), visitors are called <b>before</b> the parent
+ *       subtree is fully built, enabling early processing of terminal nodes or intermediate
+ *       results.
  * </ul>
- * <p>
- * This non-standard visitor invocation pattern means that visitors must be aware of the
- * parsing context and cannot assume that all ancestor or sibling nodes are available
- * at the time of visitation.
- * <p>
- * Use {@link #addVisitor(NodeVisitor)} and {@link #removeVisitor(NodeVisitor)} to register
- * or unregister visitors.
+ *
+ * <p>This non-standard visitor invocation pattern means that visitors must be aware of the parsing
+ * context and cannot assume that all ancestor or sibling nodes are available at the time of
+ * visitation.
+ *
+ * <p>Use {@link #addVisitor(NodeVisitor)} and {@link #removeVisitor(NodeVisitor)} to register or
+ * unregister visitors.
  */
 public final class RecursiveDescentParser {
   private final MipsLexer lexer;

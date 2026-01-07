@@ -61,31 +61,31 @@ public interface NodeVisitor {
 
   default void visitDataDecl(Node dataDecl) {}
 
-  default void visitDataList(Node dataList){}
+  default void visitDataList(Node dataList) {}
 
-  default void visitDataLists(Node dataLists){}
+  default void visitDataLists(Node dataLists) {}
 
-  default void visitTerm(Node term){}
+  default void visitTerm(Node term) {}
 
-  default void visitTerms(Node terms){}
+  default void visitTerms(Node terms) {}
 
-  default void visitFactor(Node factor){}
+  default void visitFactor(Node factor) {}
 
-  default void visitNegConstant(Node negConstant){}
+  default void visitNegConstant(Node negConstant) {}
 
-  default void visitUnOp(Node unOp){}
+  default void visitUnOp(Node unOp) {}
 
-  default void visitExprs(Node exprs){}
+  default void visitExprs(Node exprs) {}
 
-  default void visitBinOp(Node binOp){}
+  default void visitBinOp(Node binOp) {}
 
-  default void visitFourOp(Node fourOp){}
+  default void visitFourOp(Node fourOp) {}
 
-  default void visitThreeOp(Node threeOp){}
+  default void visitThreeOp(Node threeOp) {}
 
-  default void visitTwoOp(Node twoOp){}
+  default void visitTwoOp(Node twoOp) {}
 
-  default void visitOneOp(Node oneOp){}
+  default void visitOneOp(Node oneOp) {}
 
-  default void visitZeroOp(Node zeroOp){}
+  default void visitZeroOp(Node zeroOp) {}
 }

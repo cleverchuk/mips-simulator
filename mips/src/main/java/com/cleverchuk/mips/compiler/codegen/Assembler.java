@@ -250,8 +250,7 @@ public class Assembler implements NodeVisitor {
   }
 
   @Override
-  public void
-  visitData(Node data) {
+  public void visitData(Node data) {
     Node rightLeaf = getRightLeaf(data);
     switch (currentDataMode) {
       case "ascii":
@@ -771,10 +770,37 @@ public class Assembler implements NodeVisitor {
                 | currentRt << 16
                 | currentOffset & 0x7ff;
         break;
+      case SWC1:
+      case SDC1:
+        if (currentLabel != null) {
+          if (currentRt == 0) {
+            currentRt = currentRs;
+          }
+
+          address = symbolTable.get(currentLabel);
+          lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
+          encoding =
+              lookupOpcode.partialEncoding
+                  | lookupOpcode.opcode
+                  | currentRt << 16
+                  | (address != null ? (address >> 16) : currentImme) & 0xffff;
+
+          layout.storeWord(encoding, index);
+          index += 4;
+          lookupOpcode = Objects.requireNonNull(opcodesMap.get("ori"));
+
+          encoding =
+              lookupOpcode.partialEncoding
+                  | lookupOpcode.opcode
+                  | currentRt << 21
+                  | currentRt << 16
+                  | (address != null ? address : currentImme) & 0xffff;
+
+          layout.storeWord(encoding, index);
+          index += 4;
+        }
       case LWL:
       case LWR:
-      case SDC1:
-      case SWC1:
       case SWL:
       case SWR:
         encoding =
@@ -849,8 +875,20 @@ public class Assembler implements NodeVisitor {
 
         encoding = opcode.partialEncoding | opcode.opcode | currentRs << 21 | currentRd << 11;
         break;
+      case LB:
+      case LBU:
+      case LDC1:
       case LW:
+      case LWC1:
+      case LH:
+      case LHU:
+      case SW:
+      case SB:
+      case SH:
         if (currentLabel != null) {
+          if (currentRt == 0) {
+            currentRt = currentRs;
+          }
           address = symbolTable.get(currentLabel);
           lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
           encoding =
@@ -872,9 +910,6 @@ public class Assembler implements NodeVisitor {
 
           layout.storeWord(encoding, index);
           index += 4;
-          if (currentRt == 0) {
-            currentRt = currentRs;
-          }
         }
       case ADD:
       case ADDIUPC:
@@ -897,14 +932,8 @@ public class Assembler implements NodeVisitor {
       case GINVI:
       case JR:
       case JR_HB:
-      case LB:
-      case LBU:
-      case LDC1:
-      case LH:
-      case LHU:
       case LSA:
       case LUI:
-      case LWC1:
       case MADD:
       case MADDU:
       case MFHI:
@@ -929,12 +958,10 @@ public class Assembler implements NodeVisitor {
       case PAUSE:
       case RDPGPR:
       case ROTR:
-      case SB:
       case SEB:
       case SEH:
       case SELEQZ:
       case SELNEZ:
-      case SH:
       case SIGRIE:
       case SLL:
       case SLT:
@@ -943,7 +970,6 @@ public class Assembler implements NodeVisitor {
       case SSNOP:
       case SUB:
       case SUBU:
-      case SW:
       case SYSCALL:
       case TEQ:
       case TGE:
