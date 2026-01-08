@@ -773,9 +773,7 @@ public class Assembler implements NodeVisitor {
       case SWC1:
       case SDC1:
         if (currentLabel != null) {
-          if (currentRt == 0) {
-            currentRt = currentRs;
-          }
+          currentRt = currentRs;
 
           address = symbolTable.get(currentLabel);
           lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
@@ -886,10 +884,9 @@ public class Assembler implements NodeVisitor {
       case SB:
       case SH:
         if (currentLabel != null) {
-          if (currentRt == 0) {
-            currentRt = currentRs;
-          }
+          currentRt = currentRs;
           address = symbolTable.get(currentLabel);
+
           lookupOpcode = Objects.requireNonNull(opcodesMap.get("aui"));
           encoding =
               lookupOpcode.partialEncoding
