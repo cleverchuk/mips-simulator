@@ -28,9 +28,8 @@ public class FpuRegisterFileArray {
   private final RegisterFile[] registerFile = new RegisterFile[32];
 
   public FpuRegisterFileArray() {
-
     for (int i = 0; i < 32; i++) {
-      registerFile[i] = createReg("f" + i, i);
+      registerFile[i] = new DefaultRegisterFile(i);
     }
   }
 
@@ -50,13 +49,5 @@ public class FpuRegisterFileArray {
     }
 
     return content.toString();
-  }
-
-  private RegisterFile createReg(String name, int id) {
-    if (name.equals("f0")) {
-      return new ReadOnlyRegisterFile(new DefaultRegisterFile(id), 0);
-    }
-
-    return new DefaultRegisterFile(id);
   }
 }

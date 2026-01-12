@@ -422,13 +422,13 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Inte
 
   @Override
   public void onFloatInput(float data) {
-    cpu.getGprFileArray().getFile(2).writeSingle(data);
+    cpu.getFpuRegisterFileArray().getFile(0).writeSingle(data);
     transitionStateOnInput();
   }
 
   @Override
   public void onDoubleInput(double data) {
-    cpu.getGprFileArray().getFile(2).writeDouble(data);
+    cpu.getFpuRegisterFileArray().getFile(0).writeDouble(data);
     transitionStateOnInput();
   }
 
