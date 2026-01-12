@@ -26,9 +26,7 @@ package com.cleverchuk.mips.compiler.semantic;
 
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
-import com.cleverchuk.mips.simulator.Opcode;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
-import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
+import com.cleverchuk.mips.simulator.binary.Opcode;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
@@ -59,12 +57,8 @@ public interface Analyzer {
   }
 
   default Opcode parse(String value) {
-    if (CpuOpcode.CPU_OPCODES.contains(value)) {
-      return CpuOpcode.parse(value);
-    }
-
-    if (FpuOpcode.FPU_OPCODES.contains(value)) {
-      return FpuOpcode.parse(value);
+    if (Opcode.OPCODES.contains(value)) {
+      return Opcode.parse(value);
     }
 
     return null;

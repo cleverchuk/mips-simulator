@@ -27,7 +27,7 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
+import com.cleverchuk.mips.simulator.binary.Opcode;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
@@ -90,7 +90,7 @@ public class ThreeOpAnalyzer implements Analyzer {
 
     Node opcode = children.get(0);
     Object opcodeValue = opcode.getValue();
-    return (CpuOpcode.BEQ.same((String) opcodeValue) || CpuOpcode.BNE.same((String) opcodeValue))
+    return (Opcode.BEQ.same((String) opcodeValue) || Opcode.BNE.same((String) opcodeValue))
         && (Construct.REGISTER == children.get(1).getConstruct()
             && Construct.REGISTER == children.get(2).getConstruct()
             && (Construct.CONSTANT == construct
@@ -115,7 +115,7 @@ public class ThreeOpAnalyzer implements Analyzer {
               .getConstruct();
 
       Node opcode = children.get(0);
-      switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case SLLV:
@@ -154,7 +154,7 @@ public class ThreeOpAnalyzer implements Analyzer {
               .getConstruct();
 
       Node opcode = children.get(0);
-      switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case MOVN:
@@ -190,9 +190,9 @@ public class ThreeOpAnalyzer implements Analyzer {
               .getConstruct();
 
       Node opcode = children.get(0);
-      switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
-          return false;
+          return true;
         case ADD:
         case ADDU:
         case SUB:
@@ -205,7 +205,6 @@ public class ThreeOpAnalyzer implements Analyzer {
           return Construct.REGISTER == children.get(1).getConstruct()
               && Construct.REGISTER == children.get(2).getConstruct()
               && Construct.REGISTER == construct;
-        case ADDI:
         case ADDIU:
         case ANDI:
         case ORI:

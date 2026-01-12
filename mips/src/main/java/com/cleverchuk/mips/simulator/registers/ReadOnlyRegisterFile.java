@@ -22,40 +22,50 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.lexer;
+package com.cleverchuk.mips.simulator.registers;
 
-public enum TokenType {
-  // RESERVED
-  DATA,
-  GLOBL, // change this to grammar ie directive -> .ID
-  TEXT,
-  OPCODE,
-  REG,
-  ASCII,
-  ASCIIZ,
-  SPACE_STORAGE,
-  BYTE_STORAGE,
-  HALF_STORAGE,
-  WORD_STORAGE,
-  FLOAT_STORAGE,
-  DOUBLE_STORAGE,
-  // REGEX
-  ID,
-  FLOATING_POINT,
-  DECI,
-  STRING,
-  HEX,
-  OCTAL,
-  // LITERALS
-  PLUS,
-  MINUS,
-  TIMES,
-  DIV,
-  DOLLAR_SIGN,
-  COMMA,
-  COLON,
-  DOT,
-  L_PAREN,
-  R_PAREN,
-  EOF
+import androidx.annotation.NonNull;
+
+public class ReadOnlyRegisterFile implements RegisterFile {
+  private final RegisterFile delegate;
+
+  public ReadOnlyRegisterFile(RegisterFile delegate, int defaultValue) {
+    this.delegate = delegate;
+    this.delegate.writeWord(defaultValue);
+  }
+
+  @Override
+  public int id() {
+    return delegate.id();
+  }
+
+  @Override
+  public String hexValue() {
+    return delegate.hexValue();
+  }
+
+  @Override
+  public int readWord() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public long readDword() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public float readSingle() {
+    return delegate.readWord();
+  }
+
+  @Override
+  public double readDouble() {
+    return delegate.readWord();
+  }
+
+  @NonNull @Override
+  public String toString() {
+    return delegate.toString();
+  }
 }

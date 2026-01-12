@@ -18,5 +18,5 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore
 
 
 [plugins]
-agp = { id = "com.android.application", version.ref = "agp" }
+agp = { id = "com.android.library", version.ref = "agp" }
 spotless = { id = "com.diffplug.spotless", version = "8.0.0" }

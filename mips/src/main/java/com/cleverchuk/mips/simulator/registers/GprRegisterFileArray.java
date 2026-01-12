@@ -22,40 +22,28 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.lexer;
+package com.cleverchuk.mips.simulator.registers;
 
-public enum TokenType {
-  // RESERVED
-  DATA,
-  GLOBL, // change this to grammar ie directive -> .ID
-  TEXT,
-  OPCODE,
-  REG,
-  ASCII,
-  ASCIIZ,
-  SPACE_STORAGE,
-  BYTE_STORAGE,
-  HALF_STORAGE,
-  WORD_STORAGE,
-  FLOAT_STORAGE,
-  DOUBLE_STORAGE,
-  // REGEX
-  ID,
-  FLOATING_POINT,
-  DECI,
-  STRING,
-  HEX,
-  OCTAL,
-  // LITERALS
-  PLUS,
-  MINUS,
-  TIMES,
-  DIV,
-  DOLLAR_SIGN,
-  COMMA,
-  COLON,
-  DOT,
-  L_PAREN,
-  R_PAREN,
-  EOF
+public class GprRegisterFileArray {
+  private final RegisterFile[] registerFile = new RegisterFile[32];
+
+  public GprRegisterFileArray() {
+    registerFile[0] = new ReadOnlyRegisterFile(new DefaultRegisterFile(0), 0);
+    for (int i = 1; i < 32; i++) {
+      registerFile[i] = new DefaultRegisterFile(i);
+    }
+  }
+
+  public String regContents() {
+    StringBuilder content = new StringBuilder();
+    for (int i = 0; i < 32; i++) {
+      content.append("$").append(i).append(": ").append(registerFile[i]).append("\n");
+    }
+
+    return content.toString();
+  }
+
+  public RegisterFile getFile(int reg) {
+    return registerFile[reg];
+  }
 }

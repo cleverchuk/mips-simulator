@@ -25,5 +25,67 @@
 package com.cleverchuk.mips.compiler.parser;
 
 public interface NodeVisitor {
-  void visit(Node node);
+  default void visitTextSegment(Node text) {}
+
+  default void visitLabel(Node label) {}
+
+  default void visitOpcode(Node opcode) {}
+
+  default void visitReg(Node register) {}
+
+  default void visitBaseRegister(Node register) {}
+
+  default void visitExpression(Node expr) {}
+
+  default void visitConstant(Node number) {}
+
+  default void visitDataSegment(Node dataSeg) {}
+
+  default void visitDataMode(Node dataMode) {}
+
+  default void visitData(Node data) {}
+
+  default void visitSegment(Node segment) {}
+
+  default void visitOperand(Node operand) {}
+
+  default void visitInstruction(Node instruction) {}
+
+  default void visitProgram(Node program) {}
+
+  default void visitDataDecls(Node dataDecls) {}
+
+  default void visitTextDecls(Node textDecls) {}
+
+  default void visitTextDecl(Node textDecl) {}
+
+  default void visitDataDecl(Node dataDecl) {}
+
+  default void visitDataList(Node dataList) {}
+
+  default void visitDataLists(Node dataLists) {}
+
+  default void visitTerm(Node term) {}
+
+  default void visitTerms(Node terms) {}
+
+  default void visitFactor(Node factor) {}
+
+  default void visitNegConstant(Node negConstant) {}
+
+  default void visitUnOp(Node unOp) {}
+
+  default void visitExprs(Node exprs) {}
+
+  default void visitBinOp(Node binOp) {}
+
+  default void visitFourOp(Node fourOp) {}
+
+  default void visitThreeOp(Node threeOp) {}
+
+  default void visitTwoOp(Node twoOp) {}
+
+  default void visitOneOp(Node oneOp) {}
+
+  default void visitZeroOp(Node zeroOp) {}
 }

@@ -1,0 +1,88 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 CleverChuk
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package com.cleverchuk.mips.simulator.registers;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+
+@RunWith(MockitoJUnitRunner.class)
+public class FpuDefaultRegisterFileTest {
+
+  @InjectMocks private FpuRegisterFileArray fpuRegisterFileArray;
+
+  private final int register = 1;
+
+  @Test
+  public void testReadWord() {
+    fpuRegisterFileArray.getFile(register).writeWord(400);
+    assertEquals(400, fpuRegisterFileArray.getFile(register).readWord());
+  }
+
+  @Test
+  public void testReadWord2() {
+    fpuRegisterFileArray.getFile(register).writeWord(-400);
+    assertEquals(-400, fpuRegisterFileArray.getFile(register).readWord());
+  }
+
+  @Test
+  public void testReadDword() {
+    fpuRegisterFileArray.getFile(register).writeDword(400);
+    assertEquals(400, fpuRegisterFileArray.getFile(register).readDword());
+  }
+
+  @Test
+  public void testReadDword2() {
+    fpuRegisterFileArray.getFile(register).writeDword(-400);
+    assertEquals(-400, fpuRegisterFileArray.getFile(register).readDword());
+  }
+
+  @Test
+  public void testReadSingle() {
+    fpuRegisterFileArray.getFile(register).writeSingle(400f);
+    assertEquals(400f, fpuRegisterFileArray.getFile(register).readSingle(), 0);
+  }
+
+  @Test
+  public void testReadSingle2() {
+    fpuRegisterFileArray.getFile(register).writeSingle(-400f);
+    assertEquals(-400f, fpuRegisterFileArray.getFile(register).readSingle(), 0);
+  }
+
+  @Test
+  public void testReadDouble() {
+    fpuRegisterFileArray.getFile(register).writeDouble(400.5);
+    assertEquals(400.5, fpuRegisterFileArray.getFile(register).readDouble(), 0);
+  }
+
+  @Test
+  public void testReadDouble2() {
+    fpuRegisterFileArray.getFile(register).writeDouble(-400.5);
+    assertEquals(-400.5, fpuRegisterFileArray.getFile(register).readDouble(), 0);
+  }
+}

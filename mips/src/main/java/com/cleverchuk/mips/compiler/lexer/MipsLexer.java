@@ -32,10 +32,9 @@ import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_IDENTIFIER;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_OCTAL;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_START;
 import static com.cleverchuk.mips.compiler.lexer.LexerState.LEX_STRING;
+import static com.cleverchuk.mips.simulator.binary.Opcode.OPCODES;
 
 import androidx.annotation.Nullable;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
-import com.cleverchuk.mips.simulator.fpu.FpuOpcode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,9 +49,10 @@ public final class MipsLexer {
 
   private static final Pattern DECI = Pattern.compile("[0-9]+");
 
-  private static final Pattern FLOATING_POINT = Pattern.compile("[0-9]+\\.[0-9]*");
+  private static final Pattern FLOATING_POINT =
+      Pattern.compile("[0-9]+\\.[0-9]*([eE][+-]?[0-9]*)?");
 
-  private static final Pattern HEX = Pattern.compile("0[xX][a-f0-9]+");
+  private static final Pattern HEX = Pattern.compile("0[xX][Aa-fF0-9]+");
 
   private static final Pattern OCTAL = Pattern.compile("0[0-7]+");
 
@@ -236,10 +236,6 @@ public final class MipsLexer {
 
   public static final Set<String> FPU_REG = new HashSet<>(DECI_TO_FPU_REG.values());
 
-  public static final Set<String> CPU_OPCODES = CpuOpcode.CPU_OPCODES;
-
-  public static final Set<String> FPU_OPCODES = FpuOpcode.FPU_OPCODES;
-
   private LexerState state = LEX_START;
 
   private char[] source;
@@ -331,17 +327,9 @@ public final class MipsLexer {
                 .build();
           }
         }
-        if (CPU_OPCODES.contains(value)) {
+        if (OPCODES.contains(value)) {
           return Token.builder()
-              .tokenType(TokenType.CPU_OPCODE)
-              .value(value)
-              .line(lineNumber)
-              .pos(sourcePos - value.length())
-              .build();
-        }
-        if (FPU_OPCODES.contains(value)) {
-          return Token.builder()
-              .tokenType(TokenType.FPU_OPCODE)
+              .tokenType(TokenType.OPCODE)
               .value(value)
               .line(lineNumber)
               .pos(sourcePos - value.length())
@@ -525,7 +513,9 @@ public final class MipsLexer {
           state = LEX_START;
         }
       }
-      if ((isLiteral(source[sourcePos]) || isDelimiter(source[sourcePos]))
+
+      if ((isLiteral(source[sourcePos]) && !((c == 'e' || c == 'E') && state == LEX_FLOATING_POINT)
+              || isDelimiter(source[sourcePos]))
           && state != LEX_STRING
           && state != LEX_COMMENT) {
         return buildToken(stringBuilder.toString());

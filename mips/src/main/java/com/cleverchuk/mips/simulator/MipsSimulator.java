@@ -39,20 +39,18 @@ import static com.cleverchuk.mips.simulator.SystemService.READ_INT;
 import android.os.Handler;
 import android.util.SparseIntArray;
 import com.cleverchuk.mips.compiler.MipsCompiler;
+import com.cleverchuk.mips.compiler.codegen.Assembler;
+import com.cleverchuk.mips.compiler.lexer.MipsLexer;
 import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
-import com.cleverchuk.mips.compiler.parser.SymbolTable;
+import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
 import com.cleverchuk.mips.compiler.parser.SyntaxError;
 import com.cleverchuk.mips.dev.TerminalInputListener;
-import com.cleverchuk.mips.simulator.cpu.Cpu;
-import com.cleverchuk.mips.simulator.cpu.CpuInstruction;
-import com.cleverchuk.mips.simulator.fpu.CoProcessor1;
-import com.cleverchuk.mips.simulator.fpu.FpuInstruction;
-import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.binary.CentralProcessor;
+import com.cleverchuk.mips.simulator.binary.SyscallException;
 import com.cleverchuk.mips.simulator.mem.Memory;
-import java.util.ArrayList;
 import java.util.Locale;
 
-public class MipsSimulator extends Thread implements TerminalInputListener, SystemServiceProvider {
+public class MipsSimulator extends Thread implements TerminalInputListener, InterruptHandler {
 
   private enum State {
     IDLE,
@@ -69,9 +67,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   private int textSegmentOffset; // demarcate text section from data section
 
-  private int instructionEndPos = 0;
-
-  private final ArrayList<VirtualInstruction> virtualInstructions;
+  private int instructionBoundary = 0;
 
   private volatile State currentState = State.IDLE;
 
@@ -81,46 +77,38 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   private final MipsCompiler compiler;
 
-  private final Cpu cpu;
+  private final CentralProcessor cpu;
 
-  private final Processor<FpuInstruction> cop;
+  private final Assembler assembler;
 
-  private final Memory memory;
-
-  public MipsSimulator(
-      Handler ioHandler, MipsCompiler compiler, Memory memory, byte processorFlags) {
+  public MipsSimulator(Handler ioHandler, byte processorFlags) {
     super("MipsSimulatorThread");
-    virtualInstructions = new ArrayList<>();
-    this.cpu = new Cpu(memory, this);
-    if ((processorFlags & 0x2) > 0) {
-      this.cop =
-          new CoProcessor1(
-              memory, new FpuRegisterFileArray(), this::getCpu, this.cpu::getRegisterFile);
-    } else {
-      this.cop = new NoOpProcessor();
-    }
+    assembler = new Assembler();
+    compiler =
+        new MipsCompiler(new RecursiveDescentParser(new MipsLexer(), (opcode) -> true), assembler);
 
+    cpu =
+        new CentralProcessor(
+            assembler.getLayout(),
+            assembler.getTextOffset(),
+            assembler.getStackPointer(),
+            processorFlags);
     this.ioHandler = ioHandler;
-    this.compiler = compiler;
-    this.memory = memory;
   }
 
   public int getPC() {
-    return cpu.getPC();
+    return cpu.getPc();
   }
 
-  public Cpu getCpu() {
+  public CentralProcessor getCpu() {
     return cpu;
-  }
-
-  public Processor<FpuInstruction> getCop() {
-    return cop;
   }
 
   public void stepping() {
     if (currentState == State.STEPPING || currentState == State.ERROR) {
       return;
     }
+
     previousState = currentState;
     currentState = State.STEPPING;
   }
@@ -130,9 +118,6 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
       return;
     }
 
-    if (currentState != State.STEPPING) {
-      cpu.resetPC();
-    }
     previousState = currentState;
     currentState = State.RUNNING;
   }
@@ -154,20 +139,8 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
     return breakpoints;
   }
 
-  public int getInstructionEndPos() {
-    return instructionEndPos;
-  }
-
-  public ArrayList<VirtualInstruction> getVirtualInstructions() {
-    return virtualInstructions;
-  }
-
-  public State getCurrentState() {
-    return currentState;
-  }
-
-  public State getPreviousState() {
-    return previousState;
+  public int getInstructionBoundary() {
+    return instructionBoundary;
   }
 
   public Handler getIoHandler() {
@@ -176,10 +149,6 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   public MipsCompiler getCompiler() {
     return compiler;
-  }
-
-  public Memory getMemory() {
-    return memory;
   }
 
   public void pause() {
@@ -195,29 +164,32 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
   private void step() {
     if (currentState == State.STEPPING || currentState == State.RUNNING) {
       try {
-        VirtualInstruction instruction = virtualInstructions.get(cpu.getNextPC());
-        if (instruction instanceof CpuInstruction) {
-          cpu.execute((CpuInstruction) instruction);
-        } else {
-          cop.execute((FpuInstruction) instruction);
-        }
+        cpu.execute();
+      } catch (SyscallException syscallException) {
+        try {
+          handle(syscallException.getCode());
+        } catch (Exception e) {
+          previousState = currentState;
+          currentState = State.HALTED;
 
+          int line = assembler.getSourceOffset() + (cpu.getPc() - 4) / 4;
+          String error =
+              String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
+          ioHandler.obtainMessage(PRINT_STRING.code, error).sendToTarget();
+          ioHandler.obtainMessage(HALT.code).sendToTarget();
+        }
       } catch (Exception e) {
         previousState = currentState;
         currentState = State.HALTED;
-        int computedPC = cpu.getPC() - 1;
 
-        int line =
-            computedPC >= 0 && computedPC < instructionEndPos
-                ? virtualInstructions.get(computedPC).line()
-                : -1;
+        int line = assembler.getSourceOffset() + (cpu.getPc() - 4) / 4;
         String error =
             String.format(Locale.getDefault(), "[line : %d]\nERROR!!\n%s", line, e.getMessage());
-
         ioHandler.obtainMessage(PRINT_STRING.code, error).sendToTarget();
         ioHandler.obtainMessage(HALT.code).sendToTarget();
       }
-      if (cpu.getPC() >= instructionEndPos) {
+
+      if (cpu.getPc() >= instructionBoundary) {
         previousState = currentState;
         currentState = State.HALTED;
         ioHandler.obtainMessage(HALT.code).sendToTarget();
@@ -255,6 +227,9 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   private void init(String raw) throws Exception {
     compiler.compile(raw);
+    cpu.setPc(assembler.getTextOffset());
+    instructionBoundary = assembler.getTextBoundary();
+
     if (!isPaused() && !ErrorRecorder.hasErrors()) {
       textSegmentOffset = compiler.textSegmentOffset();
       boolean hasTextSectionSpecified =
@@ -265,21 +240,21 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         throw new Exception("Must have .text section");
       }
 
-      virtualInstructions.clear();
-      virtualInstructions.addAll(compiler.getTextSegment());
-      instructionEndPos = virtualInstructions.size();
-
-      cpu.setLabels(SymbolTable.getTable());
-      cpu.setStackPointer(memory.getCapacity() - 10); // initialize stack pointer
-
-      if (cpu.getPC() >= instructionEndPos || isHalted() || isPaused()) {
+      if (isHalted() || isPaused()) {
         idle();
-        cpu.resetPC();
       }
     }
   }
 
-  private boolean isPaused() {
+  public boolean isIdle() {
+    return currentState == State.IDLE;
+  }
+
+  public boolean isWaiting() {
+    return currentState == State.WAITING;
+  }
+
+  public boolean isPaused() {
     return currentState == State.PAUSED;
   }
 
@@ -292,8 +267,8 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
   }
 
   public int getLineNumberToExecute() {
-    if (cpu.getPC() < instructionEndPos) {
-      return virtualInstructions.get(cpu.getPC()).line();
+    if (cpu.getPc() < instructionBoundary) {
+      return assembler.getSourceOffset() + cpu.getPc() / 4;
     }
     return 0;
   }
@@ -346,18 +321,22 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
   }
 
   @Override
-  public void requestService(int which) throws Exception {
-    SystemService systemService = SystemService.parse(which);
+  public void handle(int code) throws Exception {
+    SystemService systemService = SystemService.parse(code);
     switch (systemService) {
       case PRINT_INT:
-        ioHandler.obtainMessage(PRINT_INT.code, cpu.getRegisterFile().read("$a0")).sendToTarget();
+        ioHandler
+            .obtainMessage(PRINT_INT.code, cpu.getGprFileArray().getFile(4).readWord())
+            .sendToTarget();
         break;
 
       case PRINT_STRING:
         {
-          int arg = cpu.getRegisterFile().read("$a0"), c;
+          int arg = cpu.getGprFileArray().getFile(4).readWord(), c;
           StringBuilder builder = new StringBuilder();
-          while ((c = memory.read(arg++)) != 0) {
+          Memory layout = assembler.getLayout();
+
+          while ((c = layout.read(arg++)) != 0) {
             builder.append((char) c);
           }
           ioHandler.obtainMessage(PRINT_STRING.code, builder.toString()).sendToTarget();
@@ -365,17 +344,17 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         }
 
       case PRINT_CHAR:
-        int arg = cpu.getRegisterFile().read("$a0");
+        int arg = cpu.getGprFileArray().getFile(4).readWord();
         ioHandler.obtainMessage(PRINT_CHAR.code, (char) (arg)).sendToTarget();
         break;
 
       case PRINT_FLOAT:
-        float single = cop.registerFiles().getFile("$f12").readSingle();
+        float single = cpu.getFpuRegisterFileArray().getFile(12).readSingle();
         ioHandler.obtainMessage(PRINT_FLOAT.code, single).sendToTarget();
         break;
 
       case PRINT_DOUBLE:
-        double doubl = cop.registerFiles().getFile("$f12").readDouble();
+        double doubl = cpu.getFpuRegisterFileArray().getFile(12).readDouble();
         ioHandler.obtainMessage(PRINT_DOUBLE.code, doubl).sendToTarget();
         break;
 
@@ -383,7 +362,6 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         previousState = currentState;
         currentState = State.HALTED;
         ioHandler.obtainMessage(HALT.code).sendToTarget();
-        cpu.resetPC();
         break;
 
       case READ_INT: // Read int
@@ -411,12 +389,12 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
         break;
 
       default:
-        throw new Exception(String.format(Locale.getDefault(), "Service %d not supported!", which));
+        throw new Exception(String.format(Locale.getDefault(), "Service %d not supported!", code));
     }
   }
 
   private void transitionStateOnInput() {
-    if (cpu.getPC() >= instructionEndPos) {
+    if (cpu.getPc() >= instructionBoundary) {
       currentState = State.HALTED;
     }
 
@@ -433,7 +411,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   @Override
   public void onIntInput(int data) {
-    cpu.getRegisterFile().write("$v0", data);
+    cpu.getGprFileArray().getFile(2).writeWord(data);
     transitionStateOnInput();
   }
 
@@ -444,20 +422,22 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Syst
 
   @Override
   public void onFloatInput(float data) {
-    cop.registerFiles().getFile("$f0").writeSingle(data);
+    cpu.getFpuRegisterFileArray().getFile(0).writeSingle(data);
     transitionStateOnInput();
   }
 
   @Override
   public void onDoubleInput(double data) {
-    cop.registerFiles().getFile("$f0").writeDouble(data);
+    cpu.getFpuRegisterFileArray().getFile(0).writeDouble(data);
     transitionStateOnInput();
   }
 
   @Override
   public void onStringInput(String data) {
-    int address = cpu.getRegisterFile().read("$a0");
-    int length = cpu.getRegisterFile().read("$a1");
+    int address = cpu.getGprFileArray().getFile(4).readWord();
+    int length = cpu.getGprFileArray().getFile(5).readWord();
+
+    Memory memory = assembler.getLayout();
     for (int offset = 0; offset < length; offset++) {
       memory.store((byte) data.charAt(offset), address + offset);
     }

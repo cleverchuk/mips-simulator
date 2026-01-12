@@ -22,29 +22,44 @@
  * SOFTWARE.
  */
 
-package com.cleverchuk.mips.compiler.semantic.instruction;
+package com.cleverchuk.mips.simulator.binary;
 
-import com.cleverchuk.mips.compiler.parser.Node;
-import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.binary.Opcode;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
+import java.util.stream.Collectors;
+import org.junit.Test;
 
-public class ZeroOpAnalyzer implements Analyzer {
+public class OpcodeTest {
 
-  @Inject
-  public ZeroOpAnalyzer() {}
+  @Test
+  public void testNameDups() {
+    List<String> opcodeNames =
+        Arrays.stream(Opcode.values()).map(opcode -> opcode.name).collect(Collectors.toList());
 
-  @Override
-  public boolean analyze(Node opcodeKind) {
-    /*listing of zero operand opcode mnemonics
-     * nop
-     * syscall
-     * */
-    List<Node> children = opcodeKind.getChildren();
-    Node opcode = children.get(0);
-    return children.size() == 1
-        && (Opcode.NOP.same((String) opcode.getValue())
-            || Opcode.SYSCALL.same((String) opcode.getValue()));
+    List<String> duplicates =
+        opcodeNames.stream()
+            .filter(v -> Collections.frequency(opcodeNames, v) > 1)
+            .distinct()
+            .collect(Collectors.toList());
+
+    assertTrue(duplicates.isEmpty());
+  }
+
+  @Test
+  public void testName() {
+    List<Opcode> opcodeNames =
+        Arrays.stream(Opcode.values())
+            .filter(
+                opcode ->
+                    opcode.opcode == 0
+                        && opcode.format != InstructionFormat.IDIOM
+                        && opcode.partialEncoding == 0)
+            .collect(Collectors.toList());
+
+    opcodeNames.forEach(opcode -> System.out.println(opcode.name + " " + opcode.partialEncoding));
+    System.out.println("Total: " + opcodeNames.size());
   }
 }

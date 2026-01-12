@@ -32,7 +32,7 @@ public interface Memory {
    * @param offset which byte to read
    * @return byte read
    */
-  int read(int offset);
+  byte read(int offset);
 
   /**
    * reads a two bytes
@@ -40,7 +40,7 @@ public interface Memory {
    * @param offset where to start reading
    * @return bytes read
    */
-  int readHalf(int offset);
+  short readHalf(int offset);
 
   /**
    * reads four bytes

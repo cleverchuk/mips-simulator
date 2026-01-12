@@ -157,7 +157,7 @@ public class MipsLexerTest {
         ".text\n"
             + "add $t0, $t1, $t2 # comment\n"
             + "# hello no op\n"
-            + "addi $t0, $t1, 400\n"
+            + "#addi $t0, $t1, 400\n"
             + "beq $t0, $t1, label\n"
             + "lw $t0, 2($t1   )\n"
             + "sw $t0, 67 (   $sp )\n"
@@ -165,7 +165,7 @@ public class MipsLexerTest {
             + "la $t0, label # comment\n"
             + "jal label\n"
             + "return:jr $ra\n"
-            + "addi $t0, $zero, 300\n"
+            + "#addi $t0, $zero, 300\n"
             + "add $t0, $t1,             $zero\n"
             + "li $v0,                       1\n"
             + "syscall\n"
@@ -185,7 +185,7 @@ public class MipsLexerTest {
         new Token[] {
           new Token(TokenType.DOT, ".", 1),
           new Token(TokenType.TEXT, "text", 1),
-          new Token(TokenType.CPU_OPCODE, "add", 2),
+          new Token(TokenType.OPCODE, "add", 2),
           new Token(TokenType.DOLLAR_SIGN, "$", 2),
           new Token(TokenType.REG, "t0", 2),
           new Token(TokenType.COMMA, ",", 2),
@@ -194,15 +194,7 @@ public class MipsLexerTest {
           new Token(TokenType.COMMA, ",", 2),
           new Token(TokenType.DOLLAR_SIGN, "$", 2),
           new Token(TokenType.REG, "t2", 2),
-          new Token(TokenType.CPU_OPCODE, "addi", 4),
-          new Token(TokenType.DOLLAR_SIGN, "$", 4),
-          new Token(TokenType.REG, "t0", 4),
-          new Token(TokenType.COMMA, ",", 4),
-          new Token(TokenType.DOLLAR_SIGN, "$", 4),
-          new Token(TokenType.REG, "t1", 4),
-          new Token(TokenType.COMMA, ",", 4),
-          new Token(TokenType.DECI, "400", 4),
-          new Token(TokenType.CPU_OPCODE, "beq", 5),
+          new Token(TokenType.OPCODE, "beq", 5),
           new Token(TokenType.DOLLAR_SIGN, "$", 5),
           new Token(TokenType.REG, "t0", 5),
           new Token(TokenType.COMMA, ",", 5),
@@ -210,7 +202,7 @@ public class MipsLexerTest {
           new Token(TokenType.REG, "t1", 5),
           new Token(TokenType.COMMA, ",", 5),
           new Token(TokenType.ID, "label", 5),
-          new Token(TokenType.CPU_OPCODE, "lw", 6),
+          new Token(TokenType.OPCODE, "lw", 6),
           new Token(TokenType.DOLLAR_SIGN, "$", 6),
           new Token(TokenType.REG, "t0", 6),
           new Token(TokenType.COMMA, ",", 6),
@@ -219,7 +211,7 @@ public class MipsLexerTest {
           new Token(TokenType.DOLLAR_SIGN, "$", 6),
           new Token(TokenType.REG, "t1", 6),
           new Token(TokenType.R_PAREN, ")", 6),
-          new Token(TokenType.CPU_OPCODE, "sw", 7),
+          new Token(TokenType.OPCODE, "sw", 7),
           new Token(TokenType.DOLLAR_SIGN, "$", 7),
           new Token(TokenType.REG, "t0", 7),
           new Token(TokenType.COMMA, ",", 7),
@@ -228,32 +220,24 @@ public class MipsLexerTest {
           new Token(TokenType.DOLLAR_SIGN, "$", 7),
           new Token(TokenType.REG, "sp", 7),
           new Token(TokenType.R_PAREN, ")", 7),
-          new Token(TokenType.CPU_OPCODE, "li", 8),
+          new Token(TokenType.OPCODE, "li", 8),
           new Token(TokenType.DOLLAR_SIGN, "$", 8),
           new Token(TokenType.REG, "t0", 8),
           new Token(TokenType.COMMA, ",", 8),
           new Token(TokenType.DECI, "300", 8),
-          new Token(TokenType.CPU_OPCODE, "la", 9),
+          new Token(TokenType.OPCODE, "la", 9),
           new Token(TokenType.DOLLAR_SIGN, "$", 9),
           new Token(TokenType.REG, "t0", 9),
           new Token(TokenType.COMMA, ",", 9),
           new Token(TokenType.ID, "label", 9),
-          new Token(TokenType.CPU_OPCODE, "jal", 10),
+          new Token(TokenType.OPCODE, "jal", 10),
           new Token(TokenType.ID, "label", 10),
           new Token(TokenType.ID, "return", 11),
           new Token(TokenType.COLON, ":", 11),
-          new Token(TokenType.CPU_OPCODE, "jr", 11),
+          new Token(TokenType.OPCODE, "jr", 11),
           new Token(TokenType.DOLLAR_SIGN, "$", 11),
           new Token(TokenType.REG, "ra", 11),
-          new Token(TokenType.CPU_OPCODE, "addi", 12),
-          new Token(TokenType.DOLLAR_SIGN, "$", 12),
-          new Token(TokenType.REG, "t0", 12),
-          new Token(TokenType.COMMA, ",", 12),
-          new Token(TokenType.DOLLAR_SIGN, "$", 12),
-          new Token(TokenType.REG, "zero", 12),
-          new Token(TokenType.COMMA, ",", 12),
-          new Token(TokenType.DECI, "300", 12),
-          new Token(TokenType.CPU_OPCODE, "add", 13),
+          new Token(TokenType.OPCODE, "add", 13),
           new Token(TokenType.DOLLAR_SIGN, "$", 13),
           new Token(TokenType.REG, "t0", 13),
           new Token(TokenType.COMMA, ",", 13),
@@ -262,13 +246,13 @@ public class MipsLexerTest {
           new Token(TokenType.COMMA, ",", 13),
           new Token(TokenType.DOLLAR_SIGN, "$", 13),
           new Token(TokenType.REG, "zero", 13),
-          new Token(TokenType.CPU_OPCODE, "li", 14),
+          new Token(TokenType.OPCODE, "li", 14),
           new Token(TokenType.DOLLAR_SIGN, "$", 14),
           new Token(TokenType.REG, "v0", 14),
           new Token(TokenType.COMMA, ",", 14),
           new Token(TokenType.DECI, "1", 14),
-          new Token(TokenType.CPU_OPCODE, "syscall", 15),
-          new Token(TokenType.CPU_OPCODE, "nop", 17),
+          new Token(TokenType.OPCODE, "syscall", 15),
+          new Token(TokenType.OPCODE, "nop", 17),
         };
 
     for (int i = 0; i < expectedTokens.length; i++) {

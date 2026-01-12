@@ -34,22 +34,9 @@ import android.util.Log;
 import android.util.SparseIntArray;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import com.cleverchuk.mips.compiler.MipsCompiler;
-import com.cleverchuk.mips.compiler.codegen.CodeGenerator;
-import com.cleverchuk.mips.compiler.lexer.MipsLexer;
-import com.cleverchuk.mips.compiler.parser.ErrorRecorder;
-import com.cleverchuk.mips.compiler.parser.RecursiveDescentParser;
-import com.cleverchuk.mips.compiler.semantic.SemanticAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.FourOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.InstructionAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.OneOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.ThreeOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.TwoOpAnalyzer;
-import com.cleverchuk.mips.compiler.semantic.instruction.ZeroOpAnalyzer;
 import com.cleverchuk.mips.simulator.MipsSimulator;
-import com.cleverchuk.mips.simulator.cpu.CpuRegisterFile;
-import com.cleverchuk.mips.simulator.fpu.FpuRegisterFileArray;
-import com.cleverchuk.mips.simulator.mem.BigEndianMainMemory;
+import com.cleverchuk.mips.simulator.registers.FpuRegisterFileArray;
+import com.cleverchuk.mips.simulator.registers.GprRegisterFileArray;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,14 +50,14 @@ public class MipsSimulatorTest {
 
   private Context context;
 
-  private CpuRegisterFile registerFile;
+  private GprRegisterFileArray gprRegisterFileArray;
 
   private FpuRegisterFileArray fpuRegisterFileArray;
 
   private final String[] instructions = {
     ".text",
     "add $t0, $t1, $t2 # comment",
-    "addi $t0, $t1, 400",
+    "addiu $t0, $t1, 400",
     "beq $t0, $t1, label",
     "lw $t0, 2($t1   )",
     "sw $t0, 67 (   $sp )",
@@ -78,7 +65,7 @@ public class MipsSimulatorTest {
     "la $t0, label # comment",
     "jal label",
     "return:jr $ra",
-    "addi $t0, $zero, 300",
+    "addiu $t0, $zero, 300",
     "add $t0, $t1,             $zero",
     "li $v0,                       1",
     "syscall",
@@ -88,33 +75,10 @@ public class MipsSimulatorTest {
   @Before
   public void setup() throws Exception {
     context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-    RecursiveDescentParser parser =
-        new RecursiveDescentParser(
-            new MipsLexer(),
-            new SemanticAnalyzer(
-                new InstructionAnalyzer(
-                    new ZeroOpAnalyzer(),
-                    new OneOpAnalyzer(),
-                    new TwoOpAnalyzer(
-                        new TwoOpAnalyzer.LoadStoreAnalyzer(),
-                        new TwoOpAnalyzer.TwoRegOpcodeAnalyzer(),
-                        new TwoOpAnalyzer.BranchOpcodeAnalyzer()),
-                    new ThreeOpAnalyzer(
-                        new ThreeOpAnalyzer.ShiftRotateAnalyzer(),
-                        new ThreeOpAnalyzer.ConditionalTestingAndMoveAnalyzer(),
-                        new ThreeOpAnalyzer.ArithmeticAndLogicalOpcodeAnalyzer()),
-                    new FourOpAnalyzer())));
+    mipsSimulator = new MipsSimulator(new Handler(context.getMainLooper()), (byte) 0x2);
 
-    BigEndianMainMemory bigEndianMainMemory = new BigEndianMainMemory(1024);
-    mipsSimulator =
-        new MipsSimulator(
-            new Handler(context.getMainLooper()),
-            new MipsCompiler(parser, new CodeGenerator(bigEndianMainMemory)),
-            bigEndianMainMemory,
-            (byte) 0x2);
-
-    registerFile = mipsSimulator.getCpu().getRegisterFile();
-    fpuRegisterFileArray = (mipsSimulator.getCop()).registerFiles();
+    gprRegisterFileArray = mipsSimulator.getCpu().getGprFileArray();
+    fpuRegisterFileArray = mipsSimulator.getCpu().getFpuRegisterFileArray();
     mipsSimulator.start();
   }
 
@@ -145,12 +109,12 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(300, val);
-    val = registerFile.read("$s0");
+    val = gprRegisterFileArray.getFile(16).readWord();
 
     assertEquals(0, val);
-    val = registerFile.read("$s1");
+    val = gprRegisterFileArray.getFile(17).readWord();
     assertEquals(5, val);
   }
 
@@ -163,7 +127,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    int val = registerFile.read("$s1");
+    int val = gprRegisterFileArray.getFile(17).readWord();
     assertEquals(5, val);
   }
 
@@ -183,11 +147,11 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(300, val);
-    val = registerFile.read("$s0");
+    val = gprRegisterFileArray.getFile(16).readWord();
     assertEquals(0, val);
-    val = registerFile.read("$s1");
+    val = gprRegisterFileArray.getFile(17).readWord();
     assertEquals(5, val);
   }
 
@@ -199,17 +163,17 @@ public class MipsSimulatorTest {
       ".text",
       "li $t0, 300",
       "la $t1, label",
-      "lw $t2, 4($t1)",
+      "lw $t2, 2+2*4-6($t1)",
       "add $t0, $t0, $t2",
-      "sw $t0, 4($t1)"
+      "sw $t0, 2*4+2-6($t1)"
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(350, val);
-    val = registerFile.read("$t2");
+    val = gprRegisterFileArray.getFile(10).readWord();
     assertEquals(50, val);
   }
 
@@ -220,17 +184,17 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, registerFile.read("$s0"));
+    assertEquals(12, gprRegisterFileArray.getFile(16).readWord());
   }
 
   @Test
   public void testDiv() {
-    String[] instructions = {".text", "li $t0, 12", "li $t1, 4", "div $t0, $t1"};
+    String[] instructions = {".text", "li $t0, 12", "li $t1, 4", "div $t0, $t0, $t1"};
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(3, registerFile.accLO());
+    assertEquals(3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -240,18 +204,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(800, registerFile.read("$s1"));
-  }
-
-  @Test
-  public void testAddi() {
-    String[] instructions = {".text", "addi $t0, $t0, 300", "addi $s1, $t0, 54"};
-    mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
-    mipsSimulator.running();
-    while (mipsSimulator.isRunning())
-      ;
-    assertEquals(300, registerFile.read("$t0"));
-    assertEquals(354, registerFile.read("$s1"));
+    assertEquals(800, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -261,7 +214,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-1, registerFile.read("$s0"));
+    assertEquals(-1, gprRegisterFileArray.getFile(16).readWord());
   }
 
   @Test
@@ -271,7 +224,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-1, registerFile.read("$s0"));
+    assertEquals(-1, gprRegisterFileArray.getFile(16).readWord());
   }
 
   @Test
@@ -281,7 +234,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(800, registerFile.read("$s1"));
+    assertEquals(800, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -293,7 +246,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0, registerFile.read("$t0"));
+    assertEquals(0, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -303,8 +256,8 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(300, registerFile.read("$t0"));
-    assertEquals(354, registerFile.read("$s1"));
+    assertEquals(300, gprRegisterFileArray.getFile(8).readWord());
+    assertEquals(354, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -314,8 +267,8 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-5, registerFile.read("$t0"));
-    assertEquals(49, registerFile.read("$s1"));
+    assertEquals(-5, gprRegisterFileArray.getFile(8).readWord());
+    assertEquals(49, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -325,7 +278,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(800, registerFile.read("$s1"));
+    assertEquals(800, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -337,17 +290,17 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.MIN_VALUE, registerFile.read("$s1"));
+    assertEquals(Integer.MIN_VALUE, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
   public void testClo() {
-    String[] instructions = {".text", "addiu $t0, $t0, 10", "clo $s1, $t0"};
+    String[] instructions = {".text", "addiu $t0, $t0, -5", "clo $s1, $t0"};
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$s1"));
+    assertEquals(29, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -357,7 +310,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(31, registerFile.read("$s1"));
+    assertEquals(31, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -367,7 +320,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(300 << 16, registerFile.read("$s1"));
+    assertEquals(300 << 16, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -378,8 +331,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0, registerFile.read("$s1"));
-    assertTrue(ErrorRecorder.hasErrors());
+    assertEquals(464 << 16, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -389,7 +341,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(300, registerFile.read("$t0"));
+    assertEquals(300, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -399,7 +351,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-300, registerFile.read("$t0"));
+    assertEquals(-300, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -409,7 +361,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(300 << 3, registerFile.read("$t0"));
+    assertEquals(300 << 3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -419,8 +371,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0, registerFile.read("$t0"));
-    assertTrue(ErrorRecorder.hasErrors());
+    assertEquals(32, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -430,77 +381,63 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertTrue(registerFile.read("$t0") > 0);
+    assertTrue(gprRegisterFileArray.getFile(8).readWord() > 0);
   }
 
   @Test
   public void testBne() {
     String[] instructions = {
-      ".text", "li $t1, 1", "bne $t1, $t0, 1", "li $t0, 300", "addi $s1, $t0, 54"
+      ".text", "li $t1, 1", "bne $t1, $t0, 1", "li $t0, 300", "addiu $s1, $t0, 54"
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(54, registerFile.read("$s1"));
-  }
-
-  @Test
-  public void testBneWithInvalidNumber() {
-    String[] instructions = {
-      ".text", "li $t1, 1", "bne $t1, $t0, 131073", "li $t0, 300", "addi $s1, $t0, 54"
-    };
-    mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
-    mipsSimulator.running();
-
-    while (mipsSimulator.isRunning())
-      ;
-    assertEquals(0, registerFile.read("$s1"));
-    assertTrue(ErrorRecorder.hasErrors());
+    assertEquals(54, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
   public void testBeq() {
-    String[] instructions = {".text", "beq $t1, $t0, 1", "li $t0, 300", "addi $s1, $t0, 54"};
+    String[] instructions = {".text", "beq $t1, $t0, 1", "li $t0, 300", "addiu $s1, $t0, 54"};
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(54, registerFile.read("$s1"));
+    assertEquals(54, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
   public void testJ() {
-    String[] instructions = {".text", "j label", "li $t0, 300", "label: addi $s1, $t0, 54"};
+    String[] instructions = {".text", "j label", "li $t0, 300", "label: addiu $s1, $t0, 54"};
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(54, registerFile.read("$s1"));
+    assertEquals(54, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
   public void testJr() {
     String[] instructions = {
-      ".text", "jal label", "li $v0, 10", "syscall", "label: addi $s1, $t0, 54", "jr $ra"
+      ".text", "jal label", "li $v0, 10", "syscall", "label: addiu $s1, $t0, 54", "jr $ra"
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(54, registerFile.read("$s1"));
+    assertEquals(54, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
   public void testJal() {
     String[] instructions = {
-      ".text", "jal label", "li $v0, 10", "syscall", "label: addi $s1, $t0, 54", "jr $ra"
+      ".text", "jal label", "li $v0, 10", "syscall", "label: addiu $s1, $t0, 54", "jr $ra"
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(54, registerFile.read("$s1"));
+    assertEquals(54, gprRegisterFileArray.getFile(17).readWord());
   }
 
   @Test
@@ -510,7 +447,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(20, registerFile.read("$t0"));
+    assertEquals(20, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -520,7 +457,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(5, registerFile.read("$t0"));
+    assertEquals(5, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -530,7 +467,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(5, registerFile.read("$t0"));
+    assertEquals(5, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -540,7 +477,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$t0"));
+    assertEquals(1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -550,7 +487,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$t0"));
+    assertEquals(1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -560,7 +497,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$t0"));
+    assertEquals(1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -570,7 +507,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0, registerFile.read("$t0"));
+    assertEquals(0, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -580,7 +517,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0, registerFile.read("$t0"));
+    assertEquals(0, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -590,7 +527,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, registerFile.read("$t0"));
+    assertEquals(2, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -600,7 +537,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-4, registerFile.read("$t0"));
+    assertEquals(-4, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -610,7 +547,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-3, registerFile.read("$t0"));
+    assertEquals(-3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -620,7 +557,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(3, registerFile.read("$t0"));
+    assertEquals(3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -630,7 +567,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(10, registerFile.read("$t0"));
+    assertEquals(10, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -640,7 +577,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$t0"));
+    assertEquals(1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -650,7 +587,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, registerFile.read("$t0"));
+    assertEquals(2, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -661,7 +598,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(17, registerFile.read("$t0"));
+    assertEquals(17, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -671,7 +608,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-15, registerFile.read("$t0"));
+    assertEquals(-15, gprRegisterFileArray.getFile(8).readWord());
 
     instructions = new String[] {".text", "li $t0, 15", "li $t1, 10", "ins $t0, $t1, 1, 3"};
 
@@ -679,7 +616,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(11, registerFile.read("$t0"));
+    assertEquals(11, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -704,12 +641,12 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(20, val);
-    val = registerFile.read("$t1");
+    val = gprRegisterFileArray.getFile(9).readWord();
 
     assertEquals(21, val);
-    val = registerFile.read("$t2");
+    val = gprRegisterFileArray.getFile(10).readWord();
     assertEquals(22, val);
   }
 
@@ -718,6 +655,8 @@ public class MipsSimulatorTest {
     String[] instructions = {
       ".data",
       "bytes: .byte 1, 2, 3, 4, 5",
+      "string: .ascii \"hello word\"",
+      "space: .space 10",
       ".text",
       "la $t4, bytes",
       "lb $t0, 0($t4)",
@@ -728,9 +667,9 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(1, val);
-    val = registerFile.read("$t1");
+    val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(5, val);
   }
 
@@ -748,10 +687,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    int val = registerFile.read("$t0");
+    int val = gprRegisterFileArray.getFile(8).readWord();
 
     assertTrue(val > 0);
-    val = registerFile.read("$t1");
+    val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(5, val);
   }
 
@@ -766,7 +705,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(258, val);
   }
 
@@ -781,14 +720,14 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(65282, val);
   }
 
   @Test
   public void testlwl() {
     String[] instructions = {
-      ".data", "bytes: .byte 0, 0, 0, 4, 5", ".text", "la $t4, bytes", "lwl $t0, 0($t4)",
+      ".data", "bytes: .byte 0, 0, 0, 4, 5", ".text", "la $t4, bytes", "lwl $t0, 2($t4)",
     };
 
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
@@ -796,14 +735,14 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
-    assertEquals(4, val);
+    long val = gprRegisterFileArray.getFile(8).readWord();
+    assertEquals(4 << 16, val);
   }
 
   @Test
   public void testlwr() {
     String[] instructions = {
-      ".data", "bytes: .byte 0, 0, 0, 4, 5", ".text", "la $t4, bytes", "lwr $t0, 0($t4)",
+      ".data", "bytes: .byte 0, 0, 0, 4, 5", ".text", "la $t4, bytes", "lwr $t0, 3($t4)",
     };
 
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
@@ -811,7 +750,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(4, val);
   }
 
@@ -832,7 +771,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(10, val);
   }
 
@@ -853,7 +792,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(10, val);
   }
 
@@ -864,7 +803,9 @@ public class MipsSimulatorTest {
       "bytes: .byte 1, 2, 3, 4, 5",
       ".text",
       "la $t4, bytes",
-      "li $t0, 10",
+      "li $t0, 1",
+      "sll $t0, $t0, 16",
+      "li $t1, 0",
       "swl $t0, 0($t4)",
       "lwl $t1, 0($t4)"
     };
@@ -874,8 +815,8 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t1");
-    assertEquals(10, val);
+    long val = gprRegisterFileArray.getFile(9).readWord();
+    assertEquals(65536, val);
   }
 
   @Test
@@ -895,7 +836,7 @@ public class MipsSimulatorTest {
     while (mipsSimulator.isRunning())
       ;
 
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(10, val);
   }
 
@@ -908,7 +849,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(5, val);
   }
 
@@ -927,7 +868,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(10, val);
   }
 
@@ -940,8 +881,8 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(10, registerFile.read("$t0"));
-    assertEquals(0, registerFile.read("$t4"));
+    assertEquals(10, gprRegisterFileArray.getFile(8).readWord());
+    assertEquals(0, gprRegisterFileArray.getFile(12).readWord());
   }
 
   @Test
@@ -952,9 +893,9 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(3, mipsSimulator.getPC());
-    long val = registerFile.read("$ra");
-    assertEquals(2, val);
+    assertEquals(16, mipsSimulator.getPC());
+    long val = gprRegisterFileArray.getFile(31).readWord();
+    assertEquals(8, val);
   }
 
   @Test
@@ -965,7 +906,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(6, mipsSimulator.getPC());
+    assertEquals(24, mipsSimulator.getPC());
 
     instructions = new String[] {".text", "li $t0, 1", "beqz $t0, 4"};
 
@@ -973,7 +914,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -984,7 +925,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions = new String[] {".text", "li $t0, -10", "bgez $t0, 10"};
 
@@ -992,7 +933,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1003,9 +944,9 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$ra");
-    assertEquals(3, val);
-    assertEquals(12, mipsSimulator.getPC());
+    long val = gprRegisterFileArray.getFile(31).readWord();
+    assertEquals(8, val);
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions = new String[] {".text", "li $t0, -10", "bgezal $t0, 10"};
 
@@ -1013,9 +954,9 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    val = registerFile.read("$ra");
-    assertEquals(3, val);
-    assertEquals(2, mipsSimulator.getPC());
+    val = gprRegisterFileArray.getFile(31).readWord();
+    assertEquals(8, val);
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1026,7 +967,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(22, mipsSimulator.getPC());
+    assertEquals(88, mipsSimulator.getPC());
 
     instructions = new String[] {".text", "li $t0, 0", "bgtz $t0, 20"};
 
@@ -1034,7 +975,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1046,7 +987,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions =
         new String[] {
@@ -1056,7 +997,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1068,7 +1009,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions =
         new String[] {
@@ -1078,7 +1019,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1090,7 +1031,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions =
         new String[] {
@@ -1100,7 +1041,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(48, mipsSimulator.getPC());
 
     instructions =
         new String[] {
@@ -1110,7 +1051,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, mipsSimulator.getPC());
+    assertEquals(8, mipsSimulator.getPC());
   }
 
   @Test
@@ -1122,47 +1063,46 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$ra");
-    assertEquals(3, val);
-    assertEquals(12, mipsSimulator.getPC());
+    long val = gprRegisterFileArray.getFile(31).readWord();
+    assertEquals(12, val);
+    assertEquals(52, mipsSimulator.getPC());
 
     instructions =
         new String[] {
-          ".text", "li $t0, 10", "bltzal $t0, 10",
+          ".text", "and $t0, $t0, $zero", "li $t0, 10", "bltzal $t0, 10",
         };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    val = registerFile.read("$ra");
-    assertEquals(3, val);
-    assertEquals(2, mipsSimulator.getPC());
+    val = gprRegisterFileArray.getFile(31).readWord();
+    assertEquals(12, val);
+    assertEquals(12, mipsSimulator.getPC());
   }
 
   @Test
   public void testjalr() {
     String[] instructions = {
-      ".text", "li $t0, 10", "jalr $t1, $t0",
+      ".text", "li $t0, 12", "jalr $t1, $t0",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(10, mipsSimulator.getPC());
-    assertEquals(3, registerFile.read("$t1"));
+    assertEquals(12, mipsSimulator.getPC());
+    assertEquals(12, gprRegisterFileArray.getFile(9).readWord());
   }
 
   @Test
   public void testdivu() {
     String[] instructions = {
-      ".text", "li $t0, -2", "li $t1, 2", "divu $t0, $t1",
+      ".text", "li $t0, -2", "li $t1, 2", "divu $t0, $t0, $t1",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) % 2, registerFile.accHI());
-    assertEquals(Integer.toUnsignedLong(-2) / 2, registerFile.accLO());
+    assertEquals(Integer.toUnsignedLong(-2) / 2, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1174,7 +1114,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-4, registerFile.getAccumulator());
+    assertEquals(
+        -4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1186,7 +1129,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * 2, registerFile.getAccumulator());
+    assertEquals(
+        Integer.toUnsignedLong(-2) * 2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1198,7 +1144,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(4, registerFile.getAccumulator());
+    assertEquals(
+        4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1210,7 +1159,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * -2, registerFile.getAccumulator());
+    assertEquals(
+        Integer.toUnsignedLong(-2) * -2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1222,7 +1174,10 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-4, registerFile.getAccumulator());
+    assertEquals(
+        -4,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
@@ -1234,31 +1189,34 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.toUnsignedLong(-2) * 2, registerFile.getAccumulator());
+    assertEquals(
+        Integer.toUnsignedLong(-2) * 2,
+        ((long) mipsSimulator.getCpu().getHi() << 32)
+            | (mipsSimulator.getCpu().getLo() & 0xFFFFFFFFL));
   }
 
   @Test
   public void testmfhi() {
     String[] instructions = {
-      ".text", "li $t0, 3", "li $t1, 2", "div $t0, $t1", "mfhi $t0",
+      ".text", "li $t0, 3", "li $t1, 2", "div $t0, $t0, $t1",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1, registerFile.read("$t0"));
+    assertEquals(1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
   public void testmflo() {
     String[] instructions = {
-      ".text", "li $t0, 4", "li $t1, 2", "div $t0, $t1", "mflo $t0",
+      ".text", "li $t0, 4", "li $t1, 2", "div $t0, $t0, $t1",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(2, registerFile.read("$t0"));
+    assertEquals(2, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1270,7 +1228,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-2, registerFile.accHI());
+    assertEquals(-2, mipsSimulator.getCpu().getHi());
   }
 
   @Test
@@ -1282,7 +1240,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-2, registerFile.accLO());
+    assertEquals(-2, mipsSimulator.getCpu().getLo());
   }
 
   @Test
@@ -1294,7 +1252,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(1073741824, registerFile.read("$t0"));
+    assertEquals(1073741824, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1306,7 +1264,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(Integer.MIN_VALUE, registerFile.read("$t0"));
+    assertEquals(Integer.MIN_VALUE, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1318,7 +1276,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-1, registerFile.read("$t0"));
+    assertEquals(-1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1330,7 +1288,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-1, registerFile.read("$t0"));
+    assertEquals(-1, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1342,7 +1300,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertTrue(registerFile.read("$t0") > 0);
+    assertTrue(gprRegisterFileArray.getFile(8).readWord() > 0);
   }
 
   @Test
@@ -1354,7 +1312,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-3, registerFile.read("$t0"));
+    assertEquals(-3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1366,7 +1324,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(-3, registerFile.read("$t0"));
+    assertEquals(-3, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1378,7 +1336,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(32768, registerFile.read("$t0"));
+    assertEquals(32768, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1390,7 +1348,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(1, val);
   }
 
@@ -1403,7 +1361,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(1, val);
   }
 
@@ -1422,7 +1380,7 @@ public class MipsSimulatorTest {
     mipsSimulator.running();
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t0");
+    long val = gprRegisterFileArray.getFile(8).readWord();
     assertEquals(2, val);
   }
 
@@ -1436,7 +1394,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f10").readDword();
+    long val = fpuRegisterFileArray.getFile(10).readDword();
     assertEquals(9, val);
   }
 
@@ -1450,7 +1408,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f10").readWord();
+    int val = fpuRegisterFileArray.getFile(10).readWord();
     assertEquals(5, val);
   }
 
@@ -1470,7 +1428,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f10").readDword();
+    long val = fpuRegisterFileArray.getFile(10).readDword();
     assertEquals(5, val);
   }
 
@@ -1490,7 +1448,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f10").readDword();
+    long val = fpuRegisterFileArray.getFile(10).readDword();
     assertEquals(5, val);
   }
 
@@ -1503,34 +1461,16 @@ public class MipsSimulatorTest {
 
       // load for first branch
       "la $t4, fps",
-      "lwc1 $f31, 0($t4)",
+      "lwc1 $f6, 0($t4)",
       "cfc1 $t0, $f0",
-
-      // load for second branch
-      "la $t4, fps",
-      "lwc1 $f31, 4($t4)",
-      "cfc1 $t1, $f26",
-
-      // load for third branch
-      "la $t4, fps",
-      "lwc1 $f31, 8($t4)",
-      "cfc1 $t2, $f28",
-
-      // load for fourth branch
-      "la $t4, fps",
-      "lwc1 $f31, 0($t4)",
-      "cfc1 $t3, $f31",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
 
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(5, registerFile.read("$t0"));
-    assertEquals(0x1004, registerFile.read("$t1"));
-
-    assertEquals(0x00000085, registerFile.read("$t2"));
-    assertEquals(5, registerFile.read("$t3"));
+    assertEquals(
+        4 /*$f0 is read-only with default value of 4*/, gprRegisterFileArray.getFile(8).readWord());
   }
 
   @Test
@@ -1542,34 +1482,34 @@ public class MipsSimulatorTest {
 
       // load for first branch
       "la $t4, fps",
-      "lwc1 $f31, 0($t4) # zero fcsr",
+      "lwc1 $f6, 0($t4) # zero fcsr",
       "lw $t0, 4($t4)",
-      "ctc1 $t0, $f26",
-      "cfc1 $t0, $f26",
+      "ctc1 $t0, $f4", // only 6 FCRs
+      "cfc1 $t0, $f4",
 
       // load for second branch
       "la $t4, fps",
-      "lwc1 $f31, 0($t4) # zero fcsr",
+      "lwc1 $f6, 0($t4) # zero fcsr",
       "lw $t1, 8($t4)",
-      "ctc1 $t1, $f28",
-      "cfc1 $t1, $f28",
+      "ctc1 $t1, $f2",
+      "cfc1 $t1, $f2",
 
       // load for third branch
       "la $t4, fps",
-      "lwc1 $f31, 0($t4) # zero fcsr",
+      "lwc1 $f6, 0($t4) # zero fcsr",
       "lw $t2, 12($t4)",
-      "ctc1 $t2, $f31",
-      "cfc1 $t2, $f31",
+      "ctc1 $t2, $f1",
+      "cfc1 $t2, $f1",
     };
     mipsSimulator.loadInstructions(toLineDelimited(instructions), new SparseIntArray());
     mipsSimulator.running();
 
     while (mipsSimulator.isRunning())
       ;
-    assertEquals(0x1004, registerFile.read("$t0"));
+    assertEquals(0x1004, gprRegisterFileArray.getFile(8).readWord());
 
-    assertEquals(0x00000081, registerFile.read("$t1"));
-    assertEquals(5, registerFile.read("$t2"));
+    assertEquals(0x00000081, gprRegisterFileArray.getFile(9).readWord());
+    assertEquals(5, gprRegisterFileArray.getFile(10).readWord());
   }
 
   @Test
@@ -1582,7 +1522,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(5, val);
   }
 
@@ -1601,7 +1541,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = registerFile.read("$t1");
+    long val = gprRegisterFileArray.getFile(9).readWord();
     assertEquals(1106247680, val);
   }
 
@@ -1615,7 +1555,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f10").readWord();
+    int val = fpuRegisterFileArray.getFile(10).readWord();
     assertEquals(5, val);
   }
 
@@ -1635,7 +1575,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f10").readDword();
+    long val = fpuRegisterFileArray.getFile(10).readDword();
     assertEquals(4294967297L, val);
   }
 
@@ -1655,7 +1595,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(5, val, 0.0);
   }
 
@@ -1675,7 +1615,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(5, val, 0.0);
   }
 
@@ -1697,7 +1637,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(-10, val, 0.0);
   }
 
@@ -1719,7 +1659,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(-10, val, 0.0);
   }
 
@@ -1741,7 +1681,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -1763,7 +1703,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -1783,7 +1723,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1803,7 +1743,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1823,7 +1763,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1843,7 +1783,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1863,7 +1803,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1883,7 +1823,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1903,7 +1843,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1923,7 +1863,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1943,7 +1883,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1963,7 +1903,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -1983,7 +1923,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2003,7 +1943,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2023,7 +1963,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2043,7 +1983,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2063,7 +2003,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2083,7 +2023,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2103,7 +2043,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertFalse(val);
   }
 
@@ -2123,7 +2063,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2143,7 +2083,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertFalse(val);
   }
 
@@ -2163,7 +2103,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readDouble() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readDouble() != 0;
     assertTrue(val);
   }
 
@@ -2185,7 +2125,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -2207,7 +2147,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -2227,7 +2167,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2247,7 +2187,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2267,7 +2207,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2287,7 +2227,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() == 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() == 0;
     assertTrue(val);
   }
 
@@ -2307,7 +2247,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2327,7 +2267,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2347,7 +2287,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2367,7 +2307,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2387,7 +2327,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2407,7 +2347,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2427,7 +2367,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2447,7 +2387,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2467,7 +2407,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2487,7 +2427,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2507,7 +2447,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2527,7 +2467,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2547,7 +2487,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertFalse(val);
   }
 
@@ -2567,7 +2507,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2587,7 +2527,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertFalse(val);
   }
 
@@ -2607,7 +2547,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    boolean val = fpuRegisterFileArray.getFile("$f10").readSingle() != 0;
+    boolean val = fpuRegisterFileArray.getFile(10).readSingle() != 0;
     assertTrue(val);
   }
 
@@ -2627,7 +2567,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(3.2, val, 0.0001);
   }
 
@@ -2647,7 +2587,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(3.2, val, 0.0001);
   }
 
@@ -2667,7 +2607,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(12.8, val, 0.0001);
   }
 
@@ -2687,7 +2627,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(12.8, val, 0.1);
   }
 
@@ -2701,7 +2641,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(-2.0, val, 0.0);
   }
 
@@ -2715,7 +2655,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(-2.0, val, 0.0);
   }
 
@@ -2729,7 +2669,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(2.0, val, 0.0);
   }
 
@@ -2743,7 +2683,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(2.0, val, 0.0);
   }
 
@@ -2763,7 +2703,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(2.0, val, 0.0);
   }
 
@@ -2783,7 +2723,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(1.0, val, 0.0);
   }
 
@@ -2797,7 +2737,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(0.25, val, 0.0);
   }
 
@@ -2816,7 +2756,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(0.250, val, 0.0);
   }
 
@@ -2830,7 +2770,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(0.5, val, 0.0);
   }
 
@@ -2849,7 +2789,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(0.50, val, 0.0);
   }
 
@@ -2869,7 +2809,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(20.0, val, 0.0);
   }
 
@@ -2889,7 +2829,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(20.0, val, 0.0);
   }
 
@@ -2909,7 +2849,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(-12.0, val, 0.0);
   }
 
@@ -2929,7 +2869,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(-12.0, val, 0.0);
   }
 
@@ -2949,7 +2889,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(6.9, val, 0.01);
   }
 
@@ -2969,7 +2909,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(6.9, val, 0.01);
   }
 
@@ -2989,7 +2929,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(-6.9, val, 0.01);
   }
 
@@ -3009,7 +2949,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(-6.9, val, 0.01);
   }
 
@@ -3029,7 +2969,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(4.0, val, 0.01);
   }
 
@@ -3049,7 +2989,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(4.0, val, 0.01);
   }
 
@@ -3069,7 +3009,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(4.0, val, 0.01);
   }
 
@@ -3089,7 +3029,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(4.0, val, 0.01);
   }
 
@@ -3103,7 +3043,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(4.0, val, 0.0);
   }
 
@@ -3117,7 +3057,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    double val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(4.0, val, 0.0);
   }
 
@@ -3131,7 +3071,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(4.0, val, 0.0);
   }
 
@@ -3150,7 +3090,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(4.0, val, 0.0);
   }
 
@@ -3164,7 +3104,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(4.0, val, 0.0);
   }
 
@@ -3183,7 +3123,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readSingle();
+    double val = fpuRegisterFileArray.getFile(11).readSingle();
     assertEquals(400.0, val, 0.0);
   }
 
@@ -3197,7 +3137,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(4, val);
   }
 
@@ -3216,7 +3156,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(40, val);
   }
 
@@ -3230,7 +3170,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(4, val);
   }
 
@@ -3249,7 +3189,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(40, val);
   }
 
@@ -3263,7 +3203,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f11").readSingle();
+    float val = fpuRegisterFileArray.getFile(11).readSingle();
     assertEquals(40.0, val, 0.0);
   }
 
@@ -3282,7 +3222,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(40.0, val, 0.0);
   }
 
@@ -3301,7 +3241,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(41, val);
   }
 
@@ -3320,7 +3260,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(41, val);
   }
 
@@ -3339,7 +3279,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(41, val);
   }
 
@@ -3358,7 +3298,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(41, val);
   }
 
@@ -3377,7 +3317,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(40, val);
   }
 
@@ -3396,7 +3336,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(40, val);
   }
 
@@ -3415,7 +3355,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(40, val);
   }
 
@@ -3434,7 +3374,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(40, val);
   }
 
@@ -3453,7 +3393,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(41, val);
   }
 
@@ -3472,7 +3412,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(41, val);
   }
 
@@ -3491,7 +3431,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(41, val);
   }
 
@@ -3510,7 +3450,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(41, val);
   }
 
@@ -3529,7 +3469,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(40, val);
   }
 
@@ -3548,7 +3488,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    long val = fpuRegisterFileArray.getFile("$f11").readDword();
+    long val = fpuRegisterFileArray.getFile(11).readDword();
     assertEquals(40, val);
   }
 
@@ -3567,7 +3507,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(40, val);
   }
 
@@ -3586,7 +3526,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    int val = fpuRegisterFileArray.getFile("$f11").readWord();
+    int val = fpuRegisterFileArray.getFile(11).readWord();
     assertEquals(40, val);
   }
 
@@ -3600,7 +3540,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f11").readSingle();
+    float val = fpuRegisterFileArray.getFile(11).readSingle();
     assertEquals(40.5, val, 0.0);
   }
 
@@ -3614,7 +3554,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(40.5, val, 0.0);
   }
 
@@ -3635,7 +3575,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(50.5, val, 0.0);
   }
 
@@ -3656,7 +3596,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(50.5, val, 0.0);
   }
 
@@ -3677,7 +3617,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -3698,7 +3638,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -3719,7 +3659,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    float val = fpuRegisterFileArray.getFile("$f10").readSingle();
+    float val = fpuRegisterFileArray.getFile(10).readSingle();
     assertEquals(40.5, val, 0.0);
   }
 
@@ -3740,7 +3680,7 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(0.0, val, 0.0);
   }
 
@@ -3761,10 +3701,10 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(0.0, val, 0.0);
 
-    val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(50.5, val, 0.0);
   }
 
@@ -3785,10 +3725,10 @@ public class MipsSimulatorTest {
 
     while (mipsSimulator.isRunning())
       ;
-    double val = fpuRegisterFileArray.getFile("$f11").readDouble();
+    double val = fpuRegisterFileArray.getFile(11).readDouble();
     assertEquals(0.0, val, 0.0);
 
-    val = fpuRegisterFileArray.getFile("$f10").readDouble();
+    val = fpuRegisterFileArray.getFile(10).readDouble();
     assertEquals(50.5, val, 0.0);
   }
 }

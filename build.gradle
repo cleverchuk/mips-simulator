@@ -12,7 +12,7 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
     ext {
-        versions = ["name": "1.4.2", "number": "1.4.2"]
+        versions = ["name": "2.0.0", "number": "2.0.0"]
     }
 }
 

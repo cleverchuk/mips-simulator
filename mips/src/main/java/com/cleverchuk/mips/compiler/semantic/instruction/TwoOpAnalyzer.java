@@ -27,7 +27,7 @@ package com.cleverchuk.mips.compiler.semantic.instruction;
 import com.cleverchuk.mips.compiler.parser.Construct;
 import com.cleverchuk.mips.compiler.parser.Node;
 import com.cleverchuk.mips.compiler.semantic.Analyzer;
-import com.cleverchuk.mips.simulator.cpu.CpuOpcode;
+import com.cleverchuk.mips.simulator.binary.Opcode;
 import java.util.List;
 import java.util.Objects;
 import javax.inject.Inject;
@@ -102,7 +102,8 @@ public class TwoOpAnalyzer implements Analyzer {
             .orElse(findNode(node, Construct.NEGCONSTANT).orElse(node))
             .getConstruct();
 
-    return children.get(1).getConstruct() == Construct.REGISTER
+    Construct construct1 = children.get(1).getConstruct();
+    return (construct1 == Construct.REGISTER || construct1 == Construct.OPERAND)
         && (construct == Construct.CONSTANT || construct == Construct.NEGCONSTANT);
   }
 
@@ -126,9 +127,34 @@ public class TwoOpAnalyzer implements Analyzer {
     public boolean analyze(Node opcodeKind) {
       List<Node> children = opcodeKind.getChildren();
       Node opcode = children.get(0);
-      switch (CpuOpcode.parse((String) opcode.getValue())) {
+      Opcode op = Opcode.parse((String) opcode.getValue());
+
+      switch (Objects.requireNonNull(op)) {
         default:
           return false;
+        case LA:
+        case CLO:
+        case SEB:
+        case MADD:
+        case MULT:
+        case MULTU:
+        case MADDU:
+        case MSUBU:
+        case LUI:
+        case JIC:
+        case JIALC:
+        case BITSWAP:
+        case LBE:
+        case CRC32B:
+        case CRC32CB:
+        case CRC32H:
+        case CRC32CH:
+        case CRC32W:
+        case CRC32CW:
+        case SCE:
+        case LLE:
+        case JALR_HB:
+          return true;
         case LB:
         case LBU:
         case LH:
@@ -151,7 +177,7 @@ public class TwoOpAnalyzer implements Analyzer {
 
     private boolean isValidMemAccess(List<Node> children, Node operand) {
       List<Node> operandChildren = operand.getChildren();
-      return Construct.REGISTER == children.get(1).getConstruct()
+      return Construct.OPERAND == children.get(1).getConstruct()
           && Construct.OPERAND == operand.getConstruct()
           && Construct.EXPR == operandChildren.get(0).getConstruct()
           && Construct.PARENREG == operandChildren.get(1).getConstruct();
@@ -170,7 +196,7 @@ public class TwoOpAnalyzer implements Analyzer {
       Construct construct = findNode(node, Construct.REGISTER).orElse(node).getConstruct();
 
       Node opcode = children.get(0);
-      switch (Objects.requireNonNull(CpuOpcode.parse((String) opcode.getValue()))) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case DIV:
@@ -212,7 +238,7 @@ public class TwoOpAnalyzer implements Analyzer {
               .getConstruct();
 
       Node opcode = children.get(0);
-      switch (CpuOpcode.parse((String) opcode.getValue())) {
+      switch (Objects.requireNonNull(Opcode.parse((String) opcode.getValue()))) {
         default:
           return false;
         case BEQZ:
