@@ -64,6 +64,8 @@ public class Assembler implements NodeVisitor {
 
   private final Map<String, Integer> symbolTable = new HashMap<>();
 
+  private final Map<String, Integer> pendingTextLabels = new HashMap<>();
+
   private final List<InstructionIR> irs = new ArrayList<>();
 
   public static Map<String, Opcode> opcodesMap =
@@ -94,8 +96,6 @@ public class Assembler implements NodeVisitor {
 
   private byte cLayout = 0; // inst = 01, data = 10
 
-  private boolean laSeen = false;
-
   private ArrayDeque<EncodingEmitObserver> observers = new ArrayDeque<>();
 
   @Override
@@ -110,7 +110,7 @@ public class Assembler implements NodeVisitor {
   public void visitLabel(Node node) {
     Node leftLeaf = getLeftLeaf(node);
     String label = leftLeaf.getValue().toString();
-    if (symbolTable.containsKey(label)) {
+    if (symbolTable.containsKey(label) || pendingTextLabels.containsKey(label)) {
       ErrorRecorder.recordError(
           ErrorRecorder.Error.builder()
               .msg("Reused of label : " + label)
@@ -119,11 +119,9 @@ public class Assembler implements NodeVisitor {
 
     } else {
       if ((cLayout & 1 /*instruction*/) > 0) {
-        symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset - 1) * 4);
-        if (laSeen) {
-          // LA produces additional instruction
-          symbolTable.put(label, textOffset + (leftLeaf.getLine() - sourceOffset) * 4);
-        }
+        // bind to the next instruction; the address is resolved during flush
+        // when the emitted width of each preceding instruction is known
+        pendingTextLabels.put(label, irs.size());
       }
 
       if ((cLayout & 2 /*data*/) > 0) {
@@ -140,9 +138,6 @@ public class Assembler implements NodeVisitor {
     opcode = newOpcode;
     regBitfield = opBitfield = posBitfield = 0;
     irBuilder = InstructionIR.builder().withOpcode(newOpcode);
-    if (newOpcode == Opcode.LA) {
-      laSeen = true;
-    }
   }
 
   @Override
@@ -268,7 +263,6 @@ public class Assembler implements NodeVisitor {
   @Override
   public void visitSegment(Node segment) {
     flush();
-    laSeen = false;
 
     if (textOffset > -1) { // set on text segment parsed
       textBoundary = index;
@@ -1121,8 +1115,51 @@ public class Assembler implements NodeVisitor {
   }
 
   private void flush() {
+    resolveTextLabels();
     for (InstructionIR ir : irs) {
       flushEncoding(ir);
+    }
+  }
+
+  private void resolveTextLabels() {
+    if (pendingTextLabels.isEmpty()) {
+      return;
+    }
+
+    int[] addresses = new int[irs.size() + 1];
+    int address = index;
+    for (int i = 0; i < irs.size(); i++) {
+      addresses[i] = address;
+      address += wordCount(irs.get(i)) * 4;
+    }
+    addresses[irs.size()] = address;
+
+    pendingTextLabels.forEach((label, irIndex) -> symbolTable.put(label, addresses[irIndex]));
+    pendingTextLabels.clear();
+  }
+
+  private int wordCount(InstructionIR ir) {
+    switch (ir.getOpcode()) {
+      case LA:
+      case ULW:
+      case USW:
+        return 2;
+      case SWC1:
+      case SDC1:
+      case LB:
+      case LBU:
+      case LDC1:
+      case LW:
+      case LWC1:
+      case LH:
+      case LHU:
+      case SW:
+      case SB:
+      case SH:
+        // label form expands to aui + ori before the memory access
+        return ir.getLabel() != null ? 3 : 1;
+      default:
+        return 1;
     }
   }
 
@@ -1136,6 +1173,7 @@ public class Assembler implements NodeVisitor {
     stackPointer = 0;
 
     textBoundary = 0;
+    pendingTextLabels.clear();
   }
 
   private int computePcRelativeOffset(int address) {
