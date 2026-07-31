@@ -14,7 +14,7 @@ loop:
 bnez $t2, 1          # If $t2 is not zero, continue to the next iteration of the loop
 
 j end                # Jump to the end of the program if $t2 is zero
-addi $t2, $t2, -8    # Decrement $t2 by 8 (move to the previous element)
+addiu $t2, $t2, -8    # Decrement $t2 by 8 (move to the previous element)
 add $t3, $t4, $t2    # Calculate the address of the current element of the array
 
 ldc1 $f10, 0($t3)    # Load the value of the current element into $f10
@@ -59,12 +59,12 @@ loop:
 beqz $t1, end_loop           # If length is zero, exit the loop
 ldc1 $f2, 0($t0)             # Load the double value at the current index of array into $f2
 mul.d $f1, $f1, $f2          # Multiply the product with the current element and store the result in $f1
-addi $t0, $t0, 8             # Increment the array pointer by 8 bytes (64 bits)
-addi $t1, $t1, -1            # Decrement the length by 1
+addiu $t0, $t0, 8             # Increment the array pointer by 8 bytes (64 bits)
+addiu $t1, $t1, -1            # Decrement the length by 1
 j loop                      # Jump back to the loop
 
 end_loop:
-addi $sp, $sp, -16           # Allocate space on the stack
+addiu $sp, $sp, -16           # Allocate space on the stack
 la $t1, length               # Load the address of length into $t1
 lw $t1, 0($t1)               # Load the value of length into $t1
 
@@ -92,7 +92,7 @@ ldc1 $f21, 0($sp)            # Load the number from the stack
 lw $t0, 8($sp)               # Load n from the stack
 
 pow_n_loop:
-addi $t0, $t0, -1            # Decrement n by 1
+addiu $t0, $t0, -1            # Decrement n by 1
 bnez $t0, pow_n_continue     # If n is not zero, continue
 mov.d $f12, $f21             # Move the result (ans) to the output register
 jr $ra                       # Return
@@ -124,7 +124,7 @@ j bs_exit                    # Jump to bs_exit
 
 add.d $f6, $f2, $f1          # Calculate low + high and store the result in $f6
 div.d $f7, $f6, $f8          # Calculate (low + high) / 2.0 and store the result in $f7
-addi $sp, $sp, -52           # Allocate space on the stack
+addiu $sp, $sp, -52           # Allocate space on the stack
 
 # Preserve registers
 sw $ra, 48($sp)
@@ -147,7 +147,7 @@ ldc1 $f1, 24($sp)            # Pop high from the stack
 ldc1 $f8, 16($sp)            # Pop 2.0 from the stack
 lw $t0, 8($sp)               # Pop n from the stack
 ldc1 $f7, 0($sp)             # Pop mid from the stack
-addi $sp, $sp, 52            # Deallocate space on the stack
+addiu $sp, $sp, 52            # Deallocate space on the stack
 
 cmp.lt.d $f9, $f12, $f10     # Compare pow_n(mid, n) with high and set the result in $f9
 bc1eqz $f9, 1                # If pow_n(mid, n) < high, jump to bs_low
@@ -214,7 +214,7 @@ li $t0, 1             # Load 1 into $t0
 loop:
 beqz $s1, exit     # Exit loop if n == 0
 mul $t0, $t0, $s0  # Multiply result by x
-addi $s1, $s1, -1    # Decrement n by 1
+addiu $s1, $s1, -1    # Decrement n by 1
 j loop             # Jump to loop label
 
 exit:
@@ -252,14 +252,14 @@ loop:
 # Compute the function value and its derivative at x0
 mul.s $f2, $f0, $f0     # Compute x0^2
 sub.s $f3, $f2, $f0     # Compute x0^2 - x0 (function value)
-addi $sp, $sp, -4      # Allocate space on the stack
+addiu $sp, $sp, -4      # Allocate space on the stack
 swc1 $f0, 0($sp)       # Store x0 on the stack
-addi $sp, $sp, -4      # Allocate space on the stack
+addiu $sp, $sp, -4      # Allocate space on the stack
 swc1 $f2, 0($sp)       # Store x0^2 on the stack
-addi $sp, $sp, -4      # Allocate space on the stack
+addiu $sp, $sp, -4      # Allocate space on the stack
 swc1 $f3, 0($sp)       # Store function value on the stack
 jal calculate_derivative # Jump to calculate_derivative function
-addi $sp, $sp, 12      # Deallocate the stack space
+addiu $sp, $sp, 12      # Deallocate the stack space
 
 # Calculate the new approximation using Newton's method
 div.s $f6, $f3, $f6   # Divide function value by derivative
