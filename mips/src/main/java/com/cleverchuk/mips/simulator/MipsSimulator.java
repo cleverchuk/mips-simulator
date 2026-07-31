@@ -230,6 +230,7 @@ public class MipsSimulator extends Thread implements TerminalInputListener, Inte
     cpu.setPc(assembler.getTextOffset());
     instructionBoundary = assembler.getTextBoundary();
 
+    cpu.getGprFileArray().getFile(29).writeWord(assembler.getStackPointer());
     if (!isPaused() && !ErrorRecorder.hasErrors()) {
       textSegmentOffset = compiler.textSegmentOffset();
       boolean hasTextSectionSpecified =
